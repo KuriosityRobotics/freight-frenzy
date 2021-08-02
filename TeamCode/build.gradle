@@ -16,6 +16,8 @@ apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
 dependencies {
+    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
