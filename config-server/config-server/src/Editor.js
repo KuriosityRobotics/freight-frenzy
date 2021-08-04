@@ -18,6 +18,7 @@ export function Editor(props) {
     async function onSave() {
         await fetch(`${server}/configurations/${name}/save`, {method: "POST", body: data})
         await fetch(`${server}/configurations/${name}/activate`, {method: "POST"})
+        props.updateHook()
     }
 
     function updateDataJSON(field, value) {
