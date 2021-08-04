@@ -11,9 +11,15 @@ import spark.Filter;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -23,20 +29,51 @@ public class Configurator {
     private static final String CONFIG_FOLDER_NAME = "configurations";
     private static final String CONFIG_FOLDER_PREFIX = CONFIG_FOLDER_NAME + "/";
 
+    private static Object loadObject(Class<?> type, Toml config, String path) {
+        if (type == long.class || type == Long.class)
+            return config.getLong(path);
+        else if (type == int.class || type == Integer.class)
+            return config.getLong(path).intValue();
+        else if (type == BigInteger.class)
+            return BigInteger.valueOf(config.getLong(path));
+        else if (type == float.class || type == Float.class)
+            return config.getDouble(path).floatValue();
+        else if (type == double.class || type == Double.class)
+            return config.getDouble(path);
+        else if (type == BigDecimal.class)
+            return BigDecimal.valueOf(config.getDouble(path));
+        else if (type == String.class)
+            return config.getString(path);
+        else if (type == URI.class)
+            return URI.create(config.getString(path));
+        else if (type == URL.class) {
+            try {
+                return new URL(config.getString(path));
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+        } else if (type == char.class || type == Character.class)
+            return config.getString(path).charAt(0);
+        else if (type == List.class)
+            return config.getList(path);
+        return config.to(type);
+    }
+
     /**
      * It is possible that a non-static field could be annotated with the @Config annotation.  In this case, you need to manually
      * pass Object instances to configure, as they are dynamically created and can't be as easily discovered as in static methods.
      * The only main use case of this is probably for setting default values in instances.
+     *
      * @param configPath
      * @param modules
      */
     public static void loadConfig(String configPath, Object modules[]) {
-        Map<String, Object> toml = new Toml().read(new File(configPath)).toMap();
+        var toml = new Toml().read(new File(configPath));
 
         for (Object module : modules) {
             Arrays.stream(module.getClass().getDeclaredFields()).filter(n -> n.isAnnotationPresent(Config.class)).forEach(field -> {
                 try {
-                    field.set(module, toml.get(field.getAnnotation(Config.class).configName()));
+                    field.set(module, loadObject(field.getType(), toml, field.getAnnotation(Config.class).configName()));
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -49,7 +86,8 @@ public class Configurator {
      * The configurator is capable of automatically loading config variables for static fields annotated with the @Config annotation.
      * Specify the base package name (for us, com.kuriosityrobotics works fine), and pass in the config location.
      * You can run this right when the JVM starts up, and it will have no performance impact once the load is complete.
-     * @param configPath A path to a TOML file to get the config values from.
+     *
+     * @param configPath  A path to a TOML file to get the config values from.
      * @param packageName The base package to discover configurable classes in.
      */
     public static void loadConfigFieldsStatic(String configPath, String packageName) {
@@ -59,27 +97,43 @@ public class Configurator {
                 .filterInputsBy(new FilterBuilder().includePackage(packageName))
 
         ).getFieldsAnnotatedWith(Config.class);
-        Map<String, Object> toml = new Toml().read(new File(configPath)).toMap();
+        var toml = new Toml().read(new File(configPath));
 
         for (Field field : fields) {
+            var value = loadObject(field.getType(), toml, field.getAnnotation(Config.class).configName());
             try {
-                field.set(null, toml.get(field.getAnnotation(Config.class).configName()));
+                field.set(null, value);
             } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (IllegalArgumentException e) {
+                System.err.printf("Value %s invalid for field %s\n", value, field.getName());
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
         }
     }
 
+    public static void printConfigVariables(Object obj) {
+        Arrays.stream(obj.getClass().getDeclaredFields()).filter(n -> n.isAnnotationPresent(Config.class)).forEach(field -> {
+            try {
+                System.out.printf("%s=%s\n", field.getAnnotation(Config.class).configName(), field.get(obj));
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
     public static void main(String[] args) throws IOException {
         loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
-        System.out.println(new TestModule().coeff);
+        System.out.println(new TestModule().coeffA);
         runServer(new TestModule());
     }
 
     /**
      * This runs a server on port 4567 which allows you to modify config files and hot reload them through a web interface.
      * The server is optional, and the loadConfig and loadConfigFieldsStatic methods will work regardless of whether it's running or not.
+     *
      * @param args
      * @throws IOException
      */
@@ -103,7 +157,6 @@ public class Configurator {
             }
         });
         post("/configurations/:name/save", (req, res) -> {
-            System.out.println(req.body());
             Files.writeString(Path.of(CONFIG_FOLDER_PREFIX + req.params("name")), req.body());
             return String.format("Updated config %s.", req.params("name"));
         });
@@ -111,6 +164,9 @@ public class Configurator {
             String configName = CONFIG_FOLDER_PREFIX + req.params("name");
             loadConfig(configName, args);
             loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
+
+            for (Object arg : args)
+                printConfigVariables(arg);
             return String.format("(re)loaded config %s.", configName);
         });
 
