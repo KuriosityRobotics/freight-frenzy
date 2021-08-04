@@ -23,6 +23,13 @@ public class Configurator {
     private static final String CONFIG_FOLDER_NAME = "configurations";
     private static final String CONFIG_FOLDER_PREFIX = CONFIG_FOLDER_NAME + "/";
 
+    /**
+     * It is possible that a non-static field could be annotated with the @Config annotation.  In this case, you need to manually
+     * pass Object instances to configure, as they are dynamically created and can't be as easily discovered as in static methods.
+     * The only main use case of this is probably for setting default values in instances.
+     * @param configPath
+     * @param modules
+     */
     public static void loadConfig(String configPath, Object modules[]) {
         Map<String, Object> toml = new Toml().read(new File(configPath)).toMap();
 
@@ -37,6 +44,14 @@ public class Configurator {
         }
     }
 
+
+    /**
+     * The configurator is capable of automatically loading config variables for static fields annotated with the @Config annotation.
+     * Specify the base package name (for us, com.kuriosityrobotics works fine), and pass in the config location.
+     * You can run this right when the JVM starts up, and it will have no performance impact once the load is complete.
+     * @param configPath A path to a TOML file to get the config values from.
+     * @param packageName The base package to discover configurable classes in.
+     */
     public static void loadConfigFieldsStatic(String configPath, String packageName) {
         var fields = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(packageName))
@@ -57,12 +72,17 @@ public class Configurator {
     }
 
     public static void main(String[] args) throws IOException {
-
         loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
         System.out.println(new TestModule().coeff);
         runServer(new TestModule());
     }
 
+    /**
+     * This runs a server on port 4567 which allows you to modify config files and hot reload them through a web interface.
+     * The server is optional, and the loadConfig and loadConfigFieldsStatic methods will work regardless of whether it's running or not.
+     * @param args
+     * @throws IOException
+     */
     public static void runServer(Object... args) throws IOException {
         new File("configurations").mkdir();
         if (!new File("configurations/mainconfig.toml").exists())
@@ -90,6 +110,7 @@ public class Configurator {
         post("/configurations/:name/activate", (req, res) -> {
             String configName = CONFIG_FOLDER_PREFIX + req.params("name");
             loadConfig(configName, args);
+            loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
             return String.format("(re)loaded config %s.", configName);
         });
 
