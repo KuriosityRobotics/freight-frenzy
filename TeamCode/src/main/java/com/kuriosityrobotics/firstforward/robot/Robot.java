@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot;
 import com.kuriosityrobotics.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.actions.ActionsThread;
 import com.kuriosityrobotics.firstforward.robot.actions.ClawState;
+import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 
@@ -17,7 +18,7 @@ public class Robot {
             new VisionThread(configLocation)
     };
     public static void run() throws IOException {
-        Configurator.loadConfigFieldsStatic(configLocation, "com.kuriosityrobotics");
+        Configurator.runServer();
         System.out.println(new ClawState(null, null).CLAW_DISTANCE);
     }
 

@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.configuration;
+package com.kuriosityrobotics.firstforward.robot.configuration;
 
 public class TestModule implements Module{
     @Config(configName = "testmodule.coeffa")

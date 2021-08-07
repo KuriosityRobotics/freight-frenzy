@@ -943,7 +943,7 @@ Changes include:
  * Added getCallbackCount() to I2cDevice.
  * Added missing clearI2cPortActionFlag.
  * Added code to create log messages while waiting for LinearOpMode shutdown.
- * Fix so Wifi Direct com.kuriosityrobotics.configuration.Config activity will no longer launch multiple times.
+ * Fix so Wifi Direct com.kuriosityrobotics.firstforward.robot.configuration.Config activity will no longer launch multiple times.
  * Added the ability to specify an alternate i2c address in software for the Modern Robotics gyro.
 
 ## Release 16.02.09
@@ -1017,7 +1017,7 @@ Changes include:
   - More explicit messages during USB failures.
   - Fixed bug so that USB device is closed if event loop teardown method was not called.
  * Fixed timer UI issue
- * Fixed duplicate name UI bug (Legacy com.kuriosityrobotics.configuration.Module configuration).
+ * Fixed duplicate name UI bug (Legacy com.kuriosityrobotics.firstforward.robot.configuration.Module configuration).
  * Fixed race condition in EventLoopManager.
  * Fix to keep references stable when updating gamepad.
  * For legacy Matrix motor/servo controllers removed necessity of appending "Motor" and "Servo" to controller names.
@@ -1054,6 +1054,6 @@ Changes include:
  * A new LinearOpMode class is introduced.
    - Teams can use the LinearOpMode mode to create a linear (not event driven) program model.
    - Teams can use blocking statements like Thread.sleep() within a linear op mode.
- * The API for the Legacy com.kuriosityrobotics.configuration.Module and Core Device Interface com.kuriosityrobotics.configuration.Module have been updated.
-   - Support for encoders with the Legacy com.kuriosityrobotics.configuration.Module is now working.
+ * The API for the Legacy com.kuriosityrobotics.firstforward.robot.configuration.Module and Core Device Interface com.kuriosityrobotics.firstforward.robot.configuration.Module have been updated.
+   - Support for encoders with the Legacy com.kuriosityrobotics.firstforward.robot.configuration.Module is now working.
  * The hardware loop has been updated for better performance.

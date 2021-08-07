@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.configuration;
+package com.kuriosityrobotics.firstforward.robot.configuration;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

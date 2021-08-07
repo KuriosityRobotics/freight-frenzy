@@ -15,8 +15,19 @@
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
+android {
+    aaptOptions {
+        noCompress 'tflite'
+    }
+}
+
 dependencies {
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+    implementation("com.sparkjava:spark-core:2.9.3")
+    // https://mvnrepository.com/artifact/org.reflections/reflections
+    implementation("org.reflections:reflections:0.9.12")
+
+    implementation 'com.android.support:multidex:1.0.3'
 
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')

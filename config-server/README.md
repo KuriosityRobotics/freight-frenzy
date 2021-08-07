@@ -1,2 +1,0 @@
-to set up a server, call com.kuriosityrobotics.configuration.Configurator.runServer and pass in your modules you want to be configured
-otherwise, just call loadConfig with the path (ie "configurations/mainconfig.toml") and the modules you want to be configured.  use the @com.kuriosityrobotics.configuration.Config annotation and pass in configName like `@com.kuriosityrobotics.configuration.Config( configName = "lemon.think")`.  configNames refer to the toml element you want;  [this page](https://github.com/mwanji/toml4j) has a bunch of examples

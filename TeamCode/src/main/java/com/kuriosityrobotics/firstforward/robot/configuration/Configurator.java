@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.configuration;
+package com.kuriosityrobotics.firstforward.robot.configuration;
 
 import com.moandjiezana.toml.Toml;
 import org.reflections.Reflections;
@@ -7,6 +7,7 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 import spark.Filter;
+import spark.Spark;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static spark.Spark.*;
@@ -134,7 +134,7 @@ public class Configurator {
      * This runs a server on port 4567 which allows you to modify config files and hot reload them through a web interface.
      * The server is optional, and the loadConfig and loadConfigFieldsStatic methods will work regardless of whether it's running or not.
      *
-     * @param args
+     * @param args Non-static objects to configure.
      * @throws IOException
      */
     public static void runServer(Object... args) throws IOException {
@@ -144,23 +144,24 @@ public class Configurator {
 
 
         loadConfig("configurations/mainconfig.toml", args);
+        loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
 
-        staticFiles.location("/build");
-        get("/configurations", (req, res) ->
+        Spark.staticFiles.location("/build");
+        Spark.get("/configurations", (req, res) ->
                 Arrays.stream(new File(CONFIG_FOLDER_NAME).listFiles()).map(File::getName).collect(Collectors.joining(","))
         );
-        get("/configurations/:name", (req, res) -> {
+        Spark.get("/configurations/:name", (req, res) -> {
             try {
                 return Files.readAllBytes(Path.of(CONFIG_FOLDER_PREFIX + req.params("name")));
             } catch (Exception e) {
                 return "";
             }
         });
-        post("/configurations/:name/save", (req, res) -> {
+        Spark.post("/configurations/:name/save", (req, res) -> {
             Files.writeString(Path.of(CONFIG_FOLDER_PREFIX + req.params("name")), req.body());
             return String.format("Updated config %s.", req.params("name"));
         });
-        post("/configurations/:name/activate", (req, res) -> {
+        Spark.post("/configurations/:name/activate", (req, res) -> {
             String configName = CONFIG_FOLDER_PREFIX + req.params("name");
             loadConfig(configName, args);
             loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
@@ -170,7 +171,7 @@ public class Configurator {
             return String.format("(re)loaded config %s.", configName);
         });
 
-        after((Filter) (request, response) -> {
+        Spark.after((Filter) (request, response) -> {
             response.header("Access-Control-Allow-Origin", "*");
             response.header("Access-Control-Allow-Methods", "*");
         });

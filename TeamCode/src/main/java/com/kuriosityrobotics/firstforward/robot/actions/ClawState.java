@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.actions;
 
-import com.kuriosityrobotics.configuration.Config;
+import com.kuriosityrobotics.firstforward.robot.configuration.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.robot.Robot;
 

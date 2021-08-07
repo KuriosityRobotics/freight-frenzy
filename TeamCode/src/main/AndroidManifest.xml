@@ -7,6 +7,8 @@
 <!-- The package name here determines the package for your R class and your BuildConfig class -->
 <manifest
     package="com.kuriosityrobotics.firstforward.robot"
+    android:name="android.support.multidex.MultiDexApplication"
+
     xmlns:android="http://schemas.android.com/apk/res/android">
     <application/>
 </manifest>
