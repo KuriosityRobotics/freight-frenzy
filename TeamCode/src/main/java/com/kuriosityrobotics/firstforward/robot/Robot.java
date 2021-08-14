@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.actions.ActionsThread;
 import com.kuriosityrobotics.firstforward.robot.actions.ClawState;
 import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;

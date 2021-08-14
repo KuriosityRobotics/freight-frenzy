@@ -31,4 +31,9 @@ dependencies {
 
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    // https://mvnrepository.com/artifact/org.opencv/opencv-android
+    implementation ('org.opencv:opencv-android:1.0.1')
+    implementation( 'de.esoco:coroutines:0.9.1')
+
+
 }
