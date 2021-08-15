@@ -37,3 +37,9 @@ dependencies {
 
     implementation 'com.google.ar:core:1.25.0'
 }
+
+
+configurations.all { // because ftc does not know how to use maven
+    exclude group: 'com.google.code.gson'
+    exclude group: 'org.slf4j'
+}

@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -152,13 +153,13 @@ public class Configurator {
         );
         Spark.get("/configurations/:name", (req, res) -> {
             try {
-                return Files.readAllBytes(Path.of(CONFIG_FOLDER_PREFIX + req.params("name")));
+                return Files.readAllBytes(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")));
             } catch (Exception e) {
                 return "";
             }
         });
         Spark.post("/configurations/:name/save", (req, res) -> {
-            Files.writeString(Path.of(CONFIG_FOLDER_PREFIX + req.params("name")), req.body());
+            Files.write(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")), req.bodyAsBytes());
             return String.format("Updated config %s.", req.params("name"));
         });
         Spark.post("/configurations/:name/activate", (req, res) -> {
