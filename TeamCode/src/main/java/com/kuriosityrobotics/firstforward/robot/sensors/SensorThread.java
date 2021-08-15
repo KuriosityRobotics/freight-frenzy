@@ -1,11 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import com.kuriosityrobotics.configuration.Configurator;
+import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 
 import java.util.ArrayList;
 
 public class SensorThread implements Runnable {
     private final String configLocation;
+
     private final ArrayList<SensorTick> ticks = new ArrayList<>();
 
     public SensorThread(String configLocation) {
