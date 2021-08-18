@@ -33,17 +33,17 @@ public class VisionThread implements Runnable {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
-            VuforiaLocalizer lem = ClassFactory.getInstance().createVuforia(new VuforiaLocalizer.Parameters());
-            lem.getFrameOnce(Continuation.create(ThreadPool.getDefault(), mon -> {
+        VuforiaLocalizer lem = ClassFactory.getInstance().createVuforia(new VuforiaLocalizer.Parameters());
 
+        while (!Thread.interrupted()) {
+            lem.getFrameOnce(Continuation.create(ThreadPool.getDefault(), mon -> {
                 lem.convertFrameToBitmap(mon);
                 Mat mat = new Mat();
                 Bitmap bmp32 = lem.convertFrameToBitmap(mon).copy(Bitmap.Config.ARGB_8888, true);
                 Utils.bitmapToMat(bmp32, mat);
 
 
-                var coro = first(consume((CameraConsumer consumer) -> { // sheeeeeeesh!
+                var coro = first(consume((CameraConsumer consumer) -> { //!!
                     var m = mat.clone();
                     consumer.processFrame(m);
                     m.release(); // c++ moment
@@ -51,7 +51,7 @@ public class VisionThread implements Runnable {
                 CoroutineScope.launch(scope ->
                         consumers.forEach(consumer -> coro.runAsync(scope, consumer)));
 
-                mat.clone();
+                mat.release();
 
             }));
         }
