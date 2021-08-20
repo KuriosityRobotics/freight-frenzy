@@ -8,6 +8,7 @@ import java.io.IOException;
 
 public class Robot {
     public final static boolean WILL_FILE_DUMP = true;
+    private final static String configLocation = "configurations/mainconfig.toml";
 
     private Module[] modules;
 
@@ -15,6 +16,8 @@ public class Robot {
 
     public Robot() {
         modules = new Module[]{};
+
+        start();
     }
 
     public void start() {
@@ -22,8 +25,6 @@ public class Robot {
 
         moduleThread.start();
     }
-
-    private final static String configLocation = "configurations/mainconfig.toml";
 
     public static void run() throws IOException {
         Configurator.runServer();

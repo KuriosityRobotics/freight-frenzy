@@ -1,4 +1,19 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
-public class TeleOp {
+import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+public class TeleOp extends LinearOpMode {
+    Robot robot;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+        robot = new Robot();
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+            // yeet
+        }
+    }
 }
