@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
  * from the hubs.
  */
-public class ModuleThread extends Thread  {
+public class ModuleThread implements Runnable  {
 
     final boolean SHOW_UPDATE_SPEED = true;
 
@@ -21,7 +21,6 @@ public class ModuleThread extends Thread  {
     public ModuleThread(Robot robot) {
 //        robot.telemetryDump.registerProvider(this);
         this.robot = robot;
-        setName("Module Thread");
     }
 
     /**

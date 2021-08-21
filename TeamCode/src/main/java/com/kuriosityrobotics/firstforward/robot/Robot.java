@@ -12,6 +12,7 @@ public class Robot {
 
     private Module[] modules;
 
+    private Thread[] threads;
     private ModuleThread moduleThread;
 
     public Robot() {
@@ -21,9 +22,13 @@ public class Robot {
     }
 
     public void start() {
-        moduleThread = new ModuleThread(this);
+        threads = new Thread[]{
+                new Thread(new ModuleThread(this))
+        };
 
-        moduleThread.start();
+        for (Thread thread : threads) {
+            thread.start();
+        }
     }
 
     public static void run() throws IOException {
