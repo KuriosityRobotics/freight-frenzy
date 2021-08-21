@@ -8,7 +8,6 @@ import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +15,7 @@ import java.util.stream.Collectors;
 
 import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
+import de.esoco.coroutine.step.CodeExecution;
 
 public class SensorThread implements Runnable {
     private static final Coroutine<SensorTick, Void> tickCoroutine = first(consume(SensorTick::tick));
@@ -23,15 +23,18 @@ public class SensorThread implements Runnable {
     private final String configLocation;
     private final Robot robot;
 
-    public static odo odo;
-    private final SensorTick[] ticks;
+    public static OdoSensors odoSensors;
+    private final OdoProcessing odoProcessing;
+
+    private final Object[] ticks; // jsut for filedump
 
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
         this.configLocation = configLocation;
 
-        odo = new odo(robot);
-        this.ticks = new SensorTick[]{odo};
+        odoSensors = new OdoSensors(robot);
+        odoProcessing = new OdoProcessing(robot);
+        this.ticks = new Object[]{odoSensors};
     }
 
 
@@ -42,9 +45,7 @@ public class SensorThread implements Runnable {
         while (!Thread.interrupted()) {
             CoroutineScope.launch( // Will block until all coroutines launched within this scope are done.
                     scope -> {
-                        for (var tick : ticks) {
-                            tickCoroutine.runAsync(scope, tick);
-                        }
+                        first(CodeExecution.supply(odoSensors::tick)).then(consume(odoProcessing::process)).runAsync(scope);
                     }
             );
         }

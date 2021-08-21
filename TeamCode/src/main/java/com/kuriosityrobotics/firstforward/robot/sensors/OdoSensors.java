@@ -4,7 +4,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-public class odo extends SensorTick {
+public class OdoSensors {
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
@@ -13,16 +13,18 @@ public class odo extends SensorTick {
     private volatile int yRightEncoderPosition = -1;
     private volatile int mecanumEncoderPosition = -1;
 
-    public odo(Robot robot) {
+    public OdoSensors(Robot robot) {
         yLeftEncoder = robot.getHardware("fLeft");
         yRightEncoder = robot.getHardware("fRight");
         mecanumEncoder = robot.getHardware("bLeft");
     }
 
-    void tick() {
+    OdoSensorData tick() {
         yLeftEncoderPosition = yLeftEncoder.getCurrentPosition();
         yRightEncoderPosition = yRightEncoder.getCurrentPosition();
         mecanumEncoderPosition = mecanumEncoder.getCurrentPosition();
+
+        return new OdoSensorData(yLeftEncoderPosition, yRightEncoderPosition, mecanumEncoderPosition);
     }
 
     public int getYLeftEncoderPosition() {
