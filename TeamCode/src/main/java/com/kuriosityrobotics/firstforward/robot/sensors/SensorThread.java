@@ -6,7 +6,13 @@ import static de.esoco.coroutine.step.CodeExecution.*;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
@@ -42,5 +48,26 @@ public class SensorThread implements Runnable {
                     }
             );
         }
+    }
+
+    // reflection my beloved
+    public HashMap<Class<?>, Map<String, String>> getSensorFields() {
+        HashMap<Class<?>, Map<String, String>> map = new HashMap<>();
+        for (var sensorTickable : ticks) {
+            map.put(sensorTickable.getClass(),
+                    Arrays.stream(sensorTickable.getClass().getFields())
+                            .filter(field -> (field.getModifiers() & Modifier.VOLATILE) != 0) // assume volatile variables are buffered sensor values :lemonthink:
+                            .collect(Collectors.toMap(Field::getName, n -> {
+                                try {
+                                    n.setAccessible(true);
+                                    return n.get(sensorTickable).toString();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
+                                return null;
+                            })));
+        }
+
+        return map;
     }
 }
