@@ -1,12 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import android.util.Log;
-
-import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -74,5 +72,10 @@ public class Robot {
 
     public boolean isStopRequested() {
         return linearOpMode.isStopRequested();
+    }
+
+    @SuppressWarnings("unchecked") // intellij projecting
+    public <T extends HardwareDevice> T getHardware(String name) { // generics poggers
+        return (T) this.linearOpMode.hardwareMap.get(name);
     }
 }
