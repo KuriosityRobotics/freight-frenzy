@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 
@@ -40,8 +41,8 @@ public class ModuleThread implements Runnable  {
 //                robot.fileDump.doTick();
 //            }
         }
-        System.out.println("Module executor thread exited due to opMode no longer being active.");
 
+        Log.i("ModuleThread", "Exited due to opMode no longer being active.");
     }
 
 //    @Override
