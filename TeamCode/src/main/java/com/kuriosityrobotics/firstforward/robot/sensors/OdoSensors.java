@@ -19,7 +19,7 @@ public class OdoSensors {
         mecanumEncoder = robot.getHardware("bLeft");
     }
 
-    OdoSensorData tick() {
+    OdoSensorData get() {
         yLeftEncoderPosition = yLeftEncoder.getCurrentPosition();
         yRightEncoderPosition = yRightEncoder.getCurrentPosition();
         mecanumEncoderPosition = mecanumEncoder.getCurrentPosition();
