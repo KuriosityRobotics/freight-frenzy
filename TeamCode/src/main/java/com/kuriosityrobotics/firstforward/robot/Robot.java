@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 
@@ -23,11 +24,24 @@ public class Robot {
 
     public final LinearOpMode linearOpMode;
 
+    public final LynxModule revHub1;
+    public final LynxModule revHub2;
+
     public Robot(Telemetry telemetry, LinearOpMode linearOpMode) {
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
         this.linearOpMode = linearOpMode;
 
         modules = new Module[]{};
+
+        try {
+            revHub1 = getHardware("Expansion Hub 173");
+            revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            revHub2 = getHardware("Expansion Hub 2");
+            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        } catch (Exception e) {
+            linearOpMode.stop();
+            throw new Error("One or more of the REV hubs could not be found. More info: " + e);
+        }
 
         start();
     }

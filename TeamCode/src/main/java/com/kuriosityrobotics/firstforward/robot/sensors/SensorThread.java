@@ -1,10 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static de.esoco.coroutine.Coroutine.*;
+import static de.esoco.coroutine.CoroutineScope.launch;
 import static de.esoco.coroutine.step.CodeExecution.*;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
+import com.qualcomm.hardware.lynx.LynxModule;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -14,11 +16,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import de.esoco.coroutine.Coroutine;
-import de.esoco.coroutine.CoroutineScope;
-import de.esoco.coroutine.step.CodeExecution;
 
 public class SensorThread implements Runnable {
-    private static final Coroutine<SensorTick, Void> tickCoroutine = first(consume(SensorTick::tick));
+    private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
 
     private final String configLocation;
     private final Robot robot;
@@ -43,11 +43,12 @@ public class SensorThread implements Runnable {
         Configurator.loadConfig(configLocation, ticks);
 
         while (!Thread.interrupted()) {
-            CoroutineScope.launch( // Will block until all coroutines launched within this scope are done.
-                    scope -> {
-                        first(CodeExecution.supply(odoSensors::tick)).then(consume(odoProcessing::process)).runAsync(scope);
-                    }
-            );
+            launch(scope -> {
+                bulkDataCoroutine.runAsync(scope, robot.revHub1);
+                bulkDataCoroutine.runAsync(scope, robot.revHub2);
+            });
+
+            odoProcessing.process(odoSensors.get());
         }
     }
 
