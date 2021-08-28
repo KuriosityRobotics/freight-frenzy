@@ -9,14 +9,10 @@ public class TelemetryDump {
     private final Telemetry telemetry;
     private boolean debug;
 
-    private static final ArrayList<Telemeter> telemeters = new ArrayList<>();
+    private final ArrayList<Telemeter> telemeters = new ArrayList<>();
 
-    public static void registerTelemeter(Telemeter telemeter) {
+    public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
-    }
-
-    public static void clearTelemeters() {
-        telemeters.clear();
     }
 
     public TelemetryDump(Telemetry telemetry, boolean debug) {
