@@ -1,9 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -20,8 +23,11 @@ public class Robot {
 
     public final TelemetryDump telemetryDump;
 
-    public Robot(Telemetry telemetry) {
+    public final LinearOpMode linearOpMode;
+
+    public Robot(Telemetry telemetry, LinearOpMode linearOpMode) {
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        this.linearOpMode = linearOpMode;
 
         modules = new Module[]{};
 
@@ -39,7 +45,7 @@ public class Robot {
     }
 
     public static void run() throws IOException {
-        Configurator.runServer();
+//        Configurator.runServer();
     }
 
     public static void main(String[] args) throws IOException {
@@ -53,10 +59,20 @@ public class Robot {
             }
         }
 
+//        Log.v("robot", String.valueOf(linearOpMode.isStopRequested()));
+
         telemetryDump.update();
     }
 
+    public boolean isStarted() {
+        return linearOpMode.isStarted();
+    }
+
     public boolean isOpModeActive() {
-        return isOpModeActive();
+        return linearOpMode.opModeIsActive();
+    }
+
+    public boolean isStopRequested() {
+        return linearOpMode.isStopRequested();
     }
 }
