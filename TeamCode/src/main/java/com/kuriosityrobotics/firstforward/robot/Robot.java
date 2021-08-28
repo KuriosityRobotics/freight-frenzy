@@ -18,7 +18,7 @@ public class Robot {
     private Thread[] threads;
     private ModuleThread moduleThread;
 
-    private TelemetryDump telemetryDump;
+    public final TelemetryDump telemetryDump;
 
     public Robot(Telemetry telemetry) {
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
