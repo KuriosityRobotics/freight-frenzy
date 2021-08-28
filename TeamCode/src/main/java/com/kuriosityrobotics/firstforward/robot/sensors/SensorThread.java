@@ -26,7 +26,6 @@ public class SensorThread implements Runnable {
     public static OdoSensors odoSensors;
     private final OdoProcessing odoProcessing;
 
-    private final Object[] ticks; // jsut for filedump
 
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
@@ -34,14 +33,11 @@ public class SensorThread implements Runnable {
 
         odoSensors = new OdoSensors(robot);
         odoProcessing = new OdoProcessing(robot);
-        this.ticks = new Object[]{odoSensors};
     }
 
 
     @Override
     public void run() {
-        Configurator.loadConfig(configLocation, ticks);
-
         while (!Thread.interrupted()) {
             launch(scope -> {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
@@ -52,24 +48,4 @@ public class SensorThread implements Runnable {
         }
     }
 
-    // reflection my beloved
-    public HashMap<Class<?>, Map<String, String>> getSensorFields() {
-        HashMap<Class<?>, Map<String, String>> map = new HashMap<>();
-        for (var sensorTickable : ticks) {
-            map.put(sensorTickable.getClass(),
-                    Arrays.stream(sensorTickable.getClass().getFields())
-                            .filter(field -> (field.getModifiers() & Modifier.VOLATILE) != 0) // assume volatile variables are buffered sensor values :lemonthink:
-                            .collect(Collectors.toMap(Field::getName, n -> {
-                                try {
-                                    n.setAccessible(true);
-                                    return n.get(sensorTickable).toString();
-                                } catch (IllegalAccessException e) {
-                                    e.printStackTrace();
-                                }
-                                return null;
-                            })));
-        }
-
-        return map;
-    }
 }
