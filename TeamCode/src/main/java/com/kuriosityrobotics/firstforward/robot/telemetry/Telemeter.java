@@ -23,4 +23,12 @@ public interface Telemeter {
             }
         }));
     }
+
+    default ArrayList<String> getTelemetryData() {
+        return new ArrayList<String>();
+    }
+
+    String getName();
+
+    boolean isOn();
 }

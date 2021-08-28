@@ -3,11 +3,14 @@ package com.kuriosityrobotics.firstforward.robot;
 import com.kuriosityrobotics.firstforward.robot.configuration.Configurator;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
+import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.io.IOException;
 
 public class Robot {
-    public final static boolean WILL_FILE_DUMP = true;
+    public final static boolean DEBUG = false;
     private final static String configLocation = "configurations/mainconfig.toml";
 
     private Module[] modules;
@@ -15,7 +18,11 @@ public class Robot {
     private Thread[] threads;
     private ModuleThread moduleThread;
 
-    public Robot() {
+    private TelemetryDump telemetryDump;
+
+    public Robot(Telemetry telemetry) {
+        telemetryDump = new TelemetryDump(telemetry, DEBUG);
+
         modules = new Module[]{};
 
         start();
@@ -45,6 +52,8 @@ public class Robot {
                 module.update();
             }
         }
+
+        telemetryDump.update();
     }
 
     public boolean isOpModeActive() {
