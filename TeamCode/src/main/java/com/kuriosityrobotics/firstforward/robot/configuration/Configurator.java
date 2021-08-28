@@ -6,8 +6,6 @@ import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
-import spark.Filter;
-import spark.Spark;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,8 +21,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static spark.Spark.*;
 
 public class Configurator {
     private static final String CONFIG_FOLDER_NAME = "configurations";
@@ -128,7 +124,7 @@ public class Configurator {
     public static void main(String[] args) throws IOException {
         loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
         System.out.println(new TestModule().coeffA);
-        runServer(new TestModule());
+//        runServer(new TestModule());
     }
 
     /**
@@ -138,45 +134,45 @@ public class Configurator {
      * @param args Non-static objects to configure.
      * @throws IOException
      */
-    public static void runServer(Object... args) throws IOException {
-        new File("configurations").mkdir();
-        if (!new File("configurations/mainconfig.toml").exists())
-            new File("configurations/mainconfig.toml").createNewFile();
-
-
-        loadConfig("configurations/mainconfig.toml", args);
-        loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
-
-        Spark.staticFiles.location("/build");
-        Spark.get("/configurations", (req, res) ->
-                Arrays.stream(new File(CONFIG_FOLDER_NAME).listFiles()).map(File::getName).collect(Collectors.joining(","))
-        );
-        Spark.get("/configurations/:name", (req, res) -> {
-            try {
-                return Files.readAllBytes(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")));
-            } catch (Exception e) {
-                return "";
-            }
-        });
-        Spark.post("/configurations/:name/save", (req, res) -> {
-            Files.write(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")), req.bodyAsBytes());
-            return String.format("Updated config %s.", req.params("name"));
-        });
-        Spark.post("/configurations/:name/activate", (req, res) -> {
-            String configName = CONFIG_FOLDER_PREFIX + req.params("name");
-            loadConfig(configName, args);
-            loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
-
-            for (Object arg : args)
-                printConfigVariables(arg);
-            return String.format("(re)loaded config %s.", configName);
-        });
-
-        Spark.after((Filter) (request, response) -> {
-            response.header("Access-Control-Allow-Origin", "*");
-            response.header("Access-Control-Allow-Methods", "*");
-        });
-
-
-    }
+//    public static void runServer(Object... args) throws IOException {
+//        new File("configurations").mkdir();
+//        if (!new File("configurations/mainconfig.toml").exists())
+//            new File("configurations/mainconfig.toml").createNewFile();
+//
+//
+//        loadConfig("configurations/mainconfig.toml", args);
+//        loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
+//
+//        Spark.staticFiles.location("/build");
+//        Spark.get("/configurations", (req, res) ->
+//                Arrays.stream(new File(CONFIG_FOLDER_NAME).listFiles()).map(File::getName).collect(Collectors.joining(","))
+//        );
+//        Spark.get("/configurations/:name", (req, res) -> {
+//            try {
+//                return Files.readAllBytes(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")));
+//            } catch (Exception e) {
+//                return "";
+//            }
+//        });
+//        Spark.post("/configurations/:name/save", (req, res) -> {
+//            Files.write(Paths.get(CONFIG_FOLDER_PREFIX + req.params("name")), req.bodyAsBytes());
+//            return String.format("Updated config %s.", req.params("name"));
+//        });
+//        Spark.post("/configurations/:name/activate", (req, res) -> {
+//            String configName = CONFIG_FOLDER_PREFIX + req.params("name");
+//            loadConfig(configName, args);
+//            loadConfigFieldsStatic("configurations/mainconfig.toml", "com.kuriosityrobotics");
+//
+//            for (Object arg : args)
+//                printConfigVariables(arg);
+//            return String.format("(re)loaded config %s.", configName);
+//        });
+//
+//        Spark.after((Filter) (request, response) -> {
+//            response.header("Access-Control-Allow-Origin", "*");
+//            response.header("Access-Control-Allow-Methods", "*");
+//        });
+//
+//
+//    }
 }
