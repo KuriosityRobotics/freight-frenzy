@@ -39,6 +39,9 @@ public class TelemetryDump {
                         msg.append(line).append("\n");
                     }
                 }
+
+                // newline for every section
+                msg.append("\n");
             }
         }
 
