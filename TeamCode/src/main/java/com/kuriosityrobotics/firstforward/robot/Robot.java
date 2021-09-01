@@ -6,6 +6,7 @@ import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -51,6 +52,14 @@ public class Robot {
     public void start() {
         for (Thread thread : threads) {
             thread.start();
+        }
+    }
+
+    public DcMotor getDcMotor(String name) {
+        try {
+            return hardwareMap.dcMotor.get(name);
+        } catch (IllegalArgumentException exception) {
+            throw new Error("Motor with name " + name + " could not be found. Exception: " + exception);
         }
     }
 
