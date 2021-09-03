@@ -64,11 +64,11 @@ public class Configurator {
      * @param configPath
      * @param modules
      */
-    public static void loadConfig(String configPath, Object modules[]) {
+    public static void loadConfig(String configPath, Object[] modules) {
         var toml = new Toml().read(new File(configPath));
 
         for (Object module : modules) {
-            Arrays.stream(module.getClass().getDeclaredFields()).filter(n -> n.isAnnotationPresent(Config.class)).forEach(field -> {
+            Arrays.stream(module.getClass().getDeclaredFields()).filter(field -> field.isAnnotationPresent(Config.class)).forEach(field -> {
                 try {
                     field.set(module, loadObject(field.getType(), toml, field.getAnnotation(Config.class).configName()));
                 } catch (IllegalAccessException e) {
@@ -100,8 +100,6 @@ public class Configurator {
             var value = loadObject(field.getType(), toml, field.getAnnotation(Config.class).configName());
             try {
                 field.set(null, value);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
             } catch (IllegalArgumentException e) {
                 System.err.printf("Value %s invalid for field %s\n", value, field.getName());
             } catch (Exception e) {
@@ -112,7 +110,7 @@ public class Configurator {
     }
 
     public static void printConfigVariables(Object obj) {
-        Arrays.stream(obj.getClass().getDeclaredFields()).filter(n -> n.isAnnotationPresent(Config.class)).forEach(field -> {
+        Arrays.stream(obj.getClass().getDeclaredFields()).filter(field -> field.isAnnotationPresent(Config.class)).forEach(field -> {
             try {
                 System.out.printf("%s=%s\n", field.getAnnotation(Config.class).configName(), field.get(obj));
             } catch (IllegalAccessException e) {

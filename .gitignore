@@ -4,6 +4,12 @@
 *.ap_
 *.aab
 
+#intellij
+.idea/
+
+#java crashes
+*.hprof
+
 !libs/*.aar
 
 # Files for the ART/Dalvik VM
