@@ -5,6 +5,7 @@ import static de.esoco.coroutine.CoroutineScope.launch;
 import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
@@ -37,7 +38,7 @@ public class SensorThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
-        while (!Thread.interrupted()) {
+        while (robot.running()) {
             launch(scope -> {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
                 bulkDataCoroutine.runAsync(scope, robot.revHub2);
@@ -49,6 +50,8 @@ public class SensorThread implements Runnable, Telemeter {
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
+
+        Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
     @Override
