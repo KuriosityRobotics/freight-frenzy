@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class Odometry implements Telemeter {
-    private final Robot robot;
-
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
@@ -21,13 +19,11 @@ public class Odometry implements Telemeter {
     private int lastMecanum;
 
     public Odometry(Robot robot) {
-        this.robot = robot;
-
         robot.telemetryDump.registerTelemeter(this);
 
-        yLeftEncoder = robot.getHardware("fLeft");
-        yRightEncoder = robot.getHardware("fRight");
-        mecanumEncoder = robot.getHardware("bLeft");
+        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
+        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
+        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
     }
 
     void process() {

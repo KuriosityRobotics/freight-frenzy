@@ -13,10 +13,10 @@ import java.util.ArrayList;
  * from the hubs.
  */
 public class ModuleThread implements Runnable, Telemeter {
-    final boolean SHOW_UPDATE_SPEED = true;
+    static final boolean SHOW_UPDATE_SPEED = true;
 
-    Robot robot;
-    private Module[] modules;
+    private final Robot robot;
+    private final Module[] modules;
 
     private long updateDuration = 0;
     private long timeOfLastUpdate = 0;

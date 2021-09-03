@@ -22,7 +22,7 @@ import de.esoco.coroutine.CoroutineScope;
 public class VisionThread implements Runnable {
     private final String configLocation;
     private final Robot robot;
-    LinkedBlockingQueue<CameraConsumer> consumers = new LinkedBlockingQueue<>(); // lmao
+    private final LinkedBlockingQueue<CameraConsumer> consumers = new LinkedBlockingQueue<>(); // lmao
 
     public VisionThread(String configLocation, Robot robot) {
         this.configLocation = configLocation;
@@ -47,9 +47,9 @@ public class VisionThread implements Runnable {
 
 
                 var coro = first(consume((CameraConsumer consumer) -> { //!!
-                    var m = mat.clone();
-                    consumer.processFrame(m);
-                    m.release(); // c++ moment
+                    var matCopy = mat.clone();
+                    consumer.processFrame(matCopy);
+                    matCopy.release(); // c++ moment
                 }));
                 CoroutineScope.launch(scope ->
                         consumers.forEach(consumer -> coro.runAsync(scope, consumer)));

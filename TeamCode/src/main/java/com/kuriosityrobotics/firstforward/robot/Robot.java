@@ -9,9 +9,11 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import javassist.NotFoundException;
+
 public class Robot {
-    public final static boolean DEBUG = false;
-    private final static String configLocation = "configurations/mainconfig.toml";
+    private static final boolean DEBUG = false;
+    private static final String configLocation = "configurations/mainconfig.toml";
 
 
     private final Thread[] threads;
@@ -19,12 +21,12 @@ public class Robot {
     public final TelemetryDump telemetryDump;
 
     public final HardwareMap hardwareMap;
-    public final LinearOpMode linearOpMode;
+    private final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws NotFoundException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
@@ -34,9 +36,8 @@ public class Robot {
             revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
             revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
             revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        } catch (Exception e) {
-            linearOpMode.stop();
-            throw new Error("One or more of the REV hubs could not be found. More info: " + e);
+        } catch (RuntimeException e) {
+            throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
         threads = new Thread[]{
