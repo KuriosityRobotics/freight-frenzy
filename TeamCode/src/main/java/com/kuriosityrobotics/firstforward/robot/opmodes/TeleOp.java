@@ -12,6 +12,7 @@ public class TeleOp extends LinearOpMode {
         robot = new Robot(hardwareMap, telemetry, this);
 
         waitForStart();
+        robot.start();
 
         while (opModeIsActive()) {
             // yeet

@@ -5,6 +5,7 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import android.graphics.Bitmap;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.CameraConsumer;
 import com.qualcomm.robotcore.util.ThreadPool;
 
@@ -20,10 +21,12 @@ import de.esoco.coroutine.CoroutineScope;
 
 public class VisionThread implements Runnable {
     private final String configLocation;
+    private final Robot robot;
     LinkedBlockingQueue<CameraConsumer> consumers = new LinkedBlockingQueue<>(); // lmao
 
-    public VisionThread(String configLocation) {
+    public VisionThread(String configLocation, Robot robot) {
         this.configLocation = configLocation;
+        this.robot = robot;
     }
 
     public void registerConsumer(CameraConsumer consumer) {
@@ -35,7 +38,7 @@ public class VisionThread implements Runnable {
     public void run() {
         VuforiaLocalizer lem = ClassFactory.getInstance().createVuforia(new VuforiaLocalizer.Parameters());
 
-        while (!Thread.interrupted()) {
+        while (robot.running()) {
             lem.getFrameOnce(Continuation.create(ThreadPool.getDefault(), mon -> {
                 lem.convertFrameToBitmap(mon);
                 Mat mat = new Mat();

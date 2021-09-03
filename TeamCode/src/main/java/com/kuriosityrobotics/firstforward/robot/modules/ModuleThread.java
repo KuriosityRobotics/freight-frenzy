@@ -16,26 +16,32 @@ public class ModuleThread implements Runnable, Telemeter {
     final boolean SHOW_UPDATE_SPEED = true;
 
     Robot robot;
+    private Module[] modules;
 
-    private long updateTime = 0;
-    private long lastUpdateTime = 0;
+    private long updateDuration = 0;
+    private long timeOfLastUpdate = 0;
 
     public ModuleThread(Robot robot) {
         this.robot = robot;
+        this.modules = new Module[]{};
 
         robot.telemetryDump.registerTelemeter(this);
     }
 
     /**
-     * Gets all modules from robot, then runs update on them.
+     * Calls .update() on all modules and telemetryDump while `robot.running()` is true.
      */
     public void run() {
-        while (!robot.isStopRequested() && (!robot.isStarted() || robot.isOpModeActive())) {
-            robot.update();
+        while (robot.running()) {
+            for (Module module : modules)
+                if (module.isOn())
+                    module.update();
+
+            robot.telemetryDump.update();
 
             long currentTime = SystemClock.elapsedRealtime();
-            updateTime = currentTime - lastUpdateTime;
-            lastUpdateTime = currentTime;
+            updateDuration = currentTime - timeOfLastUpdate;
+            timeOfLastUpdate = currentTime;
         }
 
         Log.v("ModuleThread", "Exited due to opMode no longer being active.");
@@ -55,7 +61,7 @@ public class ModuleThread implements Runnable, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("Update time: " + updateTime);
+        data.add("Update time: " + updateDuration);
 
         return data;
     }
