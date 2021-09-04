@@ -7,6 +7,7 @@ import javassist.NotFoundException;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+
     @Override
     public void runOpMode() throws InterruptedException {
         Robot robot;
@@ -15,13 +16,18 @@ public class TeleOp extends LinearOpMode {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (NotFoundException e) {
             this.stop();
-            return;
+            throw new RuntimeException(e);
         }
 
         waitForStart();
         robot.start();
 
         while (opModeIsActive()) {
+            if (gamepad1.a)
+                robot.blockerModule.setCurrentState(robot.blockerModule.OpenFlap());
+            else if (gamepad1.b)
+                robot.blockerModule.setCurrentState(robot.blockerModule.CloseFlap());
+
             // yeet
         }
     }
