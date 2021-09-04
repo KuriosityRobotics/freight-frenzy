@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.modules.BlockerModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -19,9 +18,6 @@ public class Robot {
 
     private final Thread[] threads;
     private final Module[] modules;
-
-    public final BlockerModule blockerModule;
-
 
     public final TelemetryDump telemetryDump;
 
@@ -45,9 +41,7 @@ public class Robot {
             throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
-
-        this.blockerModule = new BlockerModule(this);
-        modules = new Module[]{blockerModule};
+        modules = new Module[]{};
         threads = new Thread[]{
                 new Thread(new SensorThread(this, configLocation)),
                 new Thread(new ModuleThread(this, this.modules))
