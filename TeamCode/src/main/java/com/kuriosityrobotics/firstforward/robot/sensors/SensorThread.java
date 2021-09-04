@@ -44,7 +44,7 @@ public class SensorThread implements Runnable, Telemeter {
                 bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
 
-            odometry.process();
+            odometry.update();
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
