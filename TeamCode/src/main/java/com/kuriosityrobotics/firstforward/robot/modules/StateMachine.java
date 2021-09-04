@@ -2,19 +2,15 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import android.os.SystemClock;
 
+import de.esoco.lib.datatype.Tuple;
+
 public class StateMachine {
-    public interface State {
-        public void execute();
+    private State target;
+    private boolean forceTarget = false;
 
-        public long blockDuration();
-    }
-
-    State target;
-    boolean forceTarget = false;
-
-    long completeTime = 0;
-    State lastState;
-    State lastUpdateTarget;
+    private long completeTime = 0;
+    private State lastState;
+    private State lastUpdateTarget;
 
     public void update() {
         long currentTime = SystemClock.elapsedRealtime();
@@ -25,9 +21,9 @@ public class StateMachine {
 
         if (forceTarget || currentTime > completeTime) {
             if (lastUpdateTarget == null || lastUpdateTarget != target) {
-                target.execute();
+                target.apply();
 
-                completeTime = currentTime + target.blockDuration();
+                completeTime = currentTime + target.getBlockDuration();
                 lastState = lastUpdateTarget;
             }
 
@@ -39,6 +35,10 @@ public class StateMachine {
         }
 
         lastUpdateTarget = target;
+    }
+
+    public void setCurrentState(State state) {
+        this.target = state;
     }
 
     public State getCurrentState() {
