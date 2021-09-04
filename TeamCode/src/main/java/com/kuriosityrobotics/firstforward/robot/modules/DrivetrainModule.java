@@ -11,10 +11,11 @@ public class DrivetrainModule implements Module{
     private final Boolean isOn;
 
     //public TelemetryDump telemetryDump;
+
     //states
-    public double strafe = 0;
-    public double forwards = 0;
-    public double turn = 0;
+    public double xMov = 0;
+    public double yMov = 0;
+    public double turnMov = 0;
 
     //motors
     private DcMotor fLeft;
@@ -30,10 +31,10 @@ public class DrivetrainModule implements Module{
 
     //update motor power
     public void update() {
-        double fLPower = forwards + turn + strafe;
-        double fRPower = forwards - turn - strafe;
-        double bLPower = forwards + turn - strafe;
-        double bRPower = forwards - turn + strafe;
+        double fLPower = yMov + turnMov + xMov;
+        double fRPower = yMov - turnMov - xMov;
+        double bLPower = yMov + turnMov - xMov;
+        double bRPower = yMov - turnMov + xMov;
 
         double scale = scaleDown(fLPower, fRPower, bLPower, bRPower);
 
@@ -43,6 +44,12 @@ public class DrivetrainModule implements Module{
         bRPower *= scale;
 
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
+    }
+
+    public void setMovements(double xMov, double yMov, double turnMov){
+        this.xMov = xMov;
+        this.yMov = yMov;
+        this.turnMov = turnMov;
     }
 
     private void setMotorPowers(double fLPower, double fRPower, double bLPower, double bRPower) {
@@ -74,9 +81,9 @@ public class DrivetrainModule implements Module{
     //@Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
-        data.add("forwards movement: " + forwards);
-        data.add("strafe movement: " + strafe);
-        data.add("turn movement: " + turn);
+        data.add("forwards movement: " + yMov);
+        data.add("strafe movement: " + xMov);
+        data.add("turn movement: " + turnMov);
         return data;
     }
 

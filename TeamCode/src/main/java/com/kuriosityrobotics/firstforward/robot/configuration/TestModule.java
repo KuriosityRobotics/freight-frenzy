@@ -7,6 +7,11 @@ public class TestModule implements Module {
     public static double coeffA;
 
     @Override
+    public void initModules() {
+
+    }
+
+    @Override
     public void update() {
 
     }
