@@ -34,7 +34,7 @@ public class Robot {
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
         try {
-            revHub1 = hardwareMap.get(LynxModule.class, "Expansion Hub 173");
+            revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
             revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
             revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
             revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
