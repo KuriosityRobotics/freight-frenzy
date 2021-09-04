@@ -23,11 +23,6 @@ public class TeleOp extends LinearOpMode {
         robot.start();
 
         while (opModeIsActive()) {
-//            if (gamepad1.a)
-//                robot.blockerModule.setCurrentState(robot.blockerModule.OpenFlap());
-//            else if (gamepad1.b)
-//                robot.blockerModule.setCurrentState(robot.blockerModule.CloseFlap());
-
             // yeet
         }
     }
