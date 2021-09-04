@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
+import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -21,7 +21,7 @@ public class Robot {
     private final Thread[] threads;
     private final Module[] modules;
 
-    public final Drivetrain drivetrain;
+    public final DrivetrainModule drivetrainModule;
 
     public final TelemetryDump telemetryDump;
 
@@ -45,10 +45,10 @@ public class Robot {
             throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
-        drivetrain = new Drivetrain();
+        drivetrainModule = new DrivetrainModule(this);
 
         modules = new Module[]{
-                drivetrain
+                drivetrainModule
         };
         threads = new Thread[]{
                 new Thread(new SensorThread(this, configLocation)),

@@ -32,6 +32,6 @@ public class TeleOp extends LinearOpMode {
         double xMov = gamepad1.left_stick_x;
         double turnMov = gamepad1.right_stick_x;
 
-        robot.drivetrain.setMovements(xMov, yMov, turnMov);
+        robot.drivetrainModule.setMovements(xMov, yMov, turnMov);
     }
 }
