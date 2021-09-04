@@ -57,6 +57,6 @@ public class Robot {
     }
 
     public boolean running() {
-        return isOpModeActive();
+        return (!linearOpMode.isStopRequested() && !linearOpMode.isStarted()) || isOpModeActive();
     }
 }
