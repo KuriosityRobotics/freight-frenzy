@@ -7,11 +7,10 @@ import javassist.NotFoundException;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
+    Robot robot = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Robot robot;
-
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (NotFoundException e) {
@@ -27,6 +26,7 @@ public class TeleOp extends LinearOpMode {
             updateDrivetrainStates();
         }
     }
+
     private void updateDrivetrainStates(){
         double yMov = -gamepad1.left_stick_y;
         double xMov = gamepad1.left_stick_x;
