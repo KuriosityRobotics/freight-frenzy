@@ -1,11 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import java.util.function.Function;
+import android.os.SystemClock;
 
-public abstract class StateMachine {
+public class StateMachine {
     public interface State {
-        public Function execute();
-        public long block_duration();
+        public void execute();
+
+        public long blockDuration();
     }
 
     State target;
@@ -15,7 +16,9 @@ public abstract class StateMachine {
     State lastState;
     State lastUpdateTarget;
 
-    public void update(long currentTime) {
+    public void update() {
+        long currentTime = SystemClock.elapsedRealtime();
+
         if (target == null) {
             return;
         }
@@ -24,7 +27,7 @@ public abstract class StateMachine {
             if (lastUpdateTarget == null || lastUpdateTarget != target) {
                 target.execute();
 
-                completeTime = currentTime + target.block_duration();
+                completeTime = currentTime + target.blockDuration();
                 lastState = lastUpdateTarget;
             }
 
