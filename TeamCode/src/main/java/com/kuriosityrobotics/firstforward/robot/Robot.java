@@ -4,7 +4,6 @@ import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
-import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -53,7 +52,6 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(new SensorThread(this, configLocation)),
                 new Thread(new ModuleThread(this, this.modules)),
-                new Thread(new VisionThread(this))
         };
     }
 
