@@ -94,17 +94,20 @@ public class ClassicalPID {
 
         if (!reset) {
             //update d to correct for overshoot
-            d = this.d * error - lastError;
+            d = this.d * (error - lastError);
         } else {
             reset = false;
-            errorSum = 0;
+            errorSum = error;
+            d = 0;
         }
 
         //update i accordingly
         i = errorSum * this.i;
 
+        double robotspeed = p + i + d;
+
         // more responsiveness
-        this.speed = Range.clip(p + i + d, minSpeed, maxSpeed);
+        this.speed = Range.clip(robotspeed, minSpeed, maxSpeed);
 
         lastUpdateTime = currentTime;
 
