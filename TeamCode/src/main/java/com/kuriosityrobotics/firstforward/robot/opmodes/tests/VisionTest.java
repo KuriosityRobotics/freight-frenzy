@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes;
+package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
@@ -69,6 +69,8 @@ public class VisionTest extends LinearOpMode {
                 Log.d("VisionTest->VuforiaConsumer", String.valueOf(((VuforiaTrackableDefaultListener) stoneTarget.getListener()).isVisible()));
             }
         }, frame -> Log.d("VisionTest", String.valueOf(frame.width())));
+
+
 
         waitForStart();
 

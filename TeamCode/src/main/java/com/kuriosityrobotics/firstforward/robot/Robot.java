@@ -51,7 +51,7 @@ public class Robot {
         };
         threads = new Thread[]{
                 new Thread(new SensorThread(this, configLocation)),
-                new Thread(new ModuleThread(this, this.modules)),
+                new Thread(new ModuleThread(this, this.modules))
         };
     }
 
