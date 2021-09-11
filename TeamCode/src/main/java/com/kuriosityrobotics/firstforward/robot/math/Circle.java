@@ -30,7 +30,7 @@ public class Circle {
 
         double a = Math.pow(line.slope, 2) + 1;
         double b = 2*line.yInt*line.slope - 2*center.y*line.slope - 2*center.x;
-        double c = Math.pow(line.yInt - center.y, 2) - Math.pow(radius, 2);
+        double c = center.x*center.x - 2*line.yInt*center.y + center.y*center.y - radius*radius;
 
         double[] xyValues = quadraticFormula(a, b, c);
 
@@ -45,7 +45,7 @@ public class Circle {
         return intersections;
     }
     //the range is x value
-    public ArrayList<Point> getIntersection(Line line, double xMin, double xMax){
+    public ArrayList<Point> getIntersections(Line line, double xMin, double xMax){
         if (!this.intersects(line)){ return null; }
         //circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
         //line equation is y = slope*x + yInt

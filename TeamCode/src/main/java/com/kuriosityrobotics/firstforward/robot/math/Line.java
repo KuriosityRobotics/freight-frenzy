@@ -17,6 +17,7 @@ public class Line {
     public Line(Point point, double slope){
         this.startPoint = point;
         this.slope = slope;
+        yInt = point.y - slope*point.x;
     }
     //null line
     public Line(){
