@@ -9,9 +9,9 @@ import com.qualcomm.robotcore.util.Range;
  * because the scale is incremented by a value determined using PID every cycle.
  */
 public class IncrementalPID {
-    private final double p;
-    private final double i;
-    private final double d;
+    private final double P_CONSTANT;
+    private final double I_CONSTANT;
+    private final double D_CONSTANT;
 
     private double scale;
     private boolean reset;
@@ -27,40 +27,40 @@ public class IncrementalPID {
      * Constructs a VelocityPIDController with an initial scale of 1, a minimum scale of -1, and a
      * max of +1. This constructor is not recommended.
      *
-     * @param p
-     * @param i
-     * @param d
+     * @param P_CONSTANT
+     * @param I_CONSTANT
+     * @param D_CONSTANT
      */
-    public IncrementalPID(double p, double i, double d) {
-        this(p, i, d, 1);
+    public IncrementalPID(double P_CONSTANT, double I_CONSTANT, double D_CONSTANT) {
+        this(P_CONSTANT, I_CONSTANT, D_CONSTANT, 1);
     }
 
     /**
      * Constructs a VelocityPIDController with a scale minimum of -1 and a max of +1.
      *
-     * @param p
-     * @param i
-     * @param d
+     * @param P_CONSTANT
+     * @param I_CONSTANT
+     * @param D_CONSTANT
      * @param initialScale The starting scale of the controller.
      */
-    public IncrementalPID(double p, double i, double d, double initialScale) {
-        this(p, i, d, initialScale, -1, 1);
+    public IncrementalPID(double P_CONSTANT, double I_CONSTANT, double D_CONSTANT, double initialScale) {
+        this(P_CONSTANT, I_CONSTANT, D_CONSTANT, initialScale, -1, 1);
     }
 
     /**
      * Constructs a VelocityPIDController.
      *
-     * @param p
-     * @param i
-     * @param d
+     * @param P_CONSTANT
+     * @param I_CONSTANT
+     * @param D_CONSTANT
      * @param initialScale The starting scale of the controller.
      * @param scaleMin     The minimum possible value for the scale.
      * @param scaleMax     The maximum possible value for the scale.
      */
-    public IncrementalPID(double p, double i, double d, double initialScale, double scaleMin, double scaleMax) {
-        this.p = p;
-        this.i = i;
-        this.d = d;
+    public IncrementalPID(double P_CONSTANT, double I_CONSTANT, double D_CONSTANT, double initialScale, double scaleMin, double scaleMax) {
+        this.P_CONSTANT = P_CONSTANT;
+        this.I_CONSTANT = I_CONSTANT;
+        this.D_CONSTANT = D_CONSTANT;
 
         this.scale = initialScale;
 
@@ -86,7 +86,7 @@ public class IncrementalPID {
         // error is now relative to how much time since there was last update; will accumulate less error
         error /= timeDifference;
 
-        double p = error * this.p;
+        double p = error * this.P_CONSTANT;
         double i = 0;
         double d = 0;
 
@@ -94,13 +94,13 @@ public class IncrementalPID {
 
         if (!reset) {
             //update d to correct for overshoot
-            d = this.d * (error - lastError) / timeDifference;
+            d = this.D_CONSTANT * (error - lastError) / timeDifference;
 
             //update i accordingly
-            i = errorSum * this.i;
+            i = errorSum * this.I_CONSTANT;
         } else {
             reset = false;
-            i = errorSum * this.i;
+            i = errorSum * this.I_CONSTANT;
         }
 
         // debug capabilities

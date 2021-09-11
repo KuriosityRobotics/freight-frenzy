@@ -77,7 +77,7 @@ public class ClassicalPID {
      * the integral.
      *
      * @param error The error between the current state and the desired state
-     * @return Updated PID scale
+     * @return Updated speed
      */
     public double calculateSpeed(double error) {
         long currentTime = SystemClock.elapsedRealtime();
@@ -104,23 +104,20 @@ public class ClassicalPID {
         //update i accordingly
         i = errorSum * this.i;
 
+        lastUpdateTime = currentTime;
+
         double robotspeed = p + i + d;
 
         // more responsiveness
-        this.speed = Range.clip(robotspeed, minSpeed, maxSpeed);
-
-        lastUpdateTime = currentTime;
-
+        this.speed = robotspeed;
         return this.speed;
     }
 
     /**
      * Reset the PID controller using given default scale
      */
-    public void reset(double scale) {
+    public void reset() {
         reset = true;
         errorSum = 0;
-
-        this.speed = scale;
     }
 }
