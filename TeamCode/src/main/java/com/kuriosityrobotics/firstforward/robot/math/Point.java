@@ -12,11 +12,14 @@ public class Point {
         this.x = x;
         this.y = y;
     }
-
     /**
      * Creates a point with null x and y
      */
     public Point() {
+    }
+
+    public double distance(Point other){
+        return Math.sqrt((Math.pow((other.x - x), 2) + Math.pow((other.y - y), 2)));
     }
 
     @Override
