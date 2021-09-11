@@ -13,10 +13,53 @@ public class Point {
         this.y = y;
     }
 
-    /**
-     * Creates a point with null x and y
-     */
-    public Point() {
+    public double distance(Point other){
+        return Math.hypot(other.x - x, other.y - y);
+    }
+
+    //SEGMENTS
+
+    public boolean isOnSegment(Line line) {
+        double xMin = Math.min(line.startPoint.x, line.endPoint.x);
+        double xMax = Math.max(line.startPoint.x, line.endPoint.x);
+        double yMin;
+        double yMax;
+        if (line.isVertical()) {
+            return y >= xMin && y <= xMax && x - line.startPoint.x < .0001;
+        }else {
+            yMin = line.slope*xMin + line.yInt;
+            yMax = line.slope*xMax + line.yInt;
+            return x >= xMin && x <= xMax &&
+                    y >= yMin && y <= yMax &&
+                    line.startPoint.y - line.slope*line.startPoint.x - line.yInt < .00001;
+        }
+    }
+
+    //SEGMENTS
+    public Point getNearestPoint(Line line) {
+        Point nearest;
+        if (line.isVertical()) {
+            nearest = new Point(line.startPoint.x, y);
+        }else if (line.slope == 0) {
+            nearest = new Point(x, line.startPoint.y);
+        }else {
+            Line perpendicular = new Line(this, -1/line.slope);
+            nearest = line.getIntersection(perpendicular);
+        }
+
+        if (nearest.isOnSegment(line)) {
+            return nearest;
+        }else {
+            if (nearest.distance(line.startPoint) <= nearest.distance(line.endPoint)) {
+                return line.startPoint;
+            }
+            return line.endPoint;
+        }
+    }
+
+    //SEGMENTS
+    public double segmentDistance(Line line) {
+        return this.distance(getNearestPoint(line));
     }
 
     @Override
@@ -26,6 +69,8 @@ public class Point {
 
     @Override
     public boolean equals(Object point) {
-        return ((Point) point).x == x && ((Point) point).y == y;
+        return Math.abs(((Point) point).x - x) < .00001 &&
+                Math.abs(((Point) point).y - y) < .00001;
     }
 }
+
