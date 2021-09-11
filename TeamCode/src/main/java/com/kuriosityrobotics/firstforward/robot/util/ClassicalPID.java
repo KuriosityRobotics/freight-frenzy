@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.qualcomm.robotcore.util.Range;
 
@@ -9,20 +8,20 @@ import com.qualcomm.robotcore.util.Range;
  * A PID controller that increments a scale using PID. This is different from a traditional PID
  * because the scale is incremented by a value determined using PID every cycle.
  */
-public class PIDController {
+public class ClassicalPID {
     private final double p;
     private final double i;
     private final double d;
 
-    private double scale;
+    private double speed;
     private boolean reset;
 
     private double lastError;
     private double errorSum;
     private double lastUpdateTime;
 
-    private final double scaleMin;
-    private final double scaleMax;
+    private final double minSpeed;
+    private final double maxSpeed;
 
     /**
      * Constructs a VelocityPIDController with an initial scale of 1, a minimum scale of -1, and a
@@ -32,7 +31,7 @@ public class PIDController {
      * @param i
      * @param d
      */
-    public PIDController(double p, double i, double d) {
+    public ClassicalPID(double p, double i, double d) {
         this(p, i, d, 1);
     }
 
@@ -42,10 +41,10 @@ public class PIDController {
      * @param p
      * @param i
      * @param d
-     * @param initialScale The starting scale of the controller.
+     * @param initialSpeed The starting scale of the controller.
      */
-    public PIDController(double p, double i, double d, double initialScale) {
-        this(p, i, d, initialScale, -1, 1);
+    public ClassicalPID(double p, double i, double d, double initialSpeed) {
+        this(p, i, d, initialSpeed, -1, 1);
     }
 
     /**
@@ -54,21 +53,21 @@ public class PIDController {
      * @param p
      * @param i
      * @param d
-     * @param initialScale The starting scale of the controller.
-     * @param scaleMin     The minimum possible value for the scale.
-     * @param scaleMax     The maximum possible value for the scale.
+     * @param initialSpeed The starting scale of the controller.
+     * @param minSpeed     The minimum possible value for the scale.
+     * @param maxSpeed     The maximum possible value for the scale.
      */
-    public PIDController(double p, double i, double d, double initialScale, double scaleMin, double scaleMax) {
+    public ClassicalPID(double p, double i, double d, double initialSpeed, double minSpeed, double maxSpeed) {
         this.p = p;
         this.i = i;
         this.d = d;
 
-        this.scale = initialScale;
+        this.speed = initialSpeed;
 
         this.lastUpdateTime = SystemClock.elapsedRealtime();
 
-        this.scaleMin = scaleMin;
-        this.scaleMax = scaleMax;
+        this.minSpeed = minSpeed;
+        this.maxSpeed = maxSpeed;
 
         this.reset = true;
     }
@@ -80,40 +79,36 @@ public class PIDController {
      * @param error The error between the current state and the desired state
      * @return Updated PID scale
      */
-    public double calculateScale(double error) {
+    public double calculateSpeed(double error) {
         long currentTime = SystemClock.elapsedRealtime();
         long timeDifference = (long) (currentTime - lastUpdateTime);
 
         // error is now relative to how much time since there was last update; will accumulate less error
         error /= timeDifference;
 
-        double P = error * p;
-        double I = 0;
-        double D = 0;
+        errorSum += error;
+
+        double p = error * this.p;
+        double i = 0;
+        double d = 0;
 
         if (!reset) {
             //update d to correct for overshoot
-            D = d * (error - lastError) / timeDifference;
-
-            errorSum += error;
-            //update i accordingly
-            I = errorSum * i;
+            d = this.d * error - lastError;
         } else {
             reset = false;
+            errorSum = 0;
         }
 
-        // debug capabilities
-        Log.v("BRAKING", "P: " + P + ", I:" + I + ", D: " + D);
-
-        double increment = P + I + D;
+        //update i accordingly
+        i = errorSum * this.i;
 
         // more responsiveness
-        scale = Range.clip(scale + increment, scaleMin, scaleMax);
+        this.speed = Range.clip(p + i + d, minSpeed, maxSpeed);
 
         lastUpdateTime = currentTime;
-        lastError = error;
 
-        return scale;
+        return this.speed;
     }
 
     /**
@@ -123,6 +118,6 @@ public class PIDController {
         reset = true;
         errorSum = 0;
 
-        this.scale = scale;
+        this.speed = scale;
     }
 }
