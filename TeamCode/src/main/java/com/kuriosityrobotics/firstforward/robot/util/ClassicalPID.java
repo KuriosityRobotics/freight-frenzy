@@ -13,61 +13,25 @@ public class ClassicalPID {
     private final double i;
     private final double d;
 
-    private double speed;
     private boolean reset;
 
     private double lastError;
     private double errorSum;
     private double lastUpdateTime;
 
-    private final double minSpeed;
-    private final double maxSpeed;
-
     /**
-     * Constructs a VelocityPIDController with an initial scale of 1, a minimum scale of -1, and a
-     * max of +1. This constructor is not recommended.
+     * Constructs a ClassicalPIDController
      *
      * @param p
      * @param i
      * @param d
      */
     public ClassicalPID(double p, double i, double d) {
-        this(p, i, d, 1);
-    }
-
-    /**
-     * Constructs a VelocityPIDController with a scale minimum of -1 and a max of +1.
-     *
-     * @param p
-     * @param i
-     * @param d
-     * @param initialSpeed The starting scale of the controller.
-     */
-    public ClassicalPID(double p, double i, double d, double initialSpeed) {
-        this(p, i, d, initialSpeed, -1, 1);
-    }
-
-    /**
-     * Constructs a VelocityPIDController.
-     *
-     * @param p
-     * @param i
-     * @param d
-     * @param initialSpeed The starting scale of the controller.
-     * @param minSpeed     The minimum possible value for the scale.
-     * @param maxSpeed     The maximum possible value for the scale.
-     */
-    public ClassicalPID(double p, double i, double d, double initialSpeed, double minSpeed, double maxSpeed) {
         this.p = p;
         this.i = i;
         this.d = d;
 
-        this.speed = initialSpeed;
-
         this.lastUpdateTime = SystemClock.elapsedRealtime();
-
-        this.minSpeed = minSpeed;
-        this.maxSpeed = maxSpeed;
 
         this.reset = true;
     }
@@ -108,9 +72,7 @@ public class ClassicalPID {
 
         double robotspeed = p + i + d;
 
-        // more responsiveness
-        this.speed = robotspeed;
-        return this.speed;
+        return robotspeed;
     }
 
     /**
