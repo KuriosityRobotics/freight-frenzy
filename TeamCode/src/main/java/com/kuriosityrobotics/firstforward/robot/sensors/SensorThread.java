@@ -27,7 +27,7 @@ public class SensorThread implements Runnable, Telemeter {
     private final String configLocation;
     private final Robot robot;
 
-    public final Odometry odometry;
+    private final Odometry odometry;
     private final LocalizeKalmanFilter kalmanFilter;
 
     private long updateTime = 0;
@@ -103,4 +103,6 @@ public class SensorThread implements Runnable, Telemeter {
     public boolean isOn() {
         return true;
     }
+
+    public Odometry getOdometry() { return this.odometry; }
 }

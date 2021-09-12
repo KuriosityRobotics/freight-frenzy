@@ -1,11 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 
 import java.util.ArrayList;
 
@@ -18,17 +17,19 @@ public class Drivetrain implements Module, Telemeter {
     public double xMov;
     public double yMov;
     public double turnMov = 0;
-    public boolean zeroPowerBrake = false;
+    public boolean zeroPowerBrake = true;
 
     //braking states
     private boolean brake = false; // whether or not to actively brake
     public Pose brakePose;
     private boolean opmodeStarted = false;
 
+    //saves
+    private double timeStopped = 0;
+
     //braking controller
-    //not tuned yet
-    //ClassicalPID angularBrakeController = new ClassicalPID(0, 0, 0);
-    //ClassicalPID distanceBrakeController = new ClassicalPID(0, 0, 0);
+    ClassicalPID angularBrakeController = new ClassicalPID(1, 0, 3);
+    ClassicalPID distanceBrakeController = new ClassicalPID(0.05, .000002, 0.7);
 
     public Drivetrain(Robot robot) {
         this.robot = robot;
@@ -51,7 +52,7 @@ public class Drivetrain implements Module, Telemeter {
      * @param moveSpeed
      */
     public void setMovementsTowardPoint(Point point, double moveSpeed) {
-        Point components = relativeComponentsToPoint(point);
+        Point components = relativeComponentsToPoint(point).scale(moveSpeed);
 
         double x = components.x;
         double y = components.y;
@@ -83,13 +84,17 @@ public class Drivetrain implements Module, Telemeter {
         this.opmodeStarted = true;
     }
 
-    //updates drivetrainModule and odometry
-    //gets updated in robot
+    // updates drivetrainModule and odometry
+    // gets updated in robot
     public void update() {
         if (xMov == 0 && yMov == 0 && turnMov == 0 && zeroPowerBrake && opmodeStarted) {
             if (!brake) {
                 this.brake = true;
-                brakePose = getCurrentPose();
+            } else {
+                //stops robot when it's at low vel
+                if (distanceBrakeController.getD() > 0) {
+                    this.brake = false;
+                }
             }
         } else {
             this.brake = false;
@@ -101,33 +106,31 @@ public class Drivetrain implements Module, Telemeter {
             } else {
                 drivetrainModule.setMovements(xMov, yMov, turnMov);
                 //reset PIDs since its a new point
-                //distanceBrakeController.reset();
-                //angularBrakeController.reset();
+                distanceBrakeController.reset();
+                angularBrakeController.reset();
+                brakePose = getCurrentPose();
             }
-
             drivetrainModule.update();
         }
     }
 
-    //uses pid to go to point
-    //used for braking
+    // uses pid to go to point
+    // used for braking
     private void setMovementTowardsBrake() {
         Pose currentPosition = getCurrentPose();
 
-        double distanceError = currentPosition.distance(brakePose); // to use for PID
-        double headingError = brakePose.heading - currentPosition.heading;
+        double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)); // to use for PID
+        double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading);
 
-        Point components = relativeComponentsToPoint(brakePose);
+        Point components = relativeComponentsToPoint(brakePose).scale(moveSpeed);
         double xError = components.x;
         double yError = components.y;
 
-        double total = Math.abs(xError) + Math.abs(yError);
+        drivetrainModule.setMovements(xError, yError, turnSpeed);
+    }
 
-        double xPow = (xError / total);
-        double yPow = (yError / total);
-        double turnPow = headingError;
-
-        drivetrainModule.setMovements(xPow, yPow, turnPow);
+    public void setBrakePose(Pose brakePose) {
+        this.brakePose = brakePose;
     }
 
     /**
@@ -158,7 +161,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     public Pose getCurrentPose() {
-        return robot.getSensorThread().odometry.getPose();
+        return robot.sensorThread.getOdometry().getPose();
     }
 
     @Override
@@ -175,11 +178,6 @@ public class Drivetrain implements Module, Telemeter {
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("xMov: " + xMov);
-        data.add("yMov: " + yMov);
-        data.add("turnMov: " + turnMov);
-
-        data.add("--");
         data.add("Braking: " + brake);
         data.add("Brake Pose: " + brakePose);
 

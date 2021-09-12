@@ -6,7 +6,6 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -144,7 +143,7 @@ public class Odometry implements Telemeter {
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
         //worldAngleRad =  (leftPodNewPosition - rightPodNewPosition) * INCHES_PER_ENCODER_TICK / (2 * P);
-        worldHeadingRad += dTheta;
+        worldHeadingRad = worldHeadingRad + dTheta;
     }
 
     /*
@@ -236,6 +235,8 @@ public class Odometry implements Telemeter {
     public Pose getPose() {
         return new Pose(worldX, worldY, worldHeadingRad);
     }
+
+    public double getVelMag(){ return Math.hypot(xVel, yVel); }
 
     @Override
     public String getName() {

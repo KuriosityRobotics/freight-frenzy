@@ -52,6 +52,9 @@ public class Point {
         return this.distance(projectToSegment(line));
     }
 
+    public Point scale(double scale){
+        return new Point(scale * x, scale * y);
+    }
     @Override
     public String toString() {
         return x + ", " + y;

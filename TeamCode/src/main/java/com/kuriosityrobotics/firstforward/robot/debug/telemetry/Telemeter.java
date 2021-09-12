@@ -1,3 +1,4 @@
+
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
 import java.util.ArrayList;
@@ -16,3 +17,4 @@ public interface Telemeter {
         return new HashMap<>();
     }
 }
+

@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -12,6 +13,7 @@ public class Autonomous extends LinearOpMode {
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
+            this.stop();
             e.printStackTrace();
         }
 
@@ -25,7 +27,8 @@ public class Autonomous extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            pp.update(robot, 1);
+            //pp.update(robot, 1);
+            robot.drivetrain.setBrakePose(new Pose(10,10,Math.PI));
         }
     }
 }
