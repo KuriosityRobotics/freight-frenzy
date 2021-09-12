@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.qualcomm.robotcore.util.Range;
 
@@ -9,15 +10,15 @@ import com.qualcomm.robotcore.util.Range;
  * because the scale is incremented by a value determined using PID every cycle.
  */
 public class ClassicalPID {
-    private final double p;
-    private final double i;
-    private final double d;
+    private final double P_FACTOR;
+    private final double I_FACTOR;
+    private final double D_FACTOR;
 
     private boolean reset;
 
     private double lastError;
     private double errorSum;
-    private double lastUpdateTime;
+    private double errorChange;
 
     /**
      * Constructs a ClassicalPIDController
@@ -27,11 +28,9 @@ public class ClassicalPID {
      * @param d
      */
     public ClassicalPID(double p, double i, double d) {
-        this.p = p;
-        this.i = i;
-        this.d = d;
-
-        this.lastUpdateTime = SystemClock.elapsedRealtime();
+        P_FACTOR = p;
+        I_FACTOR = i;
+        D_FACTOR = d;
 
         this.reset = true;
     }
@@ -44,21 +43,15 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        long currentTime = SystemClock.elapsedRealtime();
-        long timeDifference = (long) (currentTime - lastUpdateTime);
-
-        // error is now relative to how much time since there was last update; will accumulate less error
-        error /= timeDifference;
-
         errorSum += error;
 
-        double p = error * this.p;
+        double p = error * P_FACTOR;
         double i = 0;
         double d = 0;
 
         if (!reset) {
             //update d to correct for overshoot
-            d = this.d * (error - lastError);
+            d = D_FACTOR * (error - lastError);
         } else {
             reset = false;
             errorSum = error;
@@ -66,9 +59,10 @@ public class ClassicalPID {
         }
 
         //update i accordingly
-        i = errorSum * this.i;
+        i = errorSum * I_FACTOR;
 
-        lastUpdateTime = currentTime;
+        lastError = error;
+        errorChange = d;
 
         double robotspeed = p + i + d;
 
@@ -78,8 +72,11 @@ public class ClassicalPID {
     /**
      * Reset the PID controller using given default scale
      */
+
     public void reset() {
         reset = true;
         errorSum = 0;
     }
+
+    public double getD(){ return errorChange; }
 }

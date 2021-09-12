@@ -29,6 +29,7 @@ public class TeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             // yeet
             updateDrivetrainStates();
+            //robot.drivetrain.setBrakePose(new Pose(0,24,0));
             updateIntakeStates();
             updateOuttakeStates();
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
@@ -58,16 +59,16 @@ public class TeleOp extends LinearOpMode {
 //        robot.intakeModule.extenderPos = gamepad1.right_trigger;
     }
 
-    private void updateOuttakeStates(){
+    private void updateOuttakeStates() {
         robot.outtakeModule.extendHopper = linkageToggle.isToggled(gamepad1.left_bumper);
-        robot.outtakeModule.dumpHopper  = hopperPivotToggle.isToggled(gamepad1.right_bumper);
+        robot.outtakeModule.dumpHopper = hopperPivotToggle.isToggled(gamepad1.right_bumper);
 
-        double rotateHopperChange = gamepad2.right_stick_x/200000;
+        double rotateHopperChange = gamepad2.right_stick_x / 200000;
         robot.outtakeModule.rotateHopper = Range.clip(robot.outtakeModule.rotateHopper + rotateHopperChange, 0, 1);
 
-        robot.outtakeModule.slideTargetPos = Range.clip(robot.outtakeModule.slideTargetPos + (toNum(gamepad1.dpad_down) - toNum(gamepad1.dpad_up))/1, -330, 0);
+        robot.outtakeModule.slideTargetPos = Range.clip(robot.outtakeModule.slideTargetPos + (toNum(gamepad1.dpad_down) - toNum(gamepad1.dpad_up)) / 1, -330, 0);
 
-        if (gamepad1.y && !prevY){
+        if (gamepad1.y && !prevY) {
             robot.outtakeModule.currentlyDoingAction = true;
         }
         prevY = gamepad1.y;

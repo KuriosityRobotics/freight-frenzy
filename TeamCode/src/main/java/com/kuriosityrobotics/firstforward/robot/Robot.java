@@ -27,14 +27,15 @@ public class Robot {
     private Thread[] threads;
     private final Module[] modules;
 
-    private final SensorThread sensorThread;
-    private final ModuleThread moduleThread;
-    private final VisionThread visionThread;
-    private final DebugThread debugThread;
+    public final SensorThread sensorThread;
+    public final ModuleThread moduleThread;
+    public final VisionThread visionThread;
+    public final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public final IntakeModule intakeModule;
     public final OuttakeModule outtakeModule;
+
     public TelemetryDump telemetryDump;
 
     public LocalizationConsumer localizationConsumer;
@@ -45,7 +46,7 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -57,9 +58,10 @@ public class Robot {
             revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
             revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
-            throw new Exception("One or more of the REV hubs could not be found. More info: " + e);
+            throw new RuntimeException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
+        // modules
         drivetrain = new Drivetrain(this);
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
@@ -72,6 +74,7 @@ public class Robot {
 
         localizationConsumer = new LocalizationConsumer();
 
+        // threads
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
@@ -88,7 +91,7 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-                //new Thread(visionThread)
+//                new Thread(visionThread),
                 new Thread(debugThread)
         };
 
@@ -123,10 +126,6 @@ public class Robot {
 
     public boolean started() {
         return linearOpMode.isStarted();
-    }
-
-    public SensorThread getSensorThread() {
-        return this.sensorThread;
     }
 
     public boolean isDebug() {
