@@ -10,13 +10,20 @@ public class Circle {
         this.center = center;
         this.radius = radius;
     }
-    public Circle(){
-    }
 
-    public double distance(Line line){
-        Line perpendicular = new Line(center, -1/line.slope);
-        Point intersection = line.getIntersection(perpendicular);
-        return center.distance(intersection);
+    public double distance(Line line) {
+        Line perpendicular;
+        double distance;
+        if (line.vertical) {
+            distance = Math.abs(center.x - line.startPoint.x);
+        }else if (line.slope == 0) {
+            distance = Math.abs(center.y - line.startPoint.y);
+        }else {
+            perpendicular = new Line(center, -1 / line.slope);
+            Point intersection = line.getIntersection(perpendicular);
+            distance = center.distance(intersection);
+        }
+        return distance;
     }
 
     public Boolean intersects(Line line){
@@ -24,20 +31,38 @@ public class Circle {
     }
 
     public ArrayList<Point> getIntersections(Line line){
-        if (!this.intersects(line)){ return null; }
-        //circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
-        //line equation is y = slope*x + yInt
+        double x1;
+        double y1;
+        double x2;
+        double y2;
 
-        double a = Math.pow(line.slope, 2) + 1;
-        double b = 2*line.yInt*line.slope - 2*center.y*line.slope - 2*center.x;
-        double c = center.x*center.x - 2*line.yInt*center.y + center.y*center.y - radius*radius;
+        // circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
+        if (!this.intersects(line)) {
+            return null;
+        } else if (line.vertical) { // line equation is x=startPoint.x
+            x1 = line.startPoint.x;
+            x2 = x1;
+            double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
+            y1 = center.y + sqrtExpression;
+            y2 = center.y - sqrtExpression;
+        } else if (line.slope == 0) { // line equation is y = startPoint.y
+            y1 = line.startPoint.y;
+            y2 = y1;
+            double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.y - center.y, 2));
+            x1 = center.x + sqrtExpression;
+            x2 = center.x - sqrtExpression;
+        } else { // line equation is y = slope*x + yInt
+            double a = Math.pow(line.slope, 2) + 1;
+            double b = 2 * line.yInt * line.slope - 2 * center.y * line.slope - 2 * center.x;
+            double c = center.x * center.x - 2 * line.yInt * center.y + center.y * center.y - radius * radius;
 
-        double[] xyValues = quadraticFormula(a, b, c);
+            double[] xyValues = quadraticFormula(a, b, c);
 
-        double x1 = xyValues[0];
-        double y1 = x1*line.slope + line.yInt;
-        double x2 = xyValues[1];
-        double y2 = x2*line.slope + line.yInt;
+            x1 = xyValues[0];
+            y1 = x1 * line.slope + line.yInt;
+            x2 = xyValues[1];
+            y2 = x2 * line.slope + line.yInt;
+        }
 
         ArrayList<Point> intersections = new ArrayList<Point>();
         intersections.add(new Point(x1, y1));

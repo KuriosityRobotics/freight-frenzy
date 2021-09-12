@@ -19,7 +19,7 @@ public class Point {
     }
 
     public double distance(Point other){
-        return Math.sqrt((Math.pow((other.x - x), 2) + Math.pow((other.y - y), 2)));
+        return Math.hypot(other.x - this.x, other.y - this.y);
     }
 
     @Override

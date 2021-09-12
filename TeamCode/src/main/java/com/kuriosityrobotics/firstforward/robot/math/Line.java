@@ -5,11 +5,17 @@ public class Line {
     public Point endPoint;
     public double slope;
     public double yInt;
+    public Boolean vertical = false;
 
     //for pathfollow
     public Line(Point startPoint, Point endPoint){
         this.startPoint = startPoint;
         this.endPoint = endPoint;
+        if (endPoint.x - startPoint.x == 0) {
+            vertical = true;
+            //set to 0 since it needs to be init-ed
+            slope = 0;
+        }
         slope = (endPoint.y - startPoint.y)/(endPoint.x - startPoint.x);
         yInt = startPoint.y - slope*startPoint.x;
     }
@@ -19,12 +25,9 @@ public class Line {
         this.slope = slope;
         yInt = point.y - slope*point.x;
     }
-    //null line
-    public Line(){
-    }
 
     public Point getIntersection(Line other){
-        if (slope == other.slope){ return null; }
+        if (this.slope == other.slope){ return null; }
         //y = slope(x - startPoint.x) + startPoint.y
         //y = slope*x + (startPoint.y - slope*startPoint.x)
         double a = slope;
