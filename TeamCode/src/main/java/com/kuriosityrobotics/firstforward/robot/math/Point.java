@@ -19,7 +19,8 @@ public class Point {
     }
 
     public double distance(Point other){
-        return Math.hypot(other.x - this.x, other.y - this.y);
+        return Math.hypot(other.x - x, other.y - y);
+
     }
 
     @Override
@@ -29,6 +30,7 @@ public class Point {
 
     @Override
     public boolean equals(Object point) {
-        return ((Point) point).x == x && ((Point) point).y == y;
+        return Math.abs(((Point) point).x - x) < .00001 &&
+                Math.abs(((Point) point).y - y) < .00001;
     }
 }

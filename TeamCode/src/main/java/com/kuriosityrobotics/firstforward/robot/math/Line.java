@@ -1,18 +1,18 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
+import java.util.ArrayList;
+
 public class Line {
     public Point startPoint;
-    public Point endPoint;
+    public Point endPoint = null;
     public double slope;
     public double yInt;
-    public Boolean vertical = false;
 
     //for pathfollow
     public Line(Point startPoint, Point endPoint){
         this.startPoint = startPoint;
         this.endPoint = endPoint;
-        if (endPoint.x - startPoint.x == 0) {
-            vertical = true;
+        if (Math.abs(endPoint.x - startPoint.x) < .0001) {
             //set to 0 since it needs to be init-ed
             slope = 0;
         }
@@ -25,9 +25,22 @@ public class Line {
         this.slope = slope;
         yInt = point.y - slope*point.x;
     }
+    //null line
+    public Line(){
+    }
+
+    public boolean isVertical() {
+        boolean vertical;
+        if (endPoint == null) {
+            vertical = false;
+        }else {
+            vertical = Math.abs(endPoint.x - startPoint.x) < .0001;
+        }
+        return vertical;
+    }
 
     public Point getIntersection(Line other){
-        if (this.slope == other.slope){ return null; }
+        if (slope == other.slope){ return null; }
         //y = slope(x - startPoint.x) + startPoint.y
         //y = slope*x + (startPoint.y - slope*startPoint.x)
         double a = slope;
@@ -41,10 +54,15 @@ public class Line {
         return new Point(x, y);
     }
 
-    public Point closerToEnd(Point p1, Point p2){
-        if (p1.distance(endPoint) < p2.distance(endPoint)){
-            return p1;
+    public Point closerToEnd(ArrayList<Point> points){
+        double minDistance = 999999999;
+        Point closest = new Point();
+        for (Point p : points) {
+            if (p.distance(endPoint) < minDistance) {
+                minDistance = p.distance(endPoint);
+                closest = p;
+            }
         }
-        return p2;
+        return closest;
     }
 }

@@ -6,40 +6,43 @@ public class Circle {
     public Point center;
     public double radius;
 
-    public Circle(Point center, double radius){
+    public Circle(Point center, double radius) {
         this.center = center;
         this.radius = radius;
     }
 
-    public double distance(Line line) {
-        Line perpendicular;
+    public Circle() {
+    }
+
+    public double centerDistance(Line line) {
         double distance;
-        if (line.vertical) {
+        if (line.isVertical()) {
             distance = Math.abs(center.x - line.startPoint.x);
         }else if (line.slope == 0) {
             distance = Math.abs(center.y - line.startPoint.y);
         }else {
-            perpendicular = new Line(center, -1 / line.slope);
+            Line perpendicular = new Line(center, -1 / line.slope);
             Point intersection = line.getIntersection(perpendicular);
             distance = center.distance(intersection);
         }
         return distance;
     }
 
-    public Boolean intersects(Line line){
-        return distance(line) <= radius;
+    public boolean intersects(Line line) {
+        return centerDistance(line) <= radius;
     }
 
-    public ArrayList<Point> getIntersections(Line line){
+    public ArrayList<Point> getIntersections(Line line) {
         double x1;
         double y1;
         double x2;
         double y2;
+        ArrayList<Point> intersections = new ArrayList<Point>();
 
         // circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
         if (!this.intersects(line)) {
-            return null;
-        } else if (line.vertical) { // line equation is x=startPoint.x
+            return intersections;
+        } else if (line.isVertical()) { // line equation is x=startPoint.x
             x1 = line.startPoint.x;
             x2 = x1;
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
@@ -52,9 +55,9 @@ public class Circle {
             x1 = center.x + sqrtExpression;
             x2 = center.x - sqrtExpression;
         } else { // line equation is y = slope*x + yInt
-            double a = Math.pow(line.slope, 2) + 1;
+            double a = line.slope*line.slope + 1;
             double b = 2 * line.yInt * line.slope - 2 * center.y * line.slope - 2 * center.x;
-            double c = center.x * center.x - 2 * line.yInt * center.y + center.y * center.y - radius * radius;
+            double c = Math.pow(line.yInt - center.y, 2) + center.x*center.x - radius*radius;
 
             double[] xyValues = quadraticFormula(a, b, c);
 
@@ -64,38 +67,38 @@ public class Circle {
             y2 = x2 * line.slope + line.yInt;
         }
 
-        ArrayList<Point> intersections = new ArrayList<Point>();
         intersections.add(new Point(x1, y1));
-        intersections.add(new Point(x2, y2));
+        if (!(x1 == x2 && y1 == y2)) {
+            intersections.add(new Point(x2, y2));
+        }
         return intersections;
     }
-    //the range is x value
-    public ArrayList<Point> getIntersections(Line line, double xMin, double xMax){
-        if (!this.intersects(line)){ return null; }
-        //circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
-        //line equation is y = slope*x + yInt
-        double yMin = xMin*line.slope + line.yInt;
-        double yMax = xMax*line.slope + line.yInt;
 
-        ArrayList<Point> intersections = this.getIntersections(line);
-        Point p1 = intersections.get(0);
-        Point p2 = intersections.get(1);
+    // the range is x value
+    public ArrayList<Point> getIntersections(Line line, double xMin, double xMax) {
+        double yMin = xMin * line.slope + line.yInt;
+        double yMax = xMax * line.slope + line.yInt;
 
         ArrayList<Point> intersectionsInRange = new ArrayList<Point>();
-        if (p1.x >= xMin && p1.x <= xMax && p1.y >= yMin && p1.y <= yMax){
-            intersectionsInRange.add(p1);
+        ArrayList<Point> intersections = this.getIntersections(line);
+        if (line.isVertical() && xMin <= line.startPoint.x && line.startPoint.x <= xMax){
+            return intersections;
         }
-        if (p2.x >= xMin && p2.x <= xMax && p2.y >= yMin && p2.y <= yMax){
-            intersectionsInRange.add(p2);
+
+        for (Point p : intersections) {
+            if (p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax) {
+                intersectionsInRange.add(p);
+            }
         }
         return intersectionsInRange;
     }
-    public static double[] quadraticFormula(double a, double b, double c){
-        double discriminant = b*b - 4*a*c;
-        if (discriminant < 0){ return null; }
-        return new double[]{
-                (-b + Math.sqrt(discriminant))/(2*a),
-                (-b - Math.sqrt(discriminant))/(2*a)
-        };
+
+    public static double[] quadraticFormula(double a, double b, double c) {
+        double discriminant = b * b - 4 * a * c;
+
+        if (discriminant < 0) {
+            return new double[0];
+        }
+        return new double[] { (-b + Math.sqrt(discriminant)) / (2 * a), (-b - Math.sqrt(discriminant)) / (2 * a) };
     }
 }
