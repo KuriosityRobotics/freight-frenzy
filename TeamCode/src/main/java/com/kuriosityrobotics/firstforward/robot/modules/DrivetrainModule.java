@@ -1,14 +1,18 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
+
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.ArrayList;
 
 
-public class DrivetrainModule implements Module{
+public class DrivetrainModule implements Module, Telemeter {
     private final Robot robot;
-    private final Boolean isOn = true;
+    private final boolean isOn = true;
 
     //states
     public double xMov = 0;
@@ -23,7 +27,9 @@ public class DrivetrainModule implements Module{
 
     public DrivetrainModule(Robot robot) {
         this.robot = robot;
-        initModules();
+        init();
+
+//        robot.telemetryDump.registerTelemeter(this);
     }
 
     //updates motor power
@@ -44,16 +50,21 @@ public class DrivetrainModule implements Module{
     }
 
     //scale down motor power so largest/smallest is 1/-1
-    public double scaleDown(double a, double b, double c, double d){
-        double max = Math.max(Math.abs(d), Math.max(Math.abs(c), Math.max(Math.abs(a), Math.abs(b))));
-        if (max < 1) {return 1;}
+    public double scaleDown(double a, double b, double c, double d) {
+        double max = max(a, b, c, d);
+        if (max < 1) {
+            return 1;
+        }
         return max;
     }
 
-    public void setMovements(double xMov, double yMov, double turnMov){
+    public void setMovements(double xMov, double yMov, double turnMov) {
         this.xMov = xMov;
         this.yMov = yMov;
         this.turnMov = turnMov;
+        //Log.i("DrivetrainModule", "xMov " + xMov);
+        //Log.i("DrivetrainModule", "yMov " + yMov);
+        //Log.i("DrivetrainModule", "turnMov " + turnMov);
     }
 
     private void setMotorPowers(double fLPower, double fRPower, double bLPower, double bRPower) {
@@ -71,16 +82,7 @@ public class DrivetrainModule implements Module{
         }
     }
 
-    //@Override
-    public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
-        data.add("forwards movement: " + yMov);
-        data.add("strafe movement: " + xMov);
-        data.add("turn movement: " + turnMov);
-        return data;
-    }
-
-    public void initModules() {
+    public void init() {
         fLeft = robot.getDcMotor("fLeft");
         fRight = robot.getDcMotor("fRight");
         bLeft = robot.getDcMotor("bLeft");
@@ -92,9 +94,22 @@ public class DrivetrainModule implements Module{
         bRight.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
-    public boolean isOn() { return isOn; }
+    public boolean isOn() {
+        return isOn;
+    }
 
     public String getName() {
-        return "DriveTrainModule";
+        return "DrivetrainModule";
+    }
+
+    @Override
+    public ArrayList<String> getTelemetryData() {
+        ArrayList<String> data = new ArrayList<>();
+
+        data.add("xMov: " + xMov);
+        data.add("yMov: " + yMov);
+        data.add("turnMov: " + turnMov);
+
+        return data;
     }
 }

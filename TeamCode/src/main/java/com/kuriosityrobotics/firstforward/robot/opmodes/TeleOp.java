@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.sensors.FileDump;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -20,7 +22,6 @@ public class TeleOp extends LinearOpMode {
         }
 
         waitForStart();
-        robot.start();
         FileDump.activate();
 
         while (opModeIsActive()) {
@@ -34,6 +35,9 @@ public class TeleOp extends LinearOpMode {
         double xMov = gamepad1.left_stick_x;
         double turnMov = gamepad1.right_stick_x;
 
-        robot.drivetrainModule.setMovements(xMov, yMov, turnMov);
+        //Log.i("TeleOp", "brake: " + robot.drivetrain.brake);
+        //Log.i("TeleOp", "brake point: " + robot.drivetrain.brakePoint.toString());
+        //Log.i("TeleOp", "current pos: " + robot.sensorThread.odometry.getPosition().toString());
+        robot.drivetrain.setMovements(xMov, yMov, turnMov);
     }
 }
