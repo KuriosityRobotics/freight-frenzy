@@ -18,6 +18,8 @@ public class ModuleThread implements Runnable, Telemeter {
     private final Robot robot;
     private Module modules[];
 
+    private boolean started = false;
+
     private long updateDuration = 0;
     private long timeOfLastUpdate = 0;
 
@@ -33,12 +35,21 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
-            for (Module module : modules){
-                if (module.isOn()){
+            if (!started && robot.started()) {
+                for (Module module : modules) {
+                    if (module.isOn()) {
+                        module.onStart();
+                    }
+                }
+
+                started = true;
+            }
+
+            for (Module module : modules) {
+                if (module.isOn()) {
                     module.update();
                 }
             }
-
 
             robot.telemetryDump.update();
 

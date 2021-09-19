@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
@@ -19,9 +21,10 @@ public class Robot {
     private static final String configLocation = "configurations/mainconfig.toml";
 
     private final Thread[] threads;
-    private final Module[] modules;
+    public final SensorThread sensorThread;
 
-    public final DrivetrainModule drivetrainModule;
+    private final Module[] modules;
+    public final Drivetrain drivetrain;
     public final TelemetryDump telemetryDump;
 
     public final HardwareMap hardwareMap;
@@ -45,18 +48,22 @@ public class Robot {
             throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
-        drivetrainModule = new DrivetrainModule(this);
+        drivetrain = new Drivetrain(this);
 
         modules = new Module[]{
-                drivetrainModule
+                drivetrain
         };
+
+        sensorThread = new SensorThread(this, configLocation);
         threads = new Thread[]{
-                new Thread(new SensorThread(this, configLocation)),
+                new Thread(sensorThread),
                 new Thread(new ModuleThread(this, this.modules))
         };
+
+        start();
     }
 
-    public void start() {
+    private void start() {
         for (Thread thread : threads) {
             thread.start();
         }
@@ -76,5 +83,9 @@ public class Robot {
 
     public boolean running() {
         return (!linearOpMode.isStopRequested() && !linearOpMode.isStarted()) || isOpModeActive();
+    }
+
+    public boolean started() {
+        return linearOpMode.isStarted();
     }
 }

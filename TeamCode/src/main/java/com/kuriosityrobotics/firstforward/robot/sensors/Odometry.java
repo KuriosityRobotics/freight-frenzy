@@ -3,6 +3,8 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -15,9 +17,9 @@ public class Odometry implements Telemeter {
     private final DcMotor mecanumEncoder;
 
     // Position of the robot
-    private double worldX;
-    private double worldY;
-    private double worldHeadingRad;
+    private volatile double worldX;
+    private volatile double worldY;
+    private volatile double worldHeadingRad;
 
     // velocity of the robot
     private double xVel = 0;
@@ -38,8 +40,8 @@ public class Odometry implements Telemeter {
 
     // Constants
     private final static double INCHES_PER_ENCODER_TICK = 0.0007284406721 * 100.0 / 101.9889;
-    private final static double LR_ENCODER_DIST_FROM_CENTER = 6.942654509 * 3589.8638 / 3600.0 * 3531.4628211 / 3600.0;
-    private final static double M_ENCODER_DIST_FROM_CENTER = 4.5;
+    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775/90); // 5.125
+    private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot) {
         robot.telemetryDump.registerTelemeter(this);
@@ -65,7 +67,7 @@ public class Odometry implements Telemeter {
     }
 
     private void calculatePosition() {
-        double newLeftPosition = -yLeftEncoder.getCurrentPosition();
+        double newLeftPosition = yLeftEncoder.getCurrentPosition();
         double newRightPosition = yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
@@ -92,7 +94,7 @@ public class Odometry implements Telemeter {
         oldHeading = worldHeadingRad;
     }
 
-    public void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumPod) {
+    private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumPod) {
         // convert all inputs to inches
         double dLeftPodInches = dLeftPod * INCHES_PER_ENCODER_TICK;
         double dRightPodInches = dRightPod * INCHES_PER_ENCODER_TICK;
@@ -174,6 +176,7 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
+        data.add("worldHeadingRad: " + (worldHeadingRad));
         data.add("worldHeading: " + Math.toDegrees(worldHeadingRad));
 
         data.add("--");
@@ -182,13 +185,24 @@ public class Odometry implements Telemeter {
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
 
-        data.add("--");
-
-        data.add("lastLeft: " + lastLeftPosition);
-        data.add("lastRight: " + lastRightPosition);
-        data.add("lastMecanum: " + lastMecanumPosition);
+//        data.add("--");
+//
+//        data.add("lastLeft: " + lastLeftPosition);
+//        data.add("lastRight: " + lastRightPosition);
+//        data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
+    }
+
+    /**
+     * Get the robot's current pose, containing x, y, and heading.
+     *
+     * There is only one getter method to reduce the likelihood of values changing between getters.
+     *
+     * @return
+     */
+    public Pose getPose() {
+        return new Pose(worldX, worldY, worldHeadingRad);
     }
 
     @Override
