@@ -29,30 +29,32 @@ public final class ManagedCamera {
             "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
             "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
 
-    private final VuforiaConsumer vuforiaConsumer;
-    private final OpenCvCamera openCvCamera;
+    private List<VuforiaConsumer> vuforiaConsumers;
+    private OpenCvCamera openCvCamera;
 
     private static boolean vuforiaInitialisedYet;
 
-    private final List<OpenCvConsumer> openCvConsumers;
+    private List<OpenCvConsumer> openCvConsumers;
 
-    public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, List<VuforiaConsumer> vuforiaConsumers, OpenCvConsumer... openCvConsumers) {
+        this.vuforiaConsumers = vuforiaConsumers;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        this.vuforiaConsumer = vuforiaConsumer;
         var cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
 
-        if (vuforiaConsumer != null) {
+        if (vuforiaConsumers != null) {
             if(!vuforiaInitialisedYet) {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 parameters.cameraName = cameraName;
 
                 var vuforia = ClassFactory.getInstance().createVuforia(parameters);
-                vuforiaConsumer.setup(vuforia);
-                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
+                for (VuforiaConsumer consumer: vuforiaConsumers) {
+                    consumer.setup(vuforia);
+                }
 
                 vuforiaInitialisedYet = true;
+                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
             } else {
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
@@ -88,9 +90,7 @@ public final class ManagedCamera {
 
             CoroutineScope.launch(scope ->
             {
-                if (vuforiaConsumer != null) {
-                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
-                }
+                vuforiaConsumers.forEach(consumer -> vuforiaCoro.runAsync(scope, consumer));
                 openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
             });
 
@@ -98,3 +98,5 @@ public final class ManagedCamera {
         }
     }
 }
+
+

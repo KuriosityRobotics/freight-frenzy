@@ -34,8 +34,10 @@ dependencies {
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
     // https://mvnrepository.com/artifact/org.opencv/opencv-android
     implementation('de.esoco:coroutines:0.9.1')
-    implementation('com.google.ar:core:1.26.0')
+    implementation('com.google.ar:core:1.27.0')
     implementation ('org.openftc:easyopencv:1.4.4')
+//    implementation('org.opencv:opencv-android:1.0.1')
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 }
 
 

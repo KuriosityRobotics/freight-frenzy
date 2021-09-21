@@ -86,10 +86,10 @@ public class DrivetrainModule implements Module{
         bLeft = robot.getDcMotor("bLeft");
         bRight = robot.getDcMotor("bRight");
 
-        fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        fRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        bLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        bRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        fLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        fRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        bLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        bRight.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
     public boolean isOn() { return isOn; }

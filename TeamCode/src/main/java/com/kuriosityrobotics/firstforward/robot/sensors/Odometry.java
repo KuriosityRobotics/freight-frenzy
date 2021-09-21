@@ -6,6 +6,9 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+
 import java.util.ArrayList;
 
 public class Odometry implements Telemeter {
@@ -109,7 +112,7 @@ public class Odometry implements Telemeter {
         worldHeadingRad += dTheta;
     }
 
-    /*
+    /**
     taylor series expansion to make stuff COOL
      */
     private double sinXOverX(double x) {
@@ -128,7 +131,7 @@ public class Odometry implements Telemeter {
         }
     }
 
-    /*
+    /**
     taylor series expansion to make stuff COOL
      */
     private double cosXMinusOneOverX(double x) {
@@ -161,6 +164,20 @@ public class Odometry implements Telemeter {
         lastMecanumPosition = 0;
     }
 
+    public RealMatrix getOdoData() {
+        double robotX = getWorldX();
+        double robotY = getWorldY();
+        double robotHeading = getWorldHeadingDeg();
+
+        RealMatrix odoData = MatrixUtils.createRealMatrix(new double[][]{
+                {robotX},
+                {robotY},
+                {robotHeading}
+        });
+
+        return odoData;
+    }
+
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
@@ -182,6 +199,22 @@ public class Odometry implements Telemeter {
         data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
+    }
+
+    public double getWorldX() {
+        return this.worldX;
+    }
+
+    public double getWorldY() {
+        return this.worldY;
+    }
+
+    public double getWorldHeadingRad() {
+        return this.worldHeadingRad;
+    }
+
+    public double getWorldHeadingDeg() {
+        return this.worldHeadingRad *= 180/Math.PI;
     }
 
     @Override
