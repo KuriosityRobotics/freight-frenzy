@@ -4,8 +4,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 /**
  * Vuforia consumer interface
- *
- * @author Alec
  */
 public interface VuforiaConsumer {
     /**

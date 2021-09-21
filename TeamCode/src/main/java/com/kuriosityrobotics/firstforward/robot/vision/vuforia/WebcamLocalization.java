@@ -8,8 +8,6 @@ import java.util.ArrayList;
 
 /**
  * Webcam localization module
- *
- * @author dkou
  */
 public class WebcamLocalization implements Telemeter {
     private LocalizationConsumer vuforiaConsumer;
