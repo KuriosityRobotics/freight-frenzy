@@ -21,8 +21,6 @@ import java.util.List;
 
 /**
  * Defining a Vuforia localization consumer
- *
- * @author dkou
  */
 public class LocalizationConsumer implements VuforiaConsumer {
     // Accessable values
