@@ -184,6 +184,18 @@ public class Odometry implements Telemeter {
         return data;
     }
 
+    public double getWorldX() {
+        return this.worldX;
+    }
+
+    public double getWorldY() {
+        return this.worldY;
+    }
+
+    public double getWorldHeadingRad() {
+        return this.worldHeadingRad;
+    }
+
     @Override
     public String getName() {
         return "Odometry";
