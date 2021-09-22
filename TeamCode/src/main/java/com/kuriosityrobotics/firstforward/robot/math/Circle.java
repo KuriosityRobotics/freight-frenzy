@@ -33,64 +33,37 @@ public class Circle {
     }
 
     public ArrayList<Point> getIntersections(Line line) {
-        double x1;
-        double y1;
-        double x2;
-        double y2;
         ArrayList<Point> intersections = new ArrayList<Point>();
 
         // circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
         if (!this.intersects(line)) {
             return intersections;
         } else if (line.isVertical()) { // line equation is x=startPoint.x
-            x1 = line.startPoint.x;
-            x2 = x1;
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
-            y1 = center.y + sqrtExpression;
-            y2 = center.y - sqrtExpression;
+
+            intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
+            if (sqrtExpression != 0) {
+                intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
+            }
         } else if (line.slope == 0) { // line equation is y = startPoint.y
-            y1 = line.startPoint.y;
-            y2 = y1;
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.y - center.y, 2));
-            x1 = center.x + sqrtExpression;
-            x2 = center.x - sqrtExpression;
+
+            intersections.add(new Point(center.x + sqrtExpression, line.startPoint.y));
+            if (sqrtExpression != 0) {
+                intersections.add(new Point(center.x - sqrtExpression, line.startPoint.y));
+            }
         } else { // line equation is y = slope*x + yInt
             double a = line.slope*line.slope + 1;
             double b = 2 * line.yInt * line.slope - 2 * center.y * line.slope - 2 * center.x;
             double c = Math.pow(line.yInt - center.y, 2) + center.x*center.x - radius*radius;
 
-            double[] xyValues = quadraticFormula(a, b, c);
-
-            x1 = xyValues[0];
-            y1 = x1 * line.slope + line.yInt;
-            x2 = xyValues[1];
-            y2 = x2 * line.slope + line.yInt;
-        }
-
-        intersections.add(new Point(x1, y1));
-        if (!(x1 == x2 && y1 == y2)) {
-            intersections.add(new Point(x2, y2));
-        }
-        return intersections;
-    }
-
-    // the range is x value
-    public ArrayList<Point> getIntersections(Line line, double xMin, double xMax) {
-        double yMin = xMin * line.slope + line.yInt;
-        double yMax = xMax * line.slope + line.yInt;
-
-        ArrayList<Point> intersectionsInRange = new ArrayList<Point>();
-        ArrayList<Point> intersections = this.getIntersections(line);
-        if (line.isVertical() && xMin <= line.startPoint.x && line.startPoint.x <= xMax){
-            return intersections;
-        }
-
-        for (Point p : intersections) {
-            if (p.x >= xMin && p.x <= xMax && p.y >= yMin && p.y <= yMax) {
-                intersectionsInRange.add(p);
+            double[] xValues = quadraticFormula(a, b, c);
+            intersections.add(new Point(xValues[0], xValues[0]*line.slope + line.yInt));
+            if (xValues[0] != xValues[1]) {
+                intersections.add(new Point(xValues[1], xValues[1]*line.slope + line.yInt));
             }
         }
-        return intersectionsInRange;
+        return intersections;
     }
 
     public static double[] quadraticFormula(double a, double b, double c) {
