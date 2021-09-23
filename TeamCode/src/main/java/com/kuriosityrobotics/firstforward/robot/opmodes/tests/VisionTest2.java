@@ -9,7 +9,7 @@ import javassist.NotFoundException;
 
 @TeleOp
 public class VisionTest2 extends LinearOpMode {
-    Robot robot;
+    private Robot robot;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -22,11 +22,14 @@ public class VisionTest2 extends LinearOpMode {
 
         robot.start();
 
-        var vuforiaLocalizer = new WebcamLocalization(robot);
+        WebcamLocalization vuforiaLocalizer = new WebcamLocalization(robot);
 
         waitForStart();
 
-        while (opModeIsActive());
+        while (opModeIsActive()) {
+            sleep(500);
+        }
 
+        vuforiaLocalizer.stopConsuming();
     }
 }
