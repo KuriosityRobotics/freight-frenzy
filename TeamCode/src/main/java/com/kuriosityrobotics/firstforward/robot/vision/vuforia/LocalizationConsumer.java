@@ -27,65 +27,42 @@ public class LocalizationConsumer implements VuforiaConsumer {
     VuforiaLocalizer vuforia;
     Point robotCoordinatesWebcam;
     Orientation robotRotationWebcam;
+    OpenGLMatrix lastLocation = null;
+    VuforiaTrackables wallTargets;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
         this.vuforia = vuforia;
-        final float mmPerInch = 25.4f;
-        final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
 
         // Constants for perimeter targets
-        final float halfField = 72 * mmPerInch;
-        final float quadField = 36 * mmPerInch;
+        final float mmPerInch = 25.4f;
+        final float mmTargetHeight = (6) * mmPerInch;          // the height of the center of the target image above the floor
+        final float halfField        = 72 * mmPerInch;
+        final float halfTile         = 12 * mmPerInch;
+        final float oneAndHalfTile   = 36 * mmPerInch;
 
         // Class Members
-        OpenGLMatrix lastLocation = null;
 
         List<VuforiaTrackable> allTrackables = new ArrayList<VuforiaTrackable>();
 
         // Initialize Localization
 
-        // Target Trackables
-        // TODO: Change labelling to this year's
-        VuforiaTrackables targetsUltimateGoal = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        VuforiaTrackable blueTowerGoalTarget = targetsUltimateGoal.get(0);
-        blueTowerGoalTarget.setName("Blue Tower Goal Target");
-        VuforiaTrackable redTowerGoalTarget = targetsUltimateGoal.get(1);
-        redTowerGoalTarget.setName("Red Tower Goal Target");
-        VuforiaTrackable redAllianceTarget = targetsUltimateGoal.get(2);
-        redAllianceTarget.setName("Red Alliance Target");
-        VuforiaTrackable blueAllianceTarget = targetsUltimateGoal.get(3);
-        blueAllianceTarget.setName("Blue Alliance Target");
-        VuforiaTrackable frontWallTarget = targetsUltimateGoal.get(4);
-        frontWallTarget.setName("Front Wall Target");
-        allTrackables.addAll(targetsUltimateGoal);
+        wallTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
 
-        // set Wall target locations
-        // TODO: Change targets to this year
-        redAllianceTarget.setLocation(OpenGLMatrix
-                .translation(0, -halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-        blueAllianceTarget.setLocation(OpenGLMatrix
-                .translation(0, halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-        frontWallTarget.setLocation(OpenGLMatrix
-                .translation(-halfField, 0, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-        blueTowerGoalTarget.setLocation(OpenGLMatrix
-                .translation(halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-        redTowerGoalTarget.setLocation(OpenGLMatrix
-                .translation(halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
+        // Get trackables
+        identifyTarget(0, "Blue Storage",       -halfField,  oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
 
-        // TODO: Edit camera positioning so it matches
+        // TODO: Edit camera positioning on the robot
         final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * mmPerInch;   // eg: Camera is 4 Inches in front of robot-center
         final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * mmPerInch;   // eg: Camera is 8 Inches above ground
         final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 270, 0));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 0));
 
         // Let all the trackable listeners know where the phone is.
         for (VuforiaTrackable trackable : allTrackables) {
@@ -122,5 +99,11 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     public Orientation getRobotOrientation() {
         return this.robotRotationWebcam;
+    }
+    void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+        VuforiaTrackable aTarget = wallTargets.get(targetIndex);
+        aTarget.setName(targetName);
+        aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 }
