@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.WebcamLocalization;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class SensorThread implements Runnable, Telemeter {
     private final Robot robot;
 
     private final Odometry odometry;
+    private final WebcamLocalization webcamLocalization;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
@@ -33,6 +35,7 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
 
         odometry = new Odometry(robot);
+        webcamLocalization = new WebcamLocalization(robot);
     }
 
 
@@ -44,6 +47,7 @@ public class SensorThread implements Runnable, Telemeter {
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
 
+            // localization stuff, Kf implementation will be done a bit later
             odometry.update();
 
             long currentTime = SystemClock.elapsedRealtime();
@@ -51,6 +55,7 @@ public class SensorThread implements Runnable, Telemeter {
             lastLoopTime = currentTime;
         }
 
+        webcamLocalization.stopConsuming();
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 

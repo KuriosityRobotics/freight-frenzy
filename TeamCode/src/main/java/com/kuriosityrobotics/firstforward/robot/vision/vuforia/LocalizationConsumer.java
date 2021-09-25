@@ -7,6 +7,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.qualcomm.robotcore.util.RobotLog;
+import com.vuforia.Trackable;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -30,6 +31,10 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private Orientation robotRotationWebcam;
     private OpenGLMatrix lastLocation = null;
     private VuforiaTrackables ultimateGoalTargets;
+
+    public Trackable detectedTrackable;
+    public Point trackableLocation;
+
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -145,6 +150,30 @@ public class LocalizationConsumer implements VuforiaConsumer {
         }
     }
 
+    private void updateDetection() {
+        if (this.ultimateGoalTargets == null) {
+            RobotLog.v("All trackables are null");
+            return;
+        }
+
+        for (VuforiaTrackable trackable : this.ultimateGoalTargets) {
+            if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
+                RobotLog.v("Target Visible", trackable.getName());
+                RobotLog.v("Target Position", trackable.getLocation());
+
+                // When your variable naming causes you to use weird variable names
+                VectorF locationoftheTrackable = trackable.getLocation().getTranslation();
+                this.trackableLocation = new Point(locationoftheTrackable.get(0) / MM_PER_INCH, locationoftheTrackable.get(1) / MM_PER_INCH);
+
+                OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
+                if (robotLocationTransform != null) {
+                    this.lastLocation = robotLocationTransform;
+                }
+                break;
+            }
+        }
+    }
+
     /**
      * Do nothing since this is for OpenCV and that's not what Vuforia is using
      */
@@ -167,8 +196,9 @@ public class LocalizationConsumer implements VuforiaConsumer {
      * Get robot position messages via vuforia localization data
      * @return
      */
-    public ArrayList<String> logPosition() {
+    public ArrayList<String> logPositionandDetection() {
         updatePosition();
+        updateDetection();
 
         ArrayList<String> data = new ArrayList<>();
 
@@ -179,6 +209,14 @@ public class LocalizationConsumer implements VuforiaConsumer {
         data.add("Robot Orientation: " + (this.robotRotationWebcam != null ?
                 this.robotRotationWebcam.toString() :
                 "UKNOWN"));
+
+        data.add("Detected Trackable: " + (this.detectedTrackable != null ?
+                this.detectedTrackable.toString() :
+                "None found lol"));
+
+        data.add("Trackable Location: " + (this.trackableLocation != null ?
+                this.trackableLocation.toString() :
+                "UNKNOWN"));
 
         return data;
     }

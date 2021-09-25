@@ -1,8 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
+import com.vuforia.Trackable;
 
 import java.util.ArrayList;
 
@@ -11,13 +13,18 @@ import java.util.ArrayList;
  */
 public class WebcamLocalization implements Telemeter {
     private LocalizationConsumer vuforiaConsumer;
+    private VuforiaConsumer[] vuforiaConsumers;
+
     private final ManagedCamera managedCamera;
+    private Trackable detectedTrackable;
+    private Point trackableLocation;
 
     public WebcamLocalization(Robot robot) {
         robot.telemetryDump.registerTelemeter(this);
 
+        this.vuforiaConsumers[0] = vuforiaConsumer;
         this.vuforiaConsumer = new LocalizationConsumer();
-        this.managedCamera = new ManagedCamera("Webcam 1", robot.hardwareMap, this.vuforiaConsumer);
+        this.managedCamera = new ManagedCamera("Webcam 1", robot.hardwareMap, this.vuforiaConsumers);
     }
 
     public void stopConsuming() {
@@ -26,7 +33,7 @@ public class WebcamLocalization implements Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        return this.vuforiaConsumer.logPosition();
+        return this.vuforiaConsumer.logPositionandDetection();
     }
 
     @Override
@@ -37,5 +44,13 @@ public class WebcamLocalization implements Telemeter {
     @Override
     public boolean isOn() {
         return true;
+    }
+
+    public Trackable getTrackable() {
+        return this.detectedTrackable;
+    }
+
+    public Point getTrackableLocation() {
+        return this.trackableLocation;
     }
 }
