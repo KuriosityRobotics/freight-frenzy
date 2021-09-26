@@ -42,20 +42,10 @@ public final class ManagedCamera {
             if(!vuforiaInitialisedYet) {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 parameters.cameraName = cameraName;
 
                 var vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
-                var vuforiaCoro = first(consume((VuforiaConsumer::update)));
-                CoroutineScope.launch(scope ->
-                {
-                    if (vuforiaConsumers != null) {
-                        for (int i = 0; i < vuforiaConsumers.length; i++) {
-                            vuforiaCoro.runAsync(scope, vuforiaConsumers[i]);
-                        }
-                    }
-                });
 
                 vuforiaInitialisedYet = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);

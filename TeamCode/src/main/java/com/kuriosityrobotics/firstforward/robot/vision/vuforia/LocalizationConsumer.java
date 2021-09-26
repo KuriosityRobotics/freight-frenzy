@@ -30,7 +30,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private Point robotCoordinatesWebcam;
     private Orientation robotRotationWebcam;
     private OpenGLMatrix lastLocation = null;
-    private VuforiaTrackables ultimateGoalTargets;
+    private VuforiaTrackables freightFrenzyTargets;
 
     public Trackable detectedTrackable;
     public Point trackableLocation;
@@ -47,19 +47,20 @@ public class LocalizationConsumer implements VuforiaConsumer {
         final float quadField  = 36 * MM_PER_INCH;
 
         // Get trackables
-        this.ultimateGoalTargets = vuforia.loadTrackablesFromAsset("UltimateGoal");
-        VuforiaTrackable blueTowerGoalTarget = ultimateGoalTargets.get(0);
-        blueTowerGoalTarget.setName("Blue Tower Goal Target");
-        VuforiaTrackable redTowerGoalTarget = ultimateGoalTargets.get(1);
-        redTowerGoalTarget.setName("Red Tower Goal Target");
-        VuforiaTrackable redAllianceTarget = ultimateGoalTargets.get(2);
-        redAllianceTarget.setName("Red Alliance Target");
-        VuforiaTrackable blueAllianceTarget = ultimateGoalTargets.get(3);
-        blueAllianceTarget.setName("Blue Alliance Target");
-        VuforiaTrackable frontWallTarget = ultimateGoalTargets.get(4);
-        frontWallTarget.setName("Front Wall Target");
+//        this.ultimateGoalTargets = vuforia.loadTrackablesFromAsset("UltimateGoal");
+//        VuforiaTrackable blueTowerGoalTarget = ultimateGoalTargets.get(0);
+//        blueTowerGoalTarget.setName("Blue Tower Goal Target");
+//        VuforiaTrackable redTowerGoalTarget = ultimateGoalTargets.get(1);
+//        redTowerGoalTarget.setName("Red Tower Goal Target");
+//        VuforiaTrackable redAllianceTarget = ultimateGoalTargets.get(2);
+//        redAllianceTarget.setName("Red Alliance Target");
+//        VuforiaTrackable blueAllianceTarget = ultimateGoalTargets.get(3);
+//        blueAllianceTarget.setName("Blue Alliance Target");
+//        VuforiaTrackable frontWallTarget = ultimateGoalTargets.get(4);
+//        frontWallTarget.setName("Front Wall Target");
+        this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
 
-        this.ultimateGoalTargets.activate();
+        this.freightFrenzyTargets.activate();
 
         /**
          * In order for localization to work, we need to tell the system where each target is on the field, and
@@ -78,26 +79,10 @@ public class LocalizationConsumer implements VuforiaConsumer {
          * Before being transformed, each target image is conceptually located at the origin of the field's
          *  coordinate system (the center of the field), facing up.
          */
-
-        //Set the position of the perimeter targets with relation to origin (center of field)
-        redAllianceTarget.setLocation(OpenGLMatrix
-                .translation(0, -halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 180)));
-
-        blueAllianceTarget.setLocation(OpenGLMatrix
-                .translation(0, halfField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 0)));
-        frontWallTarget.setLocation(OpenGLMatrix
-                .translation(-halfField, 0, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, 90)));
-
-        // The tower goal targets are located a quarter field length from the ends of the back perimeter wall.
-        blueTowerGoalTarget.setLocation(OpenGLMatrix
-                .translation(halfField, quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
-        redTowerGoalTarget.setLocation(OpenGLMatrix
-                .translation(halfField, -quadField, mmTargetHeight)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 0, -90)));
+        identifyTarget(0, "Blue Storage",       -halfField,  oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
 
         // TODO: Edit camera positioning on the robot
         final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * MM_PER_INCH;   // eg: Camera is 4 Inches in front of robot-center
@@ -110,7 +95,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         // Let all the trackable listeners know where the phone is.
         CameraName cameraName = vuforia.getCameraName();
-        for (VuforiaTrackable trackable : ultimateGoalTargets) {
+        for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
         }
@@ -122,12 +107,12 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private void updatePosition() {
         boolean targetVisible = false;
 
-        if (this.ultimateGoalTargets == null) {
+        if (this.freightFrenzyTargets == null) {
             RobotLog.v("All trackables are null");
             return;
         }
 
-        for (VuforiaTrackable trackable : this.ultimateGoalTargets) {
+        for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                 RobotLog.v("Visible Target", trackable.getName());
                 targetVisible = true;
@@ -151,12 +136,12 @@ public class LocalizationConsumer implements VuforiaConsumer {
     }
 
     private void updateDetection() {
-        if (this.ultimateGoalTargets == null) {
+        if (this.freightFrenzyTargets == null) {
             RobotLog.v("All trackables are null");
             return;
         }
 
-        for (VuforiaTrackable trackable : this.ultimateGoalTargets) {
+        for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                 RobotLog.v("Target Visible", trackable.getName());
                 RobotLog.v("Target Position", trackable.getLocation());
@@ -189,7 +174,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
      * Remember to call when opmode finishes
      */
     public void deactivate() {
-        this.ultimateGoalTargets.deactivate();
+        this.freightFrenzyTargets.deactivate();
     }
 
     /**
@@ -219,5 +204,12 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 "UNKNOWN"));
 
         return data;
+    }
+
+    public void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+        VuforiaTrackable aTarget = this.freightFrenzyTargets.get(targetIndex);
+        aTarget.setName(targetName);
+        aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 }

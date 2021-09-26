@@ -22,8 +22,9 @@ public class WebcamLocalization implements Telemeter {
     public WebcamLocalization(Robot robot) {
         robot.telemetryDump.registerTelemeter(this);
 
-        this.vuforiaConsumers[0] = vuforiaConsumer;
         this.vuforiaConsumer = new LocalizationConsumer();
+        this.vuforiaConsumers = new VuforiaConsumer[0];
+        this.vuforiaConsumers[0] = this.vuforiaConsumer;
         this.managedCamera = new ManagedCamera("Webcam 1", robot.hardwareMap, this.vuforiaConsumers);
     }
 
