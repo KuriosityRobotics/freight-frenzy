@@ -29,6 +29,7 @@ public class VisionTest extends LinearOpMode {
                 VuforiaTrackables targetsSkyStone = vuforia.loadTrackablesFromAsset("UltimateGoal");
 
                 stoneTarget = targetsSkyStone.get(0);
+                targetsSkyStone.activate();
 
             }
 
@@ -36,13 +37,12 @@ public class VisionTest extends LinearOpMode {
             public void update() {
                 Log.d("VisionTest->VuforiaConsumer", String.valueOf(((VuforiaTrackableDefaultListener) stoneTarget.getListener()).isVisible()));
             }
-        }, frame -> Log.d("VisionTest", String.valueOf(frame.width())));
+        }, frame -> Log.d("VisionTest", String.valueOf(frame.width()));
 
 
 
         waitForStart();
 
         while (opModeIsActive()) ;
-
     }
 }
