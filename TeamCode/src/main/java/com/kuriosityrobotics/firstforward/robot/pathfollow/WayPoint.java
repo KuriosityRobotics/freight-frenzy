@@ -2,22 +2,23 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
+import org.checkerframework.checker.units.qual.Angle;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class WayPoint extends Point {
-    boolean lockHeading;
-    double heading;
+    AngleLock angleLock;
 
     boolean targetVelocity;
     double velocity;
 
     ArrayList<Action> actions;
 
-    public WayPoint(double x, double y, boolean lockHeading, double heading, boolean targetVelocity, double velocity, ArrayList<Action> actions) {
+    public WayPoint(double x, double y, AngleLock angleLock, boolean targetVelocity, double velocity, ArrayList<Action> actions) {
         super(x, y);
 
-        this.lockHeading = lockHeading;
-        this.heading = heading;
+        this.angleLock = angleLock;
 
         this.targetVelocity = targetVelocity;
         this.velocity = velocity;
@@ -26,15 +27,31 @@ public class WayPoint extends Point {
     }
 
     public WayPoint(double x, double y, double heading, double velocity, ArrayList<Action> actions) {
-        this(x, y, true, heading, true, velocity, actions);
+        this(x, y, new AngleLock(heading), true, velocity, actions);
+    }
+
+    public WayPoint(double x, double y, AngleLock angleLock, boolean targetVelocity, double velocity) {
+        this(x, y, angleLock, targetVelocity, velocity, new ArrayList<>());
+    }
+
+    public WayPoint(double x, double y, AngleLock angleLock) {
+        this(x, y, angleLock, false, 0);
     }
 
     public WayPoint(double x, double y, double heading, double velocity) {
-        this(x, y, true, heading, true, velocity, new ArrayList<>());
+        this(x, y, new AngleLock(heading), true, velocity);
     }
 
     public WayPoint(double x, double y, ArrayList<Action> actions) {
-        this(x, y, false, 0, false, 0, actions);
+        this(x, y, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0), false, 0, actions);
+    }
+
+    public WayPoint(double x, double y, double velocity) {
+        this(x, y, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0), true, velocity);
+    }
+
+    public WayPoint(double x, double y) {
+        this(x, y, new ArrayList<>());
     }
 
     public WayPoint(double x, double y, Action action) {
@@ -43,7 +60,15 @@ public class WayPoint extends Point {
         actions.add(action);
     }
 
-    public WayPoint(double x, double y) {
-        this(x, y, 0, 0);
+    public AngleLock getAngleLock() {
+        return angleLock;
+    }
+
+    public boolean hasTargetVelocity() {
+        return targetVelocity;
+    }
+
+    public double getVelocity() {
+        return velocity;
     }
 }

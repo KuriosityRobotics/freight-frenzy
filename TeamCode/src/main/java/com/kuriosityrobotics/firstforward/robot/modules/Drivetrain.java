@@ -146,11 +146,24 @@ public class Drivetrain implements Module, Telemeter {
         return Math.atan2(point.x - currentPosition.x, point.y - currentPosition.y);
     }
 
-    public Point relativeComponentsToPoint(Point point) {
+    /**
+     * The heading the robot would have to turn by to face the point directly.
+     *
+     * @param point
+     * @return relative heading to that point
+     */
+    public double relativeHeadingToPoint(Point point) {
         Pose currentPosition = getCurrentPose();
 
         double absoluteHeadingToPoint = absoluteHeadingToPoint(point);
-        double relativeHeadingToPoint = absoluteHeadingToPoint - currentPosition.heading;
+
+        return absoluteHeadingToPoint - currentPosition.heading;
+    }
+
+    public Point relativeComponentsToPoint(Point point) {
+        Pose currentPosition = getCurrentPose();
+
+        double relativeHeadingToPoint = relativeHeadingToPoint(point);
 
         double distanceError = currentPosition.distance(point);
 

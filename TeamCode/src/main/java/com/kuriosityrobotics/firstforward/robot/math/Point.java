@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.math;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 
+import androidx.annotation.NonNull;
+
 /**
  * Used to define a point in space. Has two field variables, x and y to define a point (x,y) on an
  * euclidean plane. Empty constructor creates a point with value (0, 0).
@@ -15,7 +17,7 @@ public class Point {
         this.y = y;
     }
 
-    public double distance(Point other){
+    public double distance(Point other) {
         return Math.hypot(other.x - x, other.y - y);
     }
 
@@ -23,10 +25,10 @@ public class Point {
         Point nearest;
         if (line.isVertical()) {
             nearest = new Point(line.startPoint.x, y);
-        }else if (line.getSlope() == 0) {
+        } else if (line.getSlope() == 0) {
             nearest = new Point(x, line.startPoint.y);
-        }else {
-            Line perpendicular = new Line(this, -1/ line.getSlope());
+        } else {
+            Line perpendicular = new Line(this, -1 / line.getSlope());
             nearest = line.getIntersection(perpendicular);
         }
 
@@ -39,7 +41,7 @@ public class Point {
 
         if (line.containsPoint(nearest)) {
             return nearest;
-        }else {
+        } else {
             if (nearest.distance(line.startPoint) <= nearest.distance(line.endPoint)) {
                 return line.startPoint;
             }
@@ -52,12 +54,14 @@ public class Point {
         return this.distance(projectToSegment(line));
     }
 
-    public Point scale(double scale){
+    public Point scale(double scale) {
         return new Point(scale * x, scale * y);
     }
+
+    @NonNull
     @Override
     public String toString() {
-        return x + ", " + y;
+        return "(" + x + ", " + y + ")";
     }
 
     @Override

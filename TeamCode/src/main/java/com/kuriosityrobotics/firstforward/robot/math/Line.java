@@ -89,9 +89,17 @@ public class Line {
         return withinX && withinY;
     }
 
+    public double getAngle() {
+        return Math.atan2(endPoint.y - startPoint.y, endPoint.x - startPoint.x);
+    }
+
+    public double getHeading() {
+        return Math.atan2(endPoint.x - startPoint.x, endPoint.y - startPoint.y);
+    }
+
     public double getSlope() {
         if (isVertical()) {
-            return Double.MAX_VALUE; // TODO: not use weird nudging like this, make actual cases
+            return Double.MAX_VALUE; // TODO: not use weird nudging like this, make actual cases?
         }
         return (endPoint.y - startPoint.y) / (endPoint.x - startPoint.x);
     }

@@ -6,8 +6,8 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -50,7 +50,7 @@ public class Odometry implements Telemeter {
 
     // Constants
     private final static double INCHES_PER_ENCODER_TICK = 0.0007284406721 * 100.0 / 101.9889;
-    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775/90); // 5.125
+    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775 / 90); // 5.125
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
@@ -66,9 +66,6 @@ public class Odometry implements Telemeter {
 
         resetEncoders();
 
-        FileDump.addField("lastLeftPosition", this);
-        FileDump.addField("lastRightPosition", this);
-        FileDump.addField("lastMecanumPosition", this);
         FileDump.addField("xVel", this);
         FileDump.addField("yVel", this);
         FileDump.addField("angleVel", this);
@@ -76,7 +73,7 @@ public class Odometry implements Telemeter {
 
     public Odometry(Robot robot) {
         // (0,0) is the center of the field (IMPORTANT)
-        this(robot, new Pose(0.0,0.0,0.0));
+        this(robot, new Pose(0.0, 0.0, 0.0));
     }
 
     public void update() {
@@ -236,7 +233,13 @@ public class Odometry implements Telemeter {
         return new Pose(worldX, worldY, worldHeadingRad);
     }
 
-    public double getVelMag(){ return Math.hypot(xVel, yVel); }
+    public Pose getVelocity() {
+        return new Pose(xVel, yVel, angleVel);
+    }
+
+    public double getVelMag() {
+        return Math.hypot(xVel, yVel);
+    }
 
     @Override
     public String getName() {
