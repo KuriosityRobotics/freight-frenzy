@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -17,10 +19,10 @@ public class Odometry implements Telemeter {
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
 
-    // Position of the robot
-    private double worldX;
-    private double worldY;
-    private double worldHeadingRad;
+    // Position of the robot, This is how you manipulate the robot starting value
+    private double worldX = -48;
+    private double worldY = 32;
+    private double worldHeadingRad = -Math.PI / 2;
 
     // velocity of the robot
     private double xVel = 0;
@@ -47,9 +49,13 @@ public class Odometry implements Telemeter {
     public Odometry(Robot robot) {
         robot.telemetryDump.registerTelemeter(this);
 
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
+//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
+//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+        // temporary stuff so I can get odo working on the robot at my house
+        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
+        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
+        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
 
         resetEncoders();
     }
@@ -112,7 +118,7 @@ public class Odometry implements Telemeter {
         worldHeadingRad += dTheta;
     }
 
-    /**
+    /*
     taylor series expansion to make stuff COOL
      */
     private double sinXOverX(double x) {
@@ -131,7 +137,7 @@ public class Odometry implements Telemeter {
         }
     }
 
-    /**
+    /*
     taylor series expansion to make stuff COOL
      */
     private double cosXMinusOneOverX(double x) {
@@ -184,7 +190,7 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees(worldHeadingRad));
+        data.add("worldHeading: " + getWorldHeadingDeg());
 
         data.add("--");
 
@@ -209,12 +215,9 @@ public class Odometry implements Telemeter {
         return this.worldY;
     }
 
-    public double getWorldHeadingRad() {
-        return this.worldHeadingRad;
-    }
-
     public double getWorldHeadingDeg() {
-        return this.worldHeadingRad *= 180/Math.PI;
+        double temp = Math.toDegrees(worldHeadingRad);
+        return angleWrap(temp);
     }
 
     @Override

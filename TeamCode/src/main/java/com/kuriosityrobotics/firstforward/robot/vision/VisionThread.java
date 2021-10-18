@@ -11,11 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// TODO: Turn this into a thread
 public class VisionThread implements Runnable, Telemeter {
     private List<LocalizationConsumer> localizationConsumers;
 
-    public final ManagedCamera managedCamera;
+    public ManagedCamera managedCamera;
     private final Robot robot;
 
     private final String webcamName;
@@ -24,13 +23,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.robot = robot;
         this.webcamName = webcamName;
         robot.telemetryDump.registerTelemeter(this);
-
         this.localizationConsumers = localizationConsumers;
-        List<VuforiaConsumer> vuforiaConsumers = localizationConsumers
-                .stream()
-                .map(e -> (VuforiaConsumer) e)
-                .collect(Collectors.toList());
-        this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, vuforiaConsumers);
     }
 
     @Override
@@ -54,7 +47,19 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
+        List<VuforiaConsumer> vuforiaConsumers = localizationConsumers
+                .stream()
+                .map(e -> (VuforiaConsumer) e)
+                .collect(Collectors.toList());
+        this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, vuforiaConsumers);
+
         while (robot.running()) {
+//            try {
+//                Thread.sleep(500);
+//                Log.v("VisionThread", "Managed Cameras are running :)");
+//            } catch (InterruptedException e) {
+//                Log.e("VisionThread", "Thread Interupted: ", e);
+//            }
             Log.v("VisionThread", "Managed Cameras are running :)");
         }
 

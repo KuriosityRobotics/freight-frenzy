@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -30,22 +29,23 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private static final float MM_PER_INCH = 25.4f;
 
     private Point robotCoordinatesWebcam;
-    private Orientation robotRotationWebcam;
+    private Double robotRotationWebcam;
     private OpenGLMatrix lastLocation = null;
     private VuforiaTrackables freightFrenzyTargets;
 
     public Trackable detectedTrackable;
     public Point trackableLocation;
 
+    public boolean isTrackableDetected;
+
     @Override
     public void setup(VuforiaLocalizer vuforia) {
 
         // Constants for perimeter targets
-        final float mmTargetHeight = (6) * MM_PER_INCH;          // the height of the center of the target image above the floor
+        final float mmTargetHeight = 6 * MM_PER_INCH;          // the height of the center of the target image above the floor
         final float halfField        = 72 * MM_PER_INCH;
         final float halfTile         = 12 * MM_PER_INCH;
         final float oneAndHalfTile   = 36 * MM_PER_INCH;
-        final float quadField  = 36 * MM_PER_INCH;
 
         // Get trackables
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
@@ -58,14 +58,14 @@ public class LocalizationConsumer implements VuforiaConsumer {
         identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
         identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
 
-        // TODO: Edit camera positioning on the robot
-        final float CAMERA_FORWARD_DISPLACEMENT = 4.0f * MM_PER_INCH;   // eg: Camera is 4 Inches in front of robot-center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 8.0f * MM_PER_INCH;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 0;     // eg: Camera is ON the robot's center line
+        // current pos matches tuning, not supposed to match actual pos on the robot
+        final float CAMERA_FORWARD_DISPLACEMENT = -0.375f * MM_PER_INCH;   // eg: Camera is 4 Inches in front of robot-center
+        final float CAMERA_VERTICAL_DISPLACEMENT = -3.5f * MM_PER_INCH;   // eg: Camera is 8 Inches above ground
+        final float CAMERA_LEFT_DISPLACEMENT = 8.0f * MM_PER_INCH;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 0));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
         CameraName cameraName = vuforia.getCameraName();
@@ -103,11 +103,14 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         if (targetVisible) {
             VectorF translation = lastLocation.getTranslation();
-            this.robotCoordinatesWebcam = new Point(translation.get(0) / MM_PER_INCH, translation.get(1) / MM_PER_INCH);
-            this.robotRotationWebcam = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+            this.robotCoordinatesWebcam = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
+            this.robotRotationWebcam = (double) Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES).secondAngle;
 
             RobotLog.v("Pos (in): ", this.robotCoordinatesWebcam);
-            RobotLog.v("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", robotRotationWebcam.firstAngle, robotRotationWebcam.secondAngle, robotRotationWebcam.thirdAngle);
+            RobotLog.v("Rot (deg)", "{Roll, Pitch, Heading} = %.0f", robotRotationWebcam);
+        }
+        else {
+            this.lastLocation = null;
         }
     }
 
@@ -125,12 +128,17 @@ public class LocalizationConsumer implements VuforiaConsumer {
     public ArrayList<String> logPositionandDetection() {
         ArrayList<String> data = new ArrayList<>();
 
+        if (lastLocation == null) {
+            data.add("No trackables detected");
+            return  data;
+        }
+
         data.add("Robot Coordinates: " + (this.robotCoordinatesWebcam != null ?
                 this.robotCoordinatesWebcam.toString() :
                 "UKNOWN"));
 
-        data.add("Robot Orientation: " + (this.robotRotationWebcam != null ?
-                this.robotRotationWebcam.toString() :
+        data.add("Robot Rotation: " + (this.robotRotationWebcam != null ?
+                this.robotRotationWebcam :
                 "UKNOWN"));
 
         data.add("Detected Trackable: " + (this.detectedTrackable != null ?
@@ -151,7 +159,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 
-    public double getTargetFaceDirection() {
+    public double getTargetOrientation() {
         if (this.detectedTrackable == null) {
             return 0;
         }
@@ -184,45 +192,26 @@ public class LocalizationConsumer implements VuforiaConsumer {
     }
 
     public double getRobotRotation() {
-        if (this.robotRotationWebcam == null) {
-            this.robotRotationWebcam = new Orientation();
-        }
-        return this.robotRotationWebcam.secondAngle;
+        return this.robotRotationWebcam;
     }
 
     public RealMatrix getFormattedMatrix() {
-        double robotX;
-        double robotY;
-        double robotRotation;
+        if (lastLocation == null) {
+            return null;
+        }
 
-        double trackableLocationX;
-        double trackableLocationY;
-        double trackableAngle;
+        double robotX = (getCoordinates() != null ? getCoordinates().x : 0);
+        double robotY = (getCoordinates() != null ? getCoordinates().y : 0);
+        double robotRotation = (Math.abs(getRobotRotation() - 0.0) >= 0.01  ? getTargetOrientation() : 0);
 
-        robotX = (getCoordinates() != null ?
-                getCoordinates().x:
-                0);
-        robotY = (getCoordinates() != null ?
-                getCoordinates().y:
-                0);
-        robotRotation = (Math.abs(getRobotRotation() - 0.0) >= 0.01  ?
-                getTargetFaceDirection():
-                0);
-
-        trackableLocationX = (getTrackableCoordinates() != null ?
-                getTrackableCoordinates().x:
-                0);
-        trackableLocationY = (getTrackableCoordinates() != null ?
-                getTrackableCoordinates().y:
-                0);
-        trackableAngle = (Math.abs(getTargetFaceDirection() - 0.0) >= 0.01  ?
-                getTargetFaceDirection():
-                0);
+        double trackableX = (getTrackableCoordinates() != null ? getTrackableCoordinates().x : 0);
+        double trackableY = (getTrackableCoordinates() != null ? getTrackableCoordinates().y : 0);
+        double trackableAngle = (Math.abs(getTargetOrientation() - 0.0) >= 0.00001 ? getTargetOrientation() : 0);
 
         RealMatrix obs = MatrixUtils.createRealMatrix(new double[][]{
-                {trackableLocationX, robotX},
-                {trackableLocationY, robotY},
-                {trackableAngle, robotRotation}
+                {trackableX, robotX},
+                {trackableY, robotY},
+                {Math.toRadians(trackableAngle), Math.toRadians(robotRotation)}
         });
 
         return obs;

@@ -1,7 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.MathFunctions;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.SimpleMatrixFormatter;
 
@@ -67,12 +68,12 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         // set up
         double prevX = prev[0].getEntry(0,0);
         double prevY = prev[0].getEntry(1,0);
-        double prevHeading = prev[0].getEntry(2,0);
+        double prevHeading = angleWrap(prev[0].getEntry(2,0));
         RealMatrix prevCov = prev[1];
 
         double odoDX = update.getEntry(0,0);
         double odoDY = update.getEntry(1,0);
-        double odoDTheta = update.getEntry(2,0);
+        double odoDTheta = angleWrap(update.getEntry(2,0));
 
         RealMatrix G = MatrixUtils.createRealMatrix(new double[][]{
                 {1, 0, -odoDX * Math.sin(prevHeading) + odoDY * Math.cos(prevHeading)},
@@ -95,7 +96,7 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         // calculate
         double predX = prevX + odoDX * Math.cos(prevHeading) + odoDY * Math.sin(prevHeading);
         double predY = prevY - odoDX * Math.sin(prevHeading) + odoDY * Math.cos(prevHeading);
-        double predHeading = MathFunctions.angleWrap(prevHeading + odoDTheta);
+        double predHeading = angleWrap(prevHeading + odoDTheta);
         RealMatrix predCov = G.multiply(prevCov).multiply(G.transpose()).add(V.multiply(M.multiply(V.transpose())));
 
         return new RealMatrix[]{
@@ -124,11 +125,11 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         // TODO: remember to package tracker data with tracker info in col 0 and observation in col 1
         double tX = obs.getEntry(0,0);
         double tY = obs.getEntry(1,0);
-        double tPhi = obs.getEntry(2,0);
+        double tPhi = angleWrap(obs.getEntry(2,0));
 
         double predX = pred[0].getEntry(0,0);
         double predY = pred[0].getEntry(1,0);
-        double predHeading = pred[0].getEntry(2,0);
+        double predHeading = angleWrap(pred[0].getEntry(2,0));
         RealMatrix predCov = pred[1];
 
         RealMatrix predObs = MatrixUtils.createRealMatrix(new double[][]{
@@ -153,10 +154,10 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         RealMatrix K = predCov.multiply(H.transpose().multiply(MatrixUtils.inverse(S)));
 
         RealMatrix error = obs.getColumnMatrix(1).subtract(predObs);
-        error.setEntry(2,0,MathFunctions.angleWrap(error.getEntry(2,0)));
+        error.setEntry(2,0, angleWrap(error.getEntry(2,0)));
 
         RealMatrix correct = pred[0].add(K.multiply(error));
-        correct.setEntry(2,0,MathFunctions.angleWrap(correct.getEntry(2,0)));
+        correct.setEntry(2,0, angleWrap(correct.getEntry(2,0)));
         RealMatrix correctCov = predCov.subtract(K.multiply(H).multiply(predCov));
 
         return new RealMatrix[]{correct,correctCov};

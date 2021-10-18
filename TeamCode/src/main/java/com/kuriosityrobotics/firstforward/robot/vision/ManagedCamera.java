@@ -32,7 +32,7 @@ public final class ManagedCamera {
     private List<VuforiaConsumer> vuforiaConsumers;
     private OpenCvCamera openCvCamera;
 
-    private static boolean vuforiaInitialisedYet;
+    private boolean vuforiaInitialisedYet;
 
     private List<OpenCvConsumer> openCvConsumers;
 
