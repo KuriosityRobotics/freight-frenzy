@@ -54,8 +54,8 @@ public class SensorThread implements Runnable, Telemeter {
             this.odometry.update();
 //            Log.v("Odometry", this.odometry.getOdoData().toString());
 //            Log.v("Vision", this.localizationConsumers.get(0).getFormattedMatrix().toString());
-//            this.kalmanFilter.update(this.odometry.getOdoData(), this.localizationConsumers.get(0).getFormattedMatrix());
-            this.kalmanFilter.update(this.odometry.getOdoData(), null);
+            this.kalmanFilter.update(this.odometry.getOdoData(), this.localizationConsumers.get(0).getFormattedMatrix());
+//            this.kalmanFilter.update(this.odometry.getOdoData(), null);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
