@@ -19,7 +19,7 @@ public class Odometry implements Telemeter {
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
 
-    // Position of the robot, This is how you manipulate the robot starting value
+    // TODO: Position of the robot, This is how you manipulate the robot starting value
     private double worldX = -48;
     private double worldY = 32;
     private double worldHeadingRad = -Math.PI / 2;
@@ -38,10 +38,6 @@ public class Odometry implements Telemeter {
     private double oldX = 0;
     private double oldY = 0;
     private double oldHeading = 0;
-
-    private double dx;
-    private double dy;
-    private double dHeading;
 
     private double lastUpdateTime = 0;
 
@@ -115,17 +111,11 @@ public class Odometry implements Telemeter {
 
         // find robot relative deltas
         double dTheta = (L - R) / (2 * P);
-        dHeading = dTheta;
         double dRobotX = M * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
         double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + M * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
 
-        double worldXUpdate = dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
-        double worldYUpdate = dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
-
-        dx = worldXUpdate;
-        dy = worldYUpdate;
-        worldX += worldXUpdate;
-        worldY += worldYUpdate;
+        worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
+        worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
         //worldAngleRad =  (leftPodNewPosition - rightPodNewPosition) * INCHES_PER_ENCODER_TICK / (2 * P);
         worldHeadingRad += dTheta;
     }
@@ -182,18 +172,20 @@ public class Odometry implements Telemeter {
         lastMecanumPosition = 0;
     }
 
-    public RealMatrix getOdoData() {
-        double robotXDelta = getDeltaX();
-        double robotYDelta = getDeltaY();
-        double robotHeadingDelta = getDeltaHeading();
-
-        RealMatrix odoData = MatrixUtils.createRealMatrix(new double[][]{
-                {robotXDelta},
-                {robotYDelta},
-                {robotHeadingDelta}
+    public RealMatrix getVelocityMatrix() {
+        return MatrixUtils.createRealMatrix(new double[][]{
+                {xVel},
+                {yVel},
+                {angleVel}
         });
+    }
 
-        return odoData;
+    public RealMatrix getWorldMatrix() {
+        return MatrixUtils.createRealMatrix(new double[][]{
+                {worldX},
+                {worldY},
+                {worldHeadingRad}
+        });
     }
 
     @Override
@@ -219,21 +211,8 @@ public class Odometry implements Telemeter {
         return data;
     }
 
-    public double getDeltaX() {
-        return this.dx;
-    }
-
-    public double getDeltaY() {
-        return this.dy;
-    }
-
     public double getWorldHeadingDeg() {
         double temp = Math.toDegrees(worldHeadingRad);
-        return angleWrap(temp);
-    }
-
-    public double getDeltaHeading() {
-        double temp = Math.toDegrees(dHeading);
         return angleWrap(temp);
     }
 

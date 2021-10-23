@@ -193,6 +193,15 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         return data;
     }
 
+    public String getPoseString() {
+        StringBuilder sb = new StringBuilder();
+        for (String row: getTelemetryData()) {
+            sb.append(row);
+        }
+
+        return sb.toString();
+    }
+
     @Override
     public String getName() {
         return "LocalizeKalmanFilter";

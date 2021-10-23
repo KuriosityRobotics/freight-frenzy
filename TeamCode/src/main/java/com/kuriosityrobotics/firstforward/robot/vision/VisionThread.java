@@ -54,13 +54,12 @@ public class VisionThread implements Runnable, Telemeter {
         this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, vuforiaConsumers);
 
         while (robot.running()) {
-//            try {
-//                Thread.sleep(500);
-//                Log.v("VisionThread", "Managed Cameras are running :)");
-//            } catch (InterruptedException e) {
-//                Log.e("VisionThread", "Thread Interupted: ", e);
-//            }
-            Log.v("VisionThread", "Managed Cameras are running :)");
+            try {
+                Thread.sleep(125);
+                Log.v("VisionThread", "Managed Cameras are running :)");
+            } catch (InterruptedException e) {
+                Log.e("VisionThread", "Thread Interupted: ", e);
+            }
         }
 
         this.localizationConsumers.forEach(LocalizationConsumer::deactivate);

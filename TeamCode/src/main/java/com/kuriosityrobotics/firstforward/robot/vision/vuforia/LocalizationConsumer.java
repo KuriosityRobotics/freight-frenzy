@@ -6,7 +6,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.qualcomm.robotcore.util.RobotLog;
-import com.vuforia.Trackable;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -25,18 +24,13 @@ import java.util.ArrayList;
  * Defining a Vuforia localization consumer
  */
 public class LocalizationConsumer implements VuforiaConsumer {
-    // Accessable values
+    // Accessible values
     private static final float MM_PER_INCH = 25.4f;
 
-    private Point robotCoordinatesWebcam;
-    private Double robotRotationWebcam;
-    private OpenGLMatrix lastLocation = null;
     private VuforiaTrackables freightFrenzyTargets;
 
-    public Trackable detectedTrackable;
-    public Point trackableLocation;
-
-    public boolean isTrackableDetected;
+    private VuforiaTrackable detectedTrackable;
+    private OpenGLMatrix detectedLocation = null;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -86,31 +80,22 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
-                VectorF locationoftheTrackable = trackable.getLocation().getTranslation();
-                this.trackableLocation = new Point(locationoftheTrackable.get(0) / MM_PER_INCH, locationoftheTrackable.get(1) / MM_PER_INCH);
-
+                detectedTrackable = trackable;
                 RobotLog.v("Visible Target", trackable.getName());
                 RobotLog.v("Target Position", trackable.getLocation());
                 targetVisible = true;
 
                 OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
                 if (robotLocationTransform != null) {
-                    this.lastLocation = robotLocationTransform;
+                    this.detectedLocation = robotLocationTransform;
                 }
                 break;
             }
         }
 
-        if (targetVisible) {
-            VectorF translation = lastLocation.getTranslation();
-            this.robotCoordinatesWebcam = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-            this.robotRotationWebcam = (double) Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES).secondAngle;
-
-            RobotLog.v("Pos (in): ", this.robotCoordinatesWebcam);
-            RobotLog.v("Rot (deg)", "{Roll, Pitch, Heading} = %.0f", robotRotationWebcam);
-        }
-        else {
-            this.lastLocation = null;
+        if (!targetVisible) {
+            this.detectedLocation = null;
+            this.detectedTrackable = null;
         }
     }
 
@@ -124,30 +109,18 @@ public class LocalizationConsumer implements VuforiaConsumer {
     /**
      * Get robot position messages via vuforia localization data
      * @return
+     * Data for the Vuforia Localization and Telemetry Dump
      */
     public ArrayList<String> logPositionandDetection() {
         ArrayList<String> data = new ArrayList<>();
 
-        if (lastLocation == null) {
+        if (detectedLocation == null) {
             data.add("No trackables detected");
-            return  data;
+            return data;
         }
-
-        data.add("Robot Coordinates: " + (this.robotCoordinatesWebcam != null ?
-                this.robotCoordinatesWebcam.toString() :
-                "UKNOWN"));
-
-        data.add("Robot Rotation: " + (this.robotRotationWebcam != null ?
-                this.robotRotationWebcam :
-                "UKNOWN"));
-
-        data.add("Detected Trackable: " + (this.detectedTrackable != null ?
-                this.detectedTrackable.toString() :
-                "None found"));
-
-        data.add("Trackable Location: " + (this.trackableLocation != null ?
-                this.trackableLocation.toString() :
-                "UNKNOWN"));
+        else {
+            data.add("Detected Trackable: " + detectedTrackable.getName());
+        }
 
         return data;
     }
@@ -159,61 +132,23 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 
-    public double getTargetOrientation() {
-        if (this.detectedTrackable == null) {
-            return 0;
-        }
-
-        double direction = 0;
-        VuforiaTrackable foundTarget = freightFrenzyTargets.get(this.detectedTrackable.getId());
-
-        if (foundTarget == null) {
-            return direction;
-        }
-        else if (foundTarget.getName().equals("Blue Storage") || foundTarget.getName().equals("Red Storage")) {
-            direction = 180;
-        }
-        else if (foundTarget.getName().equals("Blue Alliance Wall")) {
-            direction = 270;
-        }
-        else if (foundTarget.getName().equals("Red Alliance Wall")) {
-            direction = 90;
-        }
-
-        return direction;
-    }
-
-    public Point getTrackableCoordinates() {
-        return this.trackableLocation;
-    }
-
-    public Point getCoordinates() {
-        return this.robotCoordinatesWebcam;
-    }
-
-    public double getRobotRotation() {
-        return this.robotRotationWebcam;
-    }
-
     public RealMatrix getFormattedMatrix() {
-        if (lastLocation == null) {
+        if (detectedLocation == null) {
             return null;
         }
 
-        double robotX = (getCoordinates() != null ? getCoordinates().x : 0);
-        double robotY = (getCoordinates() != null ? getCoordinates().y : 0);
-        double robotRotation = (Math.abs(getRobotRotation() - 0.0) >= 0.01  ? getTargetOrientation() : 0);
+        VectorF translation = detectedLocation.getTranslation();
+        Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
+        double robotAngle = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).secondAngle;
 
-        double trackableX = (getTrackableCoordinates() != null ? getTrackableCoordinates().x : 0);
-        double trackableY = (getTrackableCoordinates() != null ? getTrackableCoordinates().y : 0);
-        double trackableAngle = (Math.abs(getTargetOrientation() - 0.0) >= 0.00001 ? getTargetOrientation() : 0);
+        RobotLog.v("Vuforia Pos (in): ", robotLocation);
+        RobotLog.v("Vuforia Angle (deg): ", robotAngle);
 
-        RealMatrix obs = MatrixUtils.createRealMatrix(new double[][]{
-                {trackableX, robotX},
-                {trackableY, robotY},
-                {Math.toRadians(trackableAngle), Math.toRadians(robotRotation)}
+        // We assume that there is no error in the Vuforia Localization
+        return MatrixUtils.createRealMatrix(new double[][]{
+                {robotLocation.x, 0},
+                {robotLocation.y, 0},
+                {Math.toRadians(robotAngle), 0}
         });
-
-        return obs;
     }
 }

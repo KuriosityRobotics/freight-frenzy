@@ -12,6 +12,8 @@ import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
+import org.apache.commons.math3.linear.RealMatrix;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +41,7 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
 
         this.odometry = new Odometry(robot);
-        this.kalmanFilter = new LocalizeKalmanFilter(robot, odometry.getOdoData());
+        this.kalmanFilter = new LocalizeKalmanFilter(robot, odometry.getWorldMatrix());
     }
 
 
@@ -51,11 +53,19 @@ public class SensorThread implements Runnable, Telemeter {
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
 
+            try {
+                // sleep so that we won't give terribly small values to the Kf
+                Thread.sleep(500);
+                Log.v("Sensorthread", "Nothing bad happened");
+            } catch (InterruptedException e) {
+                Log.e("Sensorthread", "Thread interupted: " + e);
+            }
             this.odometry.update();
-//            Log.v("Odometry", this.odometry.getOdoData().toString());
-//            Log.v("Vision", this.localizationConsumers.get(0).getFormattedMatrix().toString());
-            this.kalmanFilter.update(this.odometry.getOdoData(), this.localizationConsumers.get(0).getFormattedMatrix());
-//            this.kalmanFilter.update(this.odometry.getOdoData(), null);
+
+            RealMatrix odo = this.odometry.getVelocityMatrix();
+            RealMatrix obs = this.localizationConsumers.get(0).getFormattedMatrix();
+
+            this.kalmanFilter.update(odo, obs);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
