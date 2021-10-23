@@ -28,6 +28,7 @@ public class Robot {
     private final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
+
 //    public final LynxModule revHub2;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws NotFoundException {

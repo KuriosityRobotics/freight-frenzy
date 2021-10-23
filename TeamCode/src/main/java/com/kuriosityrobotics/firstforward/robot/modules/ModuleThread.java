@@ -33,10 +33,8 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
-            Log.v("modulethread", "robot running");
             for (Module module : modules){
                 if (module.isOn()){
-                    Log.v("modulethread", "modules updating");
                     module.update();
                 }
             }
