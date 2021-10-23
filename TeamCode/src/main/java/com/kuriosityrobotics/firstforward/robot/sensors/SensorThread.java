@@ -32,8 +32,6 @@ public class SensorThread implements Runnable, Telemeter {
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    private long updateInterval = 100;
-
     private final List<LocalizationConsumer> localizationConsumers;
 
     public SensorThread(Robot robot, String configLocation, List<LocalizationConsumer> localizationConsumers) {
@@ -55,21 +53,15 @@ public class SensorThread implements Runnable, Telemeter {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
-
-            try {
-                // sleep so that we won't give terribly small values to the Kf
-                Thread.sleep(updateInterval);
-                Log.v("Sensorthread", "Nothing bad happened");
-            } catch (InterruptedException e) {
-                Log.e("Sensorthread", "Thread interupted: " + e);
-            }
             this.odometry.update();
 
-            RealMatrix odo = this.odometry.getVelocityMatrix();
-            RealMatrix delta = toUpdateDelta(odo, updateInterval);
+            RealMatrix odo = this.odometry.getDeltaMatrix();
+            RealMatrix delta = normalize(odo, updateTime);
             RealMatrix obs = this.localizationConsumers.get(0).getFormattedMatrix();
 
             this.kalmanFilter.update(delta, obs);
+//            // for test
+//            this.kalmanFilter.update(delta, null);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
@@ -79,10 +71,10 @@ public class SensorThread implements Runnable, Telemeter {
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
-    private RealMatrix toUpdateDelta(RealMatrix odo, long updateInterval) {
+    private RealMatrix normalize(RealMatrix odo, long updateInterval) {
         return MatrixUtils.createRealMatrix(new double[][]{
-                {odo.getEntry(0,0) * updateInterval / 1000.0},
-                {odo.getEntry(1,0) * updateInterval / 1000.0},
+                {odo.getEntry(0,0) * (updateTime)},
+                {odo.getEntry(1,0) * (updateTime)},
                 {odo.getEntry(2,0)}
         });
     }

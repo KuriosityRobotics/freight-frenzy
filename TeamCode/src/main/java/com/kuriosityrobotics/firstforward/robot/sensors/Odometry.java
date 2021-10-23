@@ -27,6 +27,11 @@ public class Odometry implements Telemeter {
     private double yVel = 0;
     private double angleVel = 0;
 
+    // change in position of the robot
+    private double dx = 0;
+    private double dy = 0;
+    private double dHeading = 0;
+
     // For position calculation
     private double lastLeftPosition = 0;
     private double lastRightPosition = 0;
@@ -47,14 +52,14 @@ public class Odometry implements Telemeter {
     public Odometry(Robot robot) {
         robot.telemetryDump.registerTelemeter(this);
 
-//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
+        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
+        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
 
-        // temporary stuff so I can get odo working on the robot at my house
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
-        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
+//        // temporary stuff so I can get odo working on the robot at my house
+//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
+//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
+//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
 
         resetEncoders();
     }
@@ -84,9 +89,13 @@ public class Odometry implements Telemeter {
     private void calculateVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
 
-        xVel = 1000 * (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
-        yVel = 1000 * (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
-        angleVel = 1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
+        dx = (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
+        dy = (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
+        dHeading = (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
+
+        xVel = 1000 * dx;
+        yVel = 1000 * dy;
+        angleVel = 1000 * dHeading;
 
         oldX = worldX;
         oldY = worldY;
@@ -172,12 +181,12 @@ public class Odometry implements Telemeter {
         lastMecanumPosition = 0;
     }
 
-    public RealMatrix getVelocityMatrix() {
+    public RealMatrix getDeltaMatrix() {
         // x needs to be negative for some reason
         return MatrixUtils.createRealMatrix(new double[][]{
-                {xVel},
-                {yVel},
-                {angleVel}
+                {dx},
+                {dy},
+                {dHeading}
         });
     }
 
