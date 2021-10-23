@@ -93,6 +93,8 @@ public class Odometry implements Telemeter {
         oldX = worldX;
         oldY = worldY;
         oldHeading = worldHeadingRad;
+
+        lastUpdateTime = currentUpdateTime;
     }
 
     public void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumPod) {
@@ -173,6 +175,7 @@ public class Odometry implements Telemeter {
     }
 
     public RealMatrix getVelocityMatrix() {
+        // x needs to be negative for some reason
         return MatrixUtils.createRealMatrix(new double[][]{
                 {xVel},
                 {yVel},

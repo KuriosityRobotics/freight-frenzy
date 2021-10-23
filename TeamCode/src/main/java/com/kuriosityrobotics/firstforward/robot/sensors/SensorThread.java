@@ -55,7 +55,7 @@ public class SensorThread implements Runnable, Telemeter {
 
             try {
                 // sleep so that we won't give terribly small values to the Kf
-                Thread.sleep(500);
+                Thread.sleep(100);
                 Log.v("Sensorthread", "Nothing bad happened");
             } catch (InterruptedException e) {
                 Log.e("Sensorthread", "Thread interupted: " + e);
