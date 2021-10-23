@@ -45,6 +45,7 @@ public class SensorThread implements Runnable, Telemeter {
             });
 
             odometry.update();
+            FileDump.update();
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;

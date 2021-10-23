@@ -49,6 +49,13 @@ public class Odometry implements Telemeter {
         mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
 
         resetEncoders();
+
+        FileDump.addField("lastLeftPosition", this);
+        FileDump.addField("lastRightPosition", this);
+        FileDump.addField("lastMecanumPosition", this);
+        FileDump.addField("xVel", this);
+        FileDump.addField("yVel", this);
+        FileDump.addField("angleVel", this);
     }
 
     public void update() {
