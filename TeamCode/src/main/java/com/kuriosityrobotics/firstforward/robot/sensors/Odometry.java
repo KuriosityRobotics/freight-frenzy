@@ -72,7 +72,7 @@ public class Odometry implements Telemeter {
 
     private void calculatePosition() {
         double newLeftPosition = -yLeftEncoder.getCurrentPosition();
-        double newRightPosition = yRightEncoder.getCurrentPosition();
+        double newRightPosition = -yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;

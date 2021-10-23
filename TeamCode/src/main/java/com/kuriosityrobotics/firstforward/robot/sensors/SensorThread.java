@@ -56,16 +56,17 @@ public class SensorThread implements Runnable, Telemeter {
             this.odometry.update();
 
             RealMatrix odo = this.odometry.getDeltaMatrix();
+
+            long currentTime = SystemClock.elapsedRealtime();
+            updateTime = currentTime - lastLoopTime;
+            lastLoopTime = currentTime;
             RealMatrix delta = normalize(odo, updateTime);
+
             RealMatrix obs = this.localizationConsumers.get(0).getFormattedMatrix();
 
             this.kalmanFilter.update(delta, obs);
 //            // for test
 //            this.kalmanFilter.update(delta, null);
-
-            long currentTime = SystemClock.elapsedRealtime();
-            updateTime = currentTime - lastLoopTime;
-            lastLoopTime = currentTime;
         }
 
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
