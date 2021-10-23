@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
-
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -20,9 +18,9 @@ public class Odometry implements Telemeter {
     private final DcMotor mecanumEncoder;
 
     // TODO: Position of the robot, This is how you manipulate the robot starting value
-    private double worldX = -48;
-    private double worldY = 32;
-    private double worldHeadingRad = -Math.PI / 2;
+    private double worldX = 0;
+    private double worldY = 0;
+    private double worldHeadingRad = 0;
 
     // velocity of the robot
     private double xVel = 0;
@@ -197,7 +195,7 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + getWorldHeadingDeg());
+        data.add("worldHeading: " + Math.toDegrees(worldHeadingRad));
 
         data.add("--");
 
@@ -212,11 +210,6 @@ public class Odometry implements Telemeter {
         data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
-    }
-
-    public double getWorldHeadingDeg() {
-        double temp = Math.toDegrees(worldHeadingRad);
-        return angleWrap(temp);
     }
 
     @Override

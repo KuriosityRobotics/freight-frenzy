@@ -12,6 +12,7 @@ import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ public class SensorThread implements Runnable, Telemeter {
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
+
+    private long updateInterval = 100;
 
     private final List<LocalizationConsumer> localizationConsumers;
 
@@ -55,7 +58,7 @@ public class SensorThread implements Runnable, Telemeter {
 
             try {
                 // sleep so that we won't give terribly small values to the Kf
-                Thread.sleep(100);
+                Thread.sleep(updateInterval);
                 Log.v("Sensorthread", "Nothing bad happened");
             } catch (InterruptedException e) {
                 Log.e("Sensorthread", "Thread interupted: " + e);
@@ -63,9 +66,10 @@ public class SensorThread implements Runnable, Telemeter {
             this.odometry.update();
 
             RealMatrix odo = this.odometry.getVelocityMatrix();
+            RealMatrix delta = toUpdateDelta(odo, updateInterval);
             RealMatrix obs = this.localizationConsumers.get(0).getFormattedMatrix();
 
-            this.kalmanFilter.update(odo, obs);
+            this.kalmanFilter.update(delta, obs);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
@@ -73,6 +77,14 @@ public class SensorThread implements Runnable, Telemeter {
         }
 
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
+    }
+
+    private RealMatrix toUpdateDelta(RealMatrix odo, long updateInterval) {
+        return MatrixUtils.createRealMatrix(new double[][]{
+                {odo.getEntry(0,0) * updateInterval / 1000.0},
+                {odo.getEntry(1,0) * updateInterval / 1000.0},
+                {odo.getEntry(2,0)}
+        });
     }
 
     @Override

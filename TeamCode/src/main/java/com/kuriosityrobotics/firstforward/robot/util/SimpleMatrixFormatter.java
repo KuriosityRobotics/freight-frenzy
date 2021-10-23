@@ -9,8 +9,8 @@ public class SimpleMatrixFormatter {
 
     public static String toPoseString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
-        appendPoseValue(m, "x", "inches",1, 0, sb);
-        appendPoseValue(m, "y", "inches",0,0, sb);
+        appendPoseValue(m, "x", "inches",0, 0, sb);
+        appendPoseValue(m, "y", "inches",1,0, sb);
         appendPoseValue(m, "heading", "degrees",2, 0, sb);
 
         return sb.toString();
@@ -18,8 +18,8 @@ public class SimpleMatrixFormatter {
 
     public static String toSTDString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
-        appendCovarianceValue(m, "dx", "inches",1, 0, sb);
-        appendCovarianceValue(m, "dy", "inches",0,0, sb);
+        appendCovarianceValue(m, "dx", "inches",0, 0, sb);
+        appendCovarianceValue(m, "dy", "inches",1,0, sb);
         appendCovarianceValue(m, "dheading", "degrees",2, 0, sb);
 
         return sb.toString();

@@ -139,16 +139,16 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         VectorF translation = detectedLocation.getTranslation();
         Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-        double robotAngle = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).secondAngle;
+        double robotHeading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
 
         RobotLog.v("Vuforia Pos (in): ", robotLocation);
-        RobotLog.v("Vuforia Angle (deg): ", robotAngle);
+        RobotLog.v("Vuforia Angle (deg): ", robotHeading);
 
         // We assume that there is no error in the Vuforia Localization
         return MatrixUtils.createRealMatrix(new double[][]{
                 {robotLocation.x, 0},
                 {robotLocation.y, 0},
-                {Math.toRadians(robotAngle), 0}
+                {Math.toRadians(robotHeading), 0}
         });
     }
 }
