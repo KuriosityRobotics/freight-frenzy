@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -17,7 +18,6 @@ public class Odometry implements Telemeter {
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
 
-    // TODO: Position of the robot, This is how you manipulate the robot starting value
     private double worldX = 0;
     private double worldY = 0;
     private double worldHeadingRad = 0;
@@ -49,17 +49,16 @@ public class Odometry implements Telemeter {
     private final static double LR_ENCODER_DIST_FROM_CENTER = 6.942654509 * 3589.8638 / 3600.0 * 3531.4628211 / 3600.0;
     private final static double M_ENCODER_DIST_FROM_CENTER = 4.5;
 
-    public Odometry(Robot robot) {
+    public Odometry(Robot robot, Point startingCoordinates, double startingHeadingRad) {
         robot.telemetryDump.registerTelemeter(this);
+
+        this.worldX = startingCoordinates.x;
+        this.worldY = startingCoordinates.y;
+        this.worldHeadingRad = startingHeadingRad;
 
         yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
         mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
-
-//        // temporary stuff so I can get odo working on the robot at my house
-//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
-//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
-//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
 
         resetEncoders();
     }

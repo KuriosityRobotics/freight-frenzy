@@ -15,9 +15,6 @@ import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.util.Arrays;
-import java.util.List;
-
 import javassist.NotFoundException;
 
 public class Robot {
@@ -60,11 +57,11 @@ public class Robot {
                 drivetrainModule
         };
 
-        List<LocalizationConsumer> localizationConsumers = Arrays.asList(new LocalizationConsumer());
+        LocalizationConsumer localizationConsumer = new LocalizationConsumer();
         threads = new Thread[]{
-                new Thread(new SensorThread(this, configLocation, localizationConsumers)),
+                new Thread(new SensorThread(this, configLocation, localizationConsumer)),
                 new Thread(new ModuleThread(this, this.modules)),
-                new Thread(new VisionThread(this, localizationConsumers, "Webcam 1"))
+                new Thread(new VisionThread(this, localizationConsumer, "Webcam 1"))
         };
     }
 

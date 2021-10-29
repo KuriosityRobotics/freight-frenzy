@@ -5,33 +5,28 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class VisionThread implements Runnable, Telemeter {
-    private List<LocalizationConsumer> localizationConsumers;
+    private LocalizationConsumer localizationConsumer;
 
     public ManagedCamera managedCamera;
     private final Robot robot;
 
     private final String webcamName;
 
-    public VisionThread(Robot robot, List<LocalizationConsumer> localizationConsumers, String webcamName) {
+    public VisionThread(Robot robot, LocalizationConsumer localizationConsumer, String webcamName) {
         this.robot = robot;
         this.webcamName = webcamName;
         robot.telemetryDump.registerTelemeter(this);
-        this.localizationConsumers = localizationConsumers;
+        this.localizationConsumer = localizationConsumer;
     }
 
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> telemetryData = new ArrayList<>();
-        for (LocalizationConsumer consumer: localizationConsumers) {
-            telemetryData.addAll(consumer.logPositionandDetection());
-        }
+        telemetryData.addAll(localizationConsumer.logPositionandDetection());
         return telemetryData;
     }
 
@@ -47,22 +42,17 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
-        List<VuforiaConsumer> vuforiaConsumers = localizationConsumers
-                .stream()
-                .map(e -> (VuforiaConsumer) e)
-                .collect(Collectors.toList());
-        this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, vuforiaConsumers);
+        this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, localizationConsumer);
 
         while (robot.running()) {
             try {
                 Thread.sleep(125);
-                Log.v("VisionThread", "Managed Cameras are running :)");
             } catch (InterruptedException e) {
                 Log.e("VisionThread", "Thread Interupted: ", e);
             }
         }
 
-        this.localizationConsumers.forEach(LocalizationConsumer::deactivate);
+        this.localizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
     }
 }

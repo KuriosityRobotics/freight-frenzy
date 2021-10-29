@@ -24,19 +24,15 @@ android {
 
 dependencies {
     implementation('com.moandjiezana.toml:toml4j:0.7.2')
-//    implementation("com.sparkjava:spark-core:2.9.3")
-    // https://mvnrepository.com/artifact/org.reflections/reflections
-    implementation("org.reflections:reflections:0.9.12")
-
+    implementation("org.reflections:reflections:0.9.12") // reflection stuff for filedump
     implementation('com.android.support:multidex:1.0.3')
 
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
-    // https://mvnrepository.com/artifact/org.opencv/opencv-android
-    implementation('de.esoco:coroutines:0.9.1')
+    implementation('de.esoco:coroutines:0.9.1') // Coroutines so we can do asynchronous callbacks
     implementation('com.google.ar:core:1.27.0')
-    implementation ('org.openftc:easyopencv:1.4.4') // Vision
-    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1' // Kf
+    implementation ('org.openftc:easyopencv:1.4.4') // Vision(DO NOT UPGRADE, it will destroy vision)
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1' // Matrices for Kf
 }
 
 

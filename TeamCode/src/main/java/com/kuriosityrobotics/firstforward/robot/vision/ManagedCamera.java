@@ -29,15 +29,15 @@ public final class ManagedCamera {
             "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
             "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
 
-    private List<VuforiaConsumer> vuforiaConsumers;
+    private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
     private boolean vuforiaInitialisedYet;
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, List<VuforiaConsumer> vuforiaConsumers, OpenCvConsumer... openCvConsumers) {
-        this.vuforiaConsumers = vuforiaConsumers;
+    public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumers, OpenCvConsumer... openCvConsumers) {
+        this.vuforiaConsumer = vuforiaConsumers;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
         var cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
 
@@ -49,9 +49,7 @@ public final class ManagedCamera {
                 parameters.cameraName = cameraName;
 
                 var vuforia = ClassFactory.getInstance().createVuforia(parameters);
-                for (VuforiaConsumer consumer: vuforiaConsumers) {
-                    consumer.setup(vuforia);
-                }
+                vuforiaConsumer.setup(vuforia);
 
                 vuforiaInitialisedYet = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
@@ -90,7 +88,6 @@ public final class ManagedCamera {
 
             CoroutineScope.launch(scope ->
             {
-                vuforiaConsumers.forEach(consumer -> vuforiaCoro.runAsync(scope, consumer));
                 openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
             });
 

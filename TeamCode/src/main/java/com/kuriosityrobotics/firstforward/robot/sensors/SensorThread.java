@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -16,7 +17,6 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import de.esoco.coroutine.Coroutine;
 
@@ -32,16 +32,16 @@ public class SensorThread implements Runnable, Telemeter {
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    private final List<LocalizationConsumer> localizationConsumers;
+    private final LocalizationConsumer localizationConsumer;
 
-    public SensorThread(Robot robot, String configLocation, List<LocalizationConsumer> localizationConsumers) {
+    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer) {
         this.robot = robot;
         this.configLocation = configLocation;
-        this.localizationConsumers = localizationConsumers;
+        this.localizationConsumer = localizationConsumer;
 
         robot.telemetryDump.registerTelemeter(this);
 
-        this.odometry = new Odometry(robot);
+        this.odometry = new Odometry(robot, new Point(0,0),0.0);
         this.kalmanFilter = new LocalizeKalmanFilter(robot, odometry.getWorldMatrix());
     }
 
@@ -62,11 +62,9 @@ public class SensorThread implements Runnable, Telemeter {
             lastLoopTime = currentTime;
             RealMatrix delta = normalize(odo, updateTime);
 
-            RealMatrix obs = this.localizationConsumers.get(0).getFormattedMatrix();
+            RealMatrix obs = this.localizationConsumer.getFormattedMatrix();
 
             this.kalmanFilter.update(delta, obs);
-//            // for test
-//            this.kalmanFilter.update(delta, null);
         }
 
         Log.v("SensorThread", "Exited due to opMode no longer being active.");

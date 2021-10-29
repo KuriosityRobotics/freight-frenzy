@@ -122,7 +122,7 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
         // set up
 
-        // TODO: remember to package tracker data with tracker info in col 0 and observation in col 1
+        // Important: package tracker data with tracker info in col 0 and observation in col 1(Currently this way, but if something strange happens, here it is)
         double tX = obs.getEntry(0,0);
         double tY = obs.getEntry(1,0);
         double tPhi = angleWrap(obs.getEntry(2,0));
