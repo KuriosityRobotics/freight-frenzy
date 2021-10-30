@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import android.os.SystemClock;
 
-import de.esoco.lib.datatype.Tuple;
-
 public class StateMachine {
     private State target;
     private boolean forceTarget = false;

@@ -42,7 +42,7 @@ public final class ManagedCamera {
         var cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
 
         if (vuforiaConsumer != null) {
-            if(!vuforiaInitialisedYet) {
+            if (!vuforiaInitialisedYet) {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;

@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -40,7 +39,7 @@ public class Odometry implements Telemeter {
 
     // Constants
     private final static double INCHES_PER_ENCODER_TICK = 0.0007284406721 * 100.0 / 101.9889;
-    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775/90); // 5.125
+    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775 / 90); // 5.125
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot) {

@@ -3,9 +3,11 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 public interface Module {
     void update();
 
-    default void onStart() {}
+    default void onStart() {
+    }
 
-    default void onClose() {}
+    default void onClose() {
+    }
 
     boolean isOn();
 

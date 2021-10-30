@@ -1,8 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
-import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;

@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 public class Circle {
@@ -17,9 +15,9 @@ public class Circle {
         double distance;
         if (line.isVertical()) {
             distance = Math.abs(center.x - line.startPoint.x);
-        }else if (line.getSlope() == 0) {
+        } else if (line.getSlope() == 0) {
             distance = Math.abs(center.y - line.startPoint.y);
-        }else {
+        } else {
             Line perpendicular = new Line(center, -1 / line.getSlope());
             Point intersection = line.getIntersection(perpendicular);
             distance = center.distance(intersection);
@@ -38,14 +36,14 @@ public class Circle {
         if (!this.intersects(line)) {
             return intersections;
         } else if (line.isVertical()) { // line equation is x=startPoint.x
-            double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
+            double sqrtExpression = Math.sqrt(radius * radius - Math.pow(line.startPoint.x - center.x, 2));
 
             intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
             if (sqrtExpression != 0) {
                 intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
             }
         } else if (line.getSlope() == 0) { // line equation is y = startPoint.y
-            double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.y - center.y, 2));
+            double sqrtExpression = Math.sqrt(radius * radius - Math.pow(line.startPoint.y - center.y, 2));
 
             intersections.add(new Point(center.x + sqrtExpression, line.startPoint.y));
             if (sqrtExpression != 0) {
@@ -54,18 +52,18 @@ public class Circle {
         } else { // line equation is y = slope*x + yInt
             double a = line.getSlope() * line.getSlope() + 1;
             double b = 2 * line.getYInt() * line.getSlope() - 2 * center.y * line.getSlope() - 2 * center.x;
-            double c = Math.pow(line.getYInt() - center.y, 2) + center.x*center.x - radius*radius;
+            double c = Math.pow(line.getYInt() - center.y, 2) + center.x * center.x - radius * radius;
 
             double[] xValues = quadraticFormula(a, b, c);
-            intersections.add(new Point(xValues[0], xValues[0]* line.getSlope() + line.getYInt()));
+            intersections.add(new Point(xValues[0], xValues[0] * line.getSlope() + line.getYInt()));
             if (xValues[0] != xValues[1]) {
-                intersections.add(new Point(xValues[1], xValues[1]* line.getSlope() + line.getYInt()));
+                intersections.add(new Point(xValues[1], xValues[1] * line.getSlope() + line.getYInt()));
             }
         }
         return intersections;
     }
 
-    public ArrayList<Point> getSegmentIntersections(Line line){
+    public ArrayList<Point> getSegmentIntersections(Line line) {
         ArrayList<Point> intersections = getIntersections(line);
         return line.pointsOnLine(intersections);
     }
@@ -76,6 +74,6 @@ public class Circle {
         if (discriminant < 0) {
             return new double[0];
         }
-        return new double[] { (-b + Math.sqrt(discriminant)) / (2 * a), (-b - Math.sqrt(discriminant)) / (2 * a) };
+        return new double[]{(-b + Math.sqrt(discriminant)) / (2 * a), (-b - Math.sqrt(discriminant)) / (2 * a)};
     }
 }

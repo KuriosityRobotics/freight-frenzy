@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.configuration;
 
 import com.moandjiezana.toml.Toml;
+
 import org.reflections.Reflections;
 import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.util.ClasspathHelper;
@@ -15,12 +16,8 @@ import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Configurator {
     private static final String CONFIG_FOLDER_NAME = "configurations";
@@ -57,9 +54,10 @@ public class Configurator {
     }
 
     /**
-     * It is possible that a non-static field could be annotated with the @Config annotation.  In this case, you need to manually
-     * pass Object instances to configure, as they are dynamically created and can't be as easily discovered as in static methods.
-     * The only main use case of this is probably for setting default values in instances.
+     * It is possible that a non-static field could be annotated with the @Config annotation.  In
+     * this case, you need to manually pass Object instances to configure, as they are dynamically
+     * created and can't be as easily discovered as in static methods. The only main use case of
+     * this is probably for setting default values in instances.
      *
      * @param configPath
      * @param modules
@@ -80,9 +78,10 @@ public class Configurator {
 
 
     /**
-     * The configurator is capable of automatically loading config variables for static fields annotated with the @Config annotation.
-     * Specify the base package name (for us, com.kuriosityrobotics works fine), and pass in the config location.
-     * You can run this right when the JVM starts up, and it will have no performance impact once the load is complete.
+     * The configurator is capable of automatically loading config variables for static fields
+     * annotated with the @Config annotation. Specify the base package name (for us,
+     * com.kuriosityrobotics works fine), and pass in the config location. You can run this right
+     * when the JVM starts up, and it will have no performance impact once the load is complete.
      *
      * @param configPath  A path to a TOML file to get the config values from.
      * @param packageName The base package to discover configurable classes in.

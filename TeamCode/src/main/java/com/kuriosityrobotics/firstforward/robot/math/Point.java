@@ -15,7 +15,7 @@ public class Point {
         this.y = y;
     }
 
-    public double distance(Point other){
+    public double distance(Point other) {
         return Math.hypot(other.x - x, other.y - y);
     }
 
@@ -23,10 +23,10 @@ public class Point {
         Point nearest;
         if (line.isVertical()) {
             nearest = new Point(line.startPoint.x, y);
-        }else if (line.getSlope() == 0) {
+        } else if (line.getSlope() == 0) {
             nearest = new Point(x, line.startPoint.y);
-        }else {
-            Line perpendicular = new Line(this, -1/ line.getSlope());
+        } else {
+            Line perpendicular = new Line(this, -1 / line.getSlope());
             nearest = line.getIntersection(perpendicular);
         }
 
@@ -39,7 +39,7 @@ public class Point {
 
         if (line.containsPoint(nearest)) {
             return nearest;
-        }else {
+        } else {
             if (nearest.distance(line.startPoint) <= nearest.distance(line.endPoint)) {
                 return line.startPoint;
             }

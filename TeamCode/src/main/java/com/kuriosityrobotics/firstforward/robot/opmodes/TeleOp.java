@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.sensors.FileDump;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
