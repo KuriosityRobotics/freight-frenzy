@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.text.DecimalFormat;
@@ -44,4 +45,10 @@ public class SimpleMatrixFormatter {
         }
         sb.append(" ").append(unit).append("\n");
     }
+
+    public static RealMatrix ZERO_MATRIX = MatrixUtils.createRealMatrix(new double[][]{
+            {0},
+            {0},
+            {0}
+    });
 }

@@ -21,11 +21,17 @@ public class Robot {
     private static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    private final Thread[] threads;
+    private Thread[] threads;
     private final Module[] modules;
+
+    private final Thread sensorThread;
+    private final Thread moduleThread;
+    private final Thread visionThread;
 
     public final DrivetrainModule drivetrainModule;
     public TelemetryDump telemetryDump;
+
+    public LocalizationConsumer localizationConsumer;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
@@ -57,15 +63,20 @@ public class Robot {
                 drivetrainModule
         };
 
-        LocalizationConsumer localizationConsumer = new LocalizationConsumer();
-        threads = new Thread[]{
-                new Thread(new SensorThread(this, configLocation, localizationConsumer)),
-                new Thread(new ModuleThread(this, this.modules)),
-                new Thread(new VisionThread(this, localizationConsumer, "Webcam 1"))
-        };
+        localizationConsumer = new LocalizationConsumer();
+
+        sensorThread = new Thread(new SensorThread(this, configLocation, localizationConsumer));
+        moduleThread = new Thread(new ModuleThread(this, this.modules));
+        visionThread = new Thread(new VisionThread(this, localizationConsumer, "Webcam 1"));
     }
 
     public void start() {
+        threads = new Thread[]{
+                sensorThread,
+                moduleThread,
+                visionThread
+        };
+
         for (Thread thread : threads) {
             thread.start();
         }

@@ -18,6 +18,7 @@ public class Odometry implements Telemeter {
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumEncoder;
 
+    // can be changed through constructor
     private double worldX = 0;
     private double worldY = 0;
     private double worldHeadingRad = 0;
@@ -60,7 +61,16 @@ public class Odometry implements Telemeter {
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
         mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
 
+//        // temporary stuff so I can get odo working on the robot at my house
+//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
+//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
+//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
+
         resetEncoders();
+    }
+
+    public Odometry(Robot robot) {
+        this(robot, new Point(0,0), 0.0);
     }
 
     public void update() {
@@ -88,13 +98,17 @@ public class Odometry implements Telemeter {
     private void calculateVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
 
-        dx = (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
-        dy = (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
-        dHeading = (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
+        dx = worldX - oldX;
+        dy = worldY - oldY;
+        dHeading = worldHeadingRad - oldHeading;
 
-        xVel = 1000 * dx;
-        yVel = 1000 * dy;
-        angleVel = 1000 * dHeading;
+        double normalizedDX = dx / (currentUpdateTime - lastUpdateTime);
+        double normalizedDY  = dy / (currentUpdateTime - lastUpdateTime);
+        double normalizedDHeading = (dHeading) / (currentUpdateTime - lastUpdateTime);
+
+        xVel = 1000 * normalizedDX;
+        yVel = 1000 * normalizedDY;
+        angleVel = 1000 * normalizedDHeading;
 
         oldX = worldX;
         oldY = worldY;

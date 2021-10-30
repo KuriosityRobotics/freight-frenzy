@@ -10,6 +10,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.util.SimpleMatrixFormatter;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
@@ -41,8 +42,8 @@ public class SensorThread implements Runnable, Telemeter {
 
         robot.telemetryDump.registerTelemeter(this);
 
-        this.odometry = new Odometry(robot, new Point(0,0),0.0);
-        this.kalmanFilter = new LocalizeKalmanFilter(robot, odometry.getWorldMatrix());
+        this.odometry = new Odometry(robot);
+        this.kalmanFilter = new LocalizeKalmanFilter(robot, SimpleMatrixFormatter.ZERO_MATRIX);
     }
 
 
@@ -55,27 +56,17 @@ public class SensorThread implements Runnable, Telemeter {
             });
             this.odometry.update();
 
-            RealMatrix odo = this.odometry.getDeltaMatrix();
+            RealMatrix odometry = this.odometry.getDeltaMatrix();
+            RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
+
+            this.kalmanFilter.update(odometry, vuforia);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
-            RealMatrix delta = normalize(odo, updateTime);
-
-            RealMatrix obs = this.localizationConsumer.getFormattedMatrix();
-
-            this.kalmanFilter.update(delta, obs);
         }
 
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
-    }
-
-    private RealMatrix normalize(RealMatrix odo, long updateInterval) {
-        return MatrixUtils.createRealMatrix(new double[][]{
-                {odo.getEntry(0,0) * (updateTime)},
-                {odo.getEntry(1,0) * (updateTime)},
-                {odo.getEntry(2,0)}
-        });
     }
 
     @Override
