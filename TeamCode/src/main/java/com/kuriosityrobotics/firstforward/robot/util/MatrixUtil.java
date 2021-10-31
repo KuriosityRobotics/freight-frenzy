@@ -5,14 +5,19 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.text.DecimalFormat;
 
-public class SimpleMatrixFormatter {
+public class MatrixUtil {
     private static final DecimalFormat df = new DecimalFormat("#.000");
 
     public static String toPoseString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
         appendPoseValue(m, "x", "inches",0, 0, sb);
         appendPoseValue(m, "y", "inches",1,0, sb);
-        appendPoseValue(m, "heading", "degrees",2, 0, sb);
+        if (m != null){
+            sb.append("dHeading").append(": ").append(Math.toDegrees(m.getEntry(2, 0))).append(" ").append("degrees").append("\n");
+        }
+        else {
+            sb.append("dHeading").append(": ").append("null").append(" ").append("degrees").append("\n");
+        }
 
         return sb.toString();
     }
@@ -21,7 +26,12 @@ public class SimpleMatrixFormatter {
         StringBuilder sb = new StringBuilder();
         appendCovarianceValue(m, "dx", "inches",0, 0, sb);
         appendCovarianceValue(m, "dy", "inches",1,0, sb);
-        appendCovarianceValue(m, "dheading", "degrees",2, 0, sb);
+        if (m != null){
+            sb.append("dHeading").append(": ").append(Math.toDegrees(Math.sqrt(m.getEntry(2, 0)))).append(" ").append("degrees").append("\n");
+        }
+        else {
+            sb.append("dHeading").append(": ").append("null").append(" ").append("degrees").append("\n");
+        }
 
         return sb.toString();
     }

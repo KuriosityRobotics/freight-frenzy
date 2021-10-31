@@ -4,7 +4,7 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleW
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.util.SimpleMatrixFormatter;
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -187,20 +187,10 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("pose: " + SimpleMatrixFormatter.toPoseString(pose[0]));
-        data.add("STD: " + SimpleMatrixFormatter.toSTDString(pose[1]));
+        data.add("pose: " + MatrixUtil.toPoseString(pose[0]));
+        data.add("STD: " + MatrixUtil.toSTDString(pose[1]));
 
         return data;
-    }
-
-    // for debug
-    public String getPoseString() {
-        StringBuilder sb = new StringBuilder();
-        for (String row: getTelemetryData()) {
-            sb.append(row);
-        }
-
-        return sb.toString();
     }
 
     @Override

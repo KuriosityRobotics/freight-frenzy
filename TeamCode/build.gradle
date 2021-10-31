@@ -26,8 +26,7 @@ dependencies {
     implementation('com.moandjiezana.toml:toml4j:0.7.2')
     implementation("org.reflections:reflections:0.9.12") // reflection stuff for filedump
     implementation('com.android.support:multidex:1.0.3')
-
-    implementation project(':FtcRobotController')
+    implementation project(':FtcRobotController') // so our code can run on the control hub
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
     implementation('de.esoco:coroutines:0.9.1') // Coroutines so we can do asynchronous callbacks
     implementation('com.google.ar:core:1.27.0')

@@ -1,11 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -41,12 +41,11 @@ public class LocalizationConsumer implements VuforiaConsumer {
         final float halfTile         = 12 * MM_PER_INCH;
         final float oneAndHalfTile   = 36 * MM_PER_INCH;
 
-        // Get trackables
+        // Get trackables & activate them
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
-
         this.freightFrenzyTargets.activate();
 
-        // Identify the targets
+        // Identify the targets so vuforia can use them
         identifyTarget(0, "Blue Storage",       -halfField,  oneAndHalfTile, mmTargetHeight, 90, 0, 90);
         identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
         identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
@@ -73,16 +72,14 @@ public class LocalizationConsumer implements VuforiaConsumer {
     public void update() {
         boolean targetVisible = false;
 
+        // if a trackable isn't detected, there isn't a need to continue
         if (this.freightFrenzyTargets == null) {
-            RobotLog.v("All trackables are null");
             return;
         }
 
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
                 detectedTrackable = trackable;
-                RobotLog.v("Visible Target", trackable.getName());
-                RobotLog.v("Target Position", trackable.getLocation());
                 targetVisible = true;
 
                 OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getUpdatedRobotLocation();
@@ -139,16 +136,12 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         VectorF translation = detectedLocation.getTranslation();
         Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-        double robotHeading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
+        double robotHeading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle;
 
-        RobotLog.v("Vuforia Pos (in): ", robotLocation);
-        RobotLog.v("Vuforia Angle (deg): ", robotHeading);
-
-        // We assume that there is no error in the Vuforia Localization
         return MatrixUtils.createRealMatrix(new double[][]{
                 {robotLocation.x, 0},
                 {robotLocation.y, 0},
-                {Math.toRadians(robotHeading), 0}
+                {robotHeading, 0}
         });
     }
 }

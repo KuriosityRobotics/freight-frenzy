@@ -8,13 +8,11 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.util.SimpleMatrixFormatter;
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
-import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
 
         this.odometry = new Odometry(robot);
-        this.kalmanFilter = new LocalizeKalmanFilter(robot, SimpleMatrixFormatter.ZERO_MATRIX);
+        this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
     }
 
 
@@ -65,7 +63,6 @@ public class SensorThread implements Runnable, Telemeter {
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
-
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 

@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -61,7 +63,7 @@ public class Odometry implements Telemeter {
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
         mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
 
-//        // temporary stuff so I can get odo working on the robot at my house
+//        // temporary stuff so Daniel can get odo working on the robot at his house
 //        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
 //        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
 //        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
@@ -80,7 +82,8 @@ public class Odometry implements Telemeter {
     }
 
     private void calculatePosition() {
-        double newLeftPosition = -yLeftEncoder.getCurrentPosition();
+        // if odometry output is wrong, no worries, just find out which one needs to be reversed
+        double newLeftPosition = yLeftEncoder.getCurrentPosition();
         double newRightPosition = -yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
@@ -98,21 +101,19 @@ public class Odometry implements Telemeter {
     private void calculateVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
 
-        dx = worldX - oldX;
-        dy = worldY - oldY;
-        dHeading = worldHeadingRad - oldHeading;
+        // normalize to milliseconds
+        double normalizedDX = (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
+        double normalizedDY  = (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
+        double normalizedDHeading = (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
 
-        double normalizedDX = dx / (currentUpdateTime - lastUpdateTime);
-        double normalizedDY  = dy / (currentUpdateTime - lastUpdateTime);
-        double normalizedDHeading = (dHeading) / (currentUpdateTime - lastUpdateTime);
-
+        // change to seconds
         xVel = 1000 * normalizedDX;
         yVel = 1000 * normalizedDY;
         angleVel = 1000 * normalizedDHeading;
 
         oldX = worldX;
         oldY = worldY;
-        oldHeading = worldHeadingRad;
+        oldHeading = angleWrap(worldHeadingRad);
 
         lastUpdateTime = currentUpdateTime;
     }
@@ -136,13 +137,18 @@ public class Odometry implements Telemeter {
         double dRobotX = M * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
         double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + M * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
 
+        // change global variables so they can be used in the kalman filter
+        dx = dRobotX;
+        dy = dRobotY;
+        dHeading = dTheta;
+
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
         //worldAngleRad =  (leftPodNewPosition - rightPodNewPosition) * INCHES_PER_ENCODER_TICK / (2 * P);
         worldHeadingRad += dTheta;
     }
 
-    /*
+    /**
     taylor series expansion to make stuff COOL
      */
     private double sinXOverX(double x) {
@@ -161,7 +167,7 @@ public class Odometry implements Telemeter {
         }
     }
 
-    /*
+    /**
     taylor series expansion to make stuff COOL
      */
     private double cosXMinusOneOverX(double x) {
@@ -195,19 +201,11 @@ public class Odometry implements Telemeter {
     }
 
     public RealMatrix getDeltaMatrix() {
-        // x needs to be negative for some reason
+        // gets deltas to be inputted into kalman filter
         return MatrixUtils.createRealMatrix(new double[][]{
                 {dx},
                 {dy},
                 {dHeading}
-        });
-    }
-
-    public RealMatrix getWorldMatrix() {
-        return MatrixUtils.createRealMatrix(new double[][]{
-                {worldX},
-                {worldY},
-                {worldHeadingRad}
         });
     }
 
@@ -217,7 +215,7 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees(worldHeadingRad));
+        data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
 
         data.add("--");
 

@@ -46,7 +46,7 @@ public class VisionThread implements Runnable, Telemeter {
 
         while (robot.running()) {
             try {
-                Thread.sleep(125);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Log.e("VisionThread", "Thread Interupted: ", e);
             }
