@@ -5,15 +5,13 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import javassist.NotFoundException;
-
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class Autonomous extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-        } catch (NotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

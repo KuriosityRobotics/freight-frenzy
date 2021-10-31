@@ -44,15 +44,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import de.esoco.coroutine.CoroutineScope;
-import javassist.NotFoundException;
 
 @TeleOp
 public class VisionTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-
-
-        var cam = new ManagedCamera("Webcam 1", hardwareMap, new VuforiaConsumer() {
+        ManagedCamera cam = new ManagedCamera("Webcam 1", hardwareMap, new VuforiaConsumer() {
             VuforiaTrackable stoneTarget;
 
             @Override

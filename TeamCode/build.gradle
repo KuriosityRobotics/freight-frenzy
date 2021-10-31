@@ -15,31 +15,13 @@
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
-android {
-    androidResources {
-        noCompress 'tflite'
-    }
-}
-
-
 dependencies {
-    implementation('com.moandjiezana.toml:toml4j:0.7.2')
-//    implementation("com.sparkjava:spark-core:2.9.3")
-    // https://mvnrepository.com/artifact/org.reflections/reflections
-    implementation("org.reflections:reflections:0.9.12")
-
-    implementation('com.android.support:multidex:1.0.3')
-
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
-    // https://mvnrepository.com/artifact/org.opencv/opencv-android
-    implementation('de.esoco:coroutines:0.9.1')
-    implementation('com.google.ar:core:1.26.0')
-    implementation ('org.openftc:easyopencv:1.4.4')
-}
 
+    // vision
+    implementation 'org.openftc:easyopencv:1.4.4'
 
-configurations.all { // because ftc does not know how to use maven
-    exclude group: 'com.google.code.gson'
-    exclude group: 'org.slf4j'
+    // fancy stuff
+    implementation 'de.esoco:coroutines:0.9.1'
 }
