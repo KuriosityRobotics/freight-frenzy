@@ -22,45 +22,46 @@ import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera {
-    private static final String VUFORIA_LICENCE_KEY = "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
-            "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
-            "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
-            "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
-            "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
-            "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
-            "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
+    private static final String VUFORIA_LICENCE_KEY = "Aa7As2v/////AAABmdo32M3mD0L7gNHJd7lGgBkeZ3HRMWih" +
+            "/BXVOQ30fS92DoZsqpNfKE7K0dGGEyKsB3ZzaGQTNs6TBVhvpr8ov2LA3D3ME5leS/51WKkau0ms9RWwVyyl9sDyPl" +
+            "rEdw2wm0zG26lzzYCtTod6ESKz/5em2Vmav2tZnT7rBsBDjBlcEbOz6VyAqzyzbFWNiMNIu/p93XhAHtNQ4jVHACz3" +
+            "uBMoVQrrntKXjxWB5dadGn5tASHDERG7/D82foRTsII9VSmH1sltVLtFy2asD/jpJEtYmxlZdB9KNhdiaAA99Y7Ckd" +
+            "mE/ZC4PC0yd3KiDO+j1F9UIQBI0oQXAhKjocmv4jmbMXGmzCtvASJnC8/WcesL";
 
-    private final VuforiaConsumer vuforiaConsumer;
-    private final OpenCvCamera openCvCamera;
+    private VuforiaConsumer vuforiaConsumer;
+    private OpenCvCamera openCvCamera;
 
-    private static boolean vuforiaInitialisedYet;
+    private boolean vuforiaInitialisedYet;
 
-    private final List<OpenCvConsumer> openCvConsumers;
+    private List<OpenCvConsumer> openCvConsumers;
 
     public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
-        this.openCvConsumers = Arrays.asList(openCvConsumers);
         this.vuforiaConsumer = vuforiaConsumer;
-        WebcamName cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
+        this.openCvConsumers = Arrays.asList(openCvConsumers);
+        var cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
 
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
+                // setup vuforia
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 parameters.cameraName = cameraName;
 
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
-                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
                 vuforiaInitialisedYet = true;
+                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
             } else {
+                // control hub does not like multiple vuforias, so don't try spawning more than 1
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
             openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
         }
 
+        // set stuff up so opencv can also run
         openCvCamera.openCameraDeviceAsync(() -> {
             openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
             openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
@@ -89,11 +90,10 @@ public final class ManagedCamera {
                 matCopy.release(); // c++ moment
             }));
 
+            // distribute the data
             CoroutineScope.launch(scope ->
             {
-                if (vuforiaConsumer != null) {
-                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
-                }
+                vuforiaCoro.runAsync(scope, vuforiaConsumer);
                 openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
             });
 
