@@ -6,8 +6,6 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.sensors.FileDump;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import javassist.NotFoundException;
-
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     Robot robot = null;
@@ -16,7 +14,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-        } catch (NotFoundException e) {
+        } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
         }
