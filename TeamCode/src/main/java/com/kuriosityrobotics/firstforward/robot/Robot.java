@@ -14,7 +14,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import javassist.NotFoundException;
 
 public class Robot {
     private static final boolean DEBUG = false;
@@ -34,7 +33,7 @@ public class Robot {
 
 //    public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws NotFoundException {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
@@ -45,7 +44,7 @@ public class Robot {
 //            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
 //            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
-            throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
+            throw new Exception("One or more of the REV hubs could not be found. More info: " + e);
         }
 
         drivetrain = new Drivetrain(this);

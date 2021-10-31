@@ -18,6 +18,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import java.util.Arrays;
 import java.util.List;
 
+import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera {
@@ -39,7 +40,7 @@ public final class ManagedCamera {
     public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.openCvConsumers = Arrays.asList(openCvConsumers);
         this.vuforiaConsumer = vuforiaConsumer;
-        var cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
+        WebcamName cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
 
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
@@ -48,7 +49,7 @@ public final class ManagedCamera {
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
                 parameters.cameraName = cameraName;
 
-                var vuforia = ClassFactory.getInstance().createVuforia(parameters);
+                VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
@@ -79,9 +80,11 @@ public final class ManagedCamera {
         public Mat processFrame(Mat input) {
             //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.currentThreadTimeMillis()));
 
-            var vuforiaCoro = first(consume((VuforiaConsumer::update)));
-            var openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
-                var matCopy = input.clone();
+            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
+            //!!
+            // c++ moment
+            Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
+                Mat matCopy = input.clone();
                 consumer.processFrame(matCopy);
                 matCopy.release(); // c++ moment
             }));
