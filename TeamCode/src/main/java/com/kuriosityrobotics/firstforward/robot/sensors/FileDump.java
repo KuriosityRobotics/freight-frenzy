@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class FileDump {
-    private static boolean activated = false;
+    private static volatile boolean activated = false;
     private static final Set<Pair<Field, Object>> dataFields = ConcurrentHashMap.newKeySet();
     private static final ConcurrentHashMap<Field, Object> previousValues = new ConcurrentHashMap<>();
 

@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -177,7 +175,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     public Pose getCurrentPose() {
-        return robot.sensorThread.odometry.getPose();
+        return robot.getSensorThread().odometry.getPose();
     }
 
     @Override

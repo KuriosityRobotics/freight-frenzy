@@ -60,9 +60,13 @@ public class Odometry implements Telemeter {
         this.worldY = startingCoordinates.y;
         this.worldHeadingRad = startingHeadingRad;
 
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
+//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
+//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+
+        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
+        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
+        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
 
         resetEncoders();
 
