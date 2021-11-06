@@ -9,7 +9,11 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
+
+import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
@@ -22,17 +26,22 @@ public class SensorThread implements Runnable, Telemeter {
     private final Robot robot;
 
     public final Odometry odometry;
+    private final LocalizeKalmanFilter kalmanFilter;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public SensorThread(Robot robot, String configLocation) {
+    private final LocalizationConsumer localizationConsumer;
+
+    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer) {
         this.robot = robot;
         this.configLocation = configLocation;
+        this.localizationConsumer = localizationConsumer;
 
         robot.telemetryDump.registerTelemeter(this);
 
-        odometry = new Odometry(robot);
+        this.odometry = new Odometry(robot);
+        this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
     }
 
 
@@ -43,15 +52,18 @@ public class SensorThread implements Runnable, Telemeter {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
-
             odometry.update();
             FileDump.update();
+
+            RealMatrix odometry = this.odometry.getDeltaMatrix();
+            RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
+
+            this.kalmanFilter.update(odometry, vuforia);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
-
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
