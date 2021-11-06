@@ -16,10 +16,12 @@ apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
 dependencies {
-    implementation project(':FtcRobotController')
+    implementation project(':FtcRobotController') // so our code can run on the control hub
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    // Matrix creation and operation for Kf
+    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
 
-    // vision
+    // vision (DO NOT UPGRADE, it will destroy vision)
     implementation 'org.openftc:easyopencv:1.4.4'
 
     // fancy stuff
