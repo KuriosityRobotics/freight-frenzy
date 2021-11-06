@@ -1,8 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
-import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -25,9 +23,9 @@ public class Robot {
     private Thread[] threads;
     private final Module[] modules;
 
-    private final Thread sensorThread;
-    private final Thread moduleThread;
-    private final Thread visionThread;
+    private final SensorThread sensorThread;
+    private final ModuleThread moduleThread;
+    private final VisionThread visionThread;
 
     public final Drivetrain drivetrain;
     public TelemetryDump telemetryDump;
@@ -66,16 +64,16 @@ public class Robot {
 
         localizationConsumer = new LocalizationConsumer();
 
-        sensorThread = new Thread(new SensorThread(this, configLocation, localizationConsumer));
-        moduleThread = new Thread(new ModuleThread(this, this.modules));
-        visionThread = new Thread(new VisionThread(this, localizationConsumer, "Webcam 1"));
+        sensorThread = new SensorThread(this, configLocation, localizationConsumer);
+        moduleThread = new ModuleThread(this, this.modules);
+        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
     }
 
     public void start() {
         threads = new Thread[]{
-                sensorThread,
-                moduleThread,
-                visionThread
+                new Thread(sensorThread),
+                new Thread(moduleThread),
+                new Thread(visionThread)
         };
 
         for (Thread thread : threads) {
@@ -101,5 +99,9 @@ public class Robot {
 
     public boolean started() {
         return linearOpMode.isStarted();
+    }
+
+    public SensorThread getSensorThread() {
+        return this.sensorThread;
     }
 }
