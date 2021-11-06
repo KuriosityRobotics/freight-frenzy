@@ -1,43 +1,51 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
-import com.kuriosityrobotics.firstforward.robot.modules.DrivetrainModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import javassist.NotFoundException;
 
 public class Robot {
     private static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    private final Thread[] threads;
-    public final SensorThread sensorThread;
-
+    private Thread[] threads;
     private final Module[] modules;
+
+    private final SensorThread sensorThread;
+    private final ModuleThread moduleThread;
+    private final VisionThread visionThread;
+
     public final Drivetrain drivetrain;
-    public final TelemetryDump telemetryDump;
+    public TelemetryDump telemetryDump;
+
+    public LocalizationConsumer localizationConsumer;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
-
 //    public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws NotFoundException {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
-        telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        try {
+            telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        } catch (NullPointerException e) {
+            RobotLog.v("No telemetry provided", e);
+        }
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -45,7 +53,7 @@ public class Robot {
 //            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
 //            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
-            throw new NotFoundException("One or more of the REV hubs could not be found. More info: " + e);
+            throw new Exception("One or more of the REV hubs could not be found. More info: " + e);
         }
 
         drivetrain = new Drivetrain(this);
@@ -54,16 +62,20 @@ public class Robot {
                 drivetrain
         };
 
-        sensorThread = new SensorThread(this, configLocation);
-        threads = new Thread[]{
-                new Thread(sensorThread),
-                new Thread(new ModuleThread(this, this.modules))
-        };
+        localizationConsumer = new LocalizationConsumer();
 
-        start();
+        sensorThread = new SensorThread(this, configLocation, localizationConsumer);
+        moduleThread = new ModuleThread(this, this.modules);
+        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
     }
 
-    private void start() {
+    public void start() {
+        threads = new Thread[]{
+                new Thread(sensorThread),
+                new Thread(moduleThread),
+                new Thread(visionThread)
+        };
+
         for (Thread thread : threads) {
             thread.start();
         }
@@ -87,5 +99,9 @@ public class Robot {
 
     public boolean started() {
         return linearOpMode.isStarted();
+    }
+
+    public SensorThread getSensorThread() {
+        return sensorThread;
     }
 }

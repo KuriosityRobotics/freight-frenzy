@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class FileDump {
-    private static boolean activated = false;
+    private static volatile boolean activated = false;
     private static final Set<Pair<Field, Object>> dataFields = ConcurrentHashMap.newKeySet();
     private static final ConcurrentHashMap<Field, Object> previousValues = new ConcurrentHashMap<>();
 
@@ -26,8 +26,7 @@ public class FileDump {
 
     public static void activate() {
         try {
-
-            var file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
+            File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
             System.out.println(String.format("Started dumping to %s.", file.getAbsolutePath()));
@@ -66,10 +65,10 @@ public class FileDump {
 
     public static void update() {
         if (activated) {
-            var anyUpdated = FileDump.dataFields.stream().anyMatch(n -> {
-                var field = n.first;
-                var instance = n.second;
-                var previousValue = previousValues.getOrDefault(field, null);
+            boolean anyUpdated = FileDump.dataFields.stream().anyMatch(n -> {
+                Field field = n.first;
+                Object instance = n.second;
+                Object previousValue = previousValues.getOrDefault(field, null);
                 Object value;
                 try {
                     value = field.get(instance);
@@ -83,11 +82,11 @@ public class FileDump {
             if (anyUpdated)
                 writer.println(SystemClock.currentThreadTimeMillis() - startTime + "," + FileDump.dataFields.stream().map(n ->
                         {
-                            var field = n.first;
-                            var instance = n.second;
+                            Field field = n.first;
+                            Object instance = n.second;
 
                             try {
-                                var value = field.get(instance);
+                                Object value = field.get(instance);
                                 return value.toString();
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);

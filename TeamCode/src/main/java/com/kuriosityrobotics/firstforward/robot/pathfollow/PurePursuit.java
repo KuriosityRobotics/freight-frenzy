@@ -26,7 +26,7 @@ public class PurePursuit {
     }
 
     public void update(Robot robot, double moveSpeed) {
-        Point robotPosition = robot.sensorThread.odometry.getPose();
+        Point robotPosition = robot.getSensorThread().odometry.getPose();
 //        Point clipped = clipToPath(robotPosition);
 //        Log.v("PP", "clipped: " + clipped.toString());
 

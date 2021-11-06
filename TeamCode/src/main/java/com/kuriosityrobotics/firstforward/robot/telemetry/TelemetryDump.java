@@ -34,12 +34,12 @@ public class TelemetryDump {
                 msg.append("---").append(telemeter.getName()).append("---\n");
 
                 if (debug) {
-                    for (var pair : getAllFields(telemeter)) {
+                    for (Map.Entry<String, Object> pair : getAllFields(telemeter)) {
                         // Key: Value \n
                         msg.append(pair.getKey()).append(": ").append(pair.getValue()).append("\n");
                     }
                 } else {
-                    for (var line : telemeter.getTelemetryData()) {
+                    for (String line : telemeter.getTelemetryData()) {
                         // telemetry_line\n
                         msg.append(line).append("\n");
                     }
