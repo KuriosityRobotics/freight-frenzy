@@ -38,12 +38,16 @@ public class VisionDumpUtil {
         }
     }
 
-    public static EvictingBlockingQueue<Bitmap> startCamera(CameraName cameraName,
-                             Camera camera, Handler callbackHandler, EvictingBlockingQueue<Bitmap> frameQueue) {
-        // YUY2 is supported by all cameras
+    public static void updateFrameQueue(CameraCaptureSession cameraCaptureSession, CameraName cameraName,
+                                                                 Camera camera, Handler callbackHandler, EvictingBlockingQueue<Bitmap> frameQueue) {
+        if (cameraCaptureSession != null) return; // be idempotent
+
+        /** YUY2 is supported by all Webcams, per the USB Webcam standard: See "USB Device Class Definition
+         * for Video Devices: Uncompressed Payload, Table 2-1". Further, often this is the *only*
+         * image format supported by a camera */
         final int imageFormat = ImageFormat.YUY2;
 
-        //  fetch size and desired frame rate if so
+        /** Verify that the image is supported, and fetch size and desired frame rate if so */
         CameraCharacteristics cameraCharacteristics = cameraName.getCameraCharacteristics();
         final Size size = cameraCharacteristics.getDefaultSize(imageFormat);
         final int fps = cameraCharacteristics.getMaxFramesPerSecond(imageFormat, size);
@@ -75,8 +79,8 @@ public class VisionDumpUtil {
                                 })
                         );
                         synchronizer.finish(session);
-                    } catch (CameraException |RuntimeException e) {
-                        RobotLog.ee("Vision Dump", e, "exception starting capture");
+                    } catch (CameraException|RuntimeException e) {
+                        RobotLog.ee("Vision Dumo", e, "exception starting capture");
                         session.close();
                         synchronizer.finish(null);
                     }
@@ -94,13 +98,7 @@ public class VisionDumpUtil {
             Thread.currentThread().interrupt();
         }
 
-        return frameQueue;
-    }
-
-    private static boolean contains(int[] array, int value) {
-        for (int i : array) {
-            if (i == value) return true;
-        }
-        return false;
+        /** Retrieve the created session. This will be null on error. */
+        cameraCaptureSession = synchronizer.getValue();
     }
 }

@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -12,7 +14,6 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -46,7 +47,7 @@ public class Robot {
         try {
             telemetryDump = new TelemetryDump(telemetry, DEBUG);
         } catch (NullPointerException e) {
-            RobotLog.v("No telemetry provided", e);
+            Log.v("Robot", "No telemetry provided" + e);
         }
 
         try {
