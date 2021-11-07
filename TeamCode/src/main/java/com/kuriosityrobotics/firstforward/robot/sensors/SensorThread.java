@@ -53,7 +53,6 @@ public class SensorThread implements Runnable, Telemeter {
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
-            FileDump.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
             RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
