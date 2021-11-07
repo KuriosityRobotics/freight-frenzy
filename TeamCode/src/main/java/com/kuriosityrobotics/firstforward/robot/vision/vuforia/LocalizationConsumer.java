@@ -1,7 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.debug.VisionDumpUtil.openCamera;
-import static com.kuriosityrobotics.firstforward.robot.debug.VisionDumpUtil.startCamera;
+import static com.kuriosityrobotics.firstforward.robot.debug.VisionDumpUtil.updateFrameQueue;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -15,6 +15,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureSession;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraManager;
@@ -27,8 +28,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
+import org.firstinspires.ftc.robotcore.internal.network.CallbackLooper;
+import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Defining a Vuforia localization consumer
@@ -55,6 +59,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     // asynchronous callback handler
     private Handler callbackHandler;
+    private CameraName cameraName;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -85,14 +90,16 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
-        CameraName cameraName = vuforia.getCameraName();
+        cameraName = vuforia.getCameraName();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
         }
 
+        callbackHandler = CallbackLooper.getDefault().getHandler();
+        cameraManager = ClassFactory.getInstance().getCameraManager();
+        camera = cameraManager.requestPermissionAndOpenCamera(new Deadline(secondsPermissionTimeout, TimeUnit.SECONDS), cameraName, null);
         openCamera(camera, cameraManager, cameraName);
-        frameQueue = startCamera(cameraName, camera, callbackHandler, frameQueue);
     }
 
     @Override
@@ -122,6 +129,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
             this.detectedTrackable = null;
         }
 
+        updateFrameQueue(cameraCaptureSession, cameraName, camera, callbackHandler, frameQueue);
         Bitmap bmp = frameQueue.poll();
         FileDump.addVisionReplay(bmp);
     }
