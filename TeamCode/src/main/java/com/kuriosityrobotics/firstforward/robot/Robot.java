@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
@@ -26,6 +27,7 @@ public class Robot {
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
     private final VisionThread visionThread;
+    private final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public TelemetryDump telemetryDump;
@@ -67,6 +69,7 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation, localizationConsumer);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        debugThread = new DebugThread(this);
 
         start();
     }
@@ -75,7 +78,8 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-                new Thread(visionThread)
+                new Thread(visionThread),
+                new Thread(debugThread)
         };
 
         for (Thread thread : threads) {

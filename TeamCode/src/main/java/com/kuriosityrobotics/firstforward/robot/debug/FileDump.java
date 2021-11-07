@@ -1,6 +1,8 @@
-package com.kuriosityrobotics.firstforward.robot.sensors;
+package com.kuriosityrobotics.firstforward.robot.debug;
 
+import android.graphics.Bitmap;
 import android.os.SystemClock;
+import android.util.Log;
 import android.util.Pair;
 
 import androidx.annotation.NonNull;
@@ -9,6 +11,8 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -56,6 +60,17 @@ public class FileDump {
         }
     }
 
+    public static void addVisionReplay(Bitmap replay) {
+        File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-%d.jpg", String.valueOf(new Date().getTime()));
+        try {
+                try (FileOutputStream outputStream = new FileOutputStream(file)) {
+                    replay.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+                    System.out.println(String.format("Started dumping to %s.", file.getName()));
+                }
+        } catch (IOException e) {
+            Log.v("Vision Dump", String.valueOf(e));
+        }
+    }
 
     @NonNull
     @Override
@@ -97,5 +112,4 @@ public class FileDump {
                 ).collect(Collectors.joining(",")));
         }
     }
-
 }
