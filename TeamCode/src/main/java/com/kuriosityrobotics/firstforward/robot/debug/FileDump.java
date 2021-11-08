@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.debug;
 
-import android.graphics.Bitmap;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
@@ -8,6 +7,9 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.imgcodecs.Imgcodecs;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,7 +32,7 @@ public class FileDump {
 
     public static void activate() {
         try {
-            File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
+            File file = new File(AppUtil.ROBOT_DATA_DIR + "/numerical-data/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
             System.out.println(String.format("Started dumping to %s.", file.getAbsolutePath()));
@@ -60,15 +62,15 @@ public class FileDump {
         }
     }
 
-    public static void addVisionReplay(Bitmap replay) {
-        File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-%d.jpg", String.valueOf(new Date().getTime()));
-        try {
-                try (FileOutputStream outputStream = new FileOutputStream(file)) {
-                    replay.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-                    System.out.println(String.format("Started dumping to %s.", file.getName()));
-                }
+    public static void dumpImage(Mat frame) {
+        MatOfByte mob = new MatOfByte();
+        Imgcodecs.imencode(".jpg", frame, mob);
+
+        File file = new File(AppUtil.ROBOT_DATA_DIR + "/vision-replays/webcam-frame-" + new Date().getTime() + ".jpg");
+        try (FileOutputStream stream = new FileOutputStream(file)) {
+            stream.write(mob.toArray());
         } catch (IOException e) {
-            Log.v("Vision Dump", String.valueOf(e));
+            Log.w("VisionDump", e);
         }
     }
 

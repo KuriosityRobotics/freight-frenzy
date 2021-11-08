@@ -1,24 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static com.kuriosityrobotics.firstforward.robot.debug.VisionDumpUtil.openCamera;
-import static com.kuriosityrobotics.firstforward.robot.debug.VisionDumpUtil.updateFrameQueue;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
-import android.graphics.Bitmap;
-import android.os.Handler;
-
-import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraCaptureSession;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraManager;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -27,12 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.firstinspires.ftc.robotcore.internal.collections.EvictingBlockingQueue;
-import org.firstinspires.ftc.robotcore.internal.network.CallbackLooper;
-import org.firstinspires.ftc.robotcore.internal.system.Deadline;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Defining a Vuforia localization consumer
@@ -45,20 +31,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
-
-    private EvictingBlockingQueue<Bitmap> frameQueue;
-
-    /** How long we are to wait to be granted permission to use the camera before giving up. Here,
-     * we wait indefinitely */
-    private static final int secondsPermissionTimeout = Integer.MAX_VALUE;
-
-    /** State regarding our interaction with the camera */
-    private CameraManager cameraManager;
-    private Camera camera;
-    private CameraCaptureSession cameraCaptureSession;
-
-    // asynchronous callback handler
-    private Handler callbackHandler;
     private CameraName cameraName;
 
     @Override
@@ -95,11 +67,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
         }
-
-        callbackHandler = CallbackLooper.getDefault().getHandler();
-        cameraManager = ClassFactory.getInstance().getCameraManager();
-        camera = cameraManager.requestPermissionAndOpenCamera(new Deadline(secondsPermissionTimeout, TimeUnit.SECONDS), cameraName, null);
-        openCamera(camera, cameraManager, cameraName);
     }
 
     @Override
@@ -128,10 +95,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
             this.detectedLocation = null;
             this.detectedTrackable = null;
         }
-
-        updateFrameQueue(cameraCaptureSession, cameraName, camera, callbackHandler, frameQueue);
-        Bitmap bmp = frameQueue.poll();
-        FileDump.addVisionReplay(bmp);
     }
 
     /**
@@ -139,9 +102,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
      */
     public void deactivate() {
         this.freightFrenzyTargets.deactivate();
-        cameraCaptureSession.stopCapture();
-        cameraCaptureSession.close();
-        camera.close();
     }
 
     /**
