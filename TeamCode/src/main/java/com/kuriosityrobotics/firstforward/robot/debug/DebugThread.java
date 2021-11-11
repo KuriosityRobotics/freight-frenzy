@@ -39,7 +39,7 @@ public class DebugThread implements Runnable, Telemeter {
 
     @Override
     public String getName() {
-        return "SensorThread";
+        return "DebugThread";
     }
 
     @Override

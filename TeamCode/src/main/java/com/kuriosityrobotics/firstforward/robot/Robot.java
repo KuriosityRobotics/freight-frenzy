@@ -47,7 +47,7 @@ public class Robot {
         try {
             telemetryDump = new TelemetryDump(telemetry, DEBUG);
         } catch (NullPointerException e) {
-            Log.v("Robot", "No telemetry provided" + e);
+            Log.v("Robot", "No telemetry provided. More info: " + e);
         }
 
         try {
