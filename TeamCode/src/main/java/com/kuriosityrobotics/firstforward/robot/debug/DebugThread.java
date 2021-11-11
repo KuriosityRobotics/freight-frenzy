@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.debug;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 
 import java.util.ArrayList;
 

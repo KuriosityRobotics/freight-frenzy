@@ -7,7 +7,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
-import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -16,7 +16,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 
 public class Robot {
     private static final boolean DEBUG = false;

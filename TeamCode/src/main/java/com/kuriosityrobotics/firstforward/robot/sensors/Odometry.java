@@ -8,7 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -61,9 +61,12 @@ public class Odometry implements Telemeter {
         this.worldY = startingCoordinates.y;
         this.worldHeadingRad = startingHeadingRad;
 
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+//        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
+//        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
+//        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "leftodo");
+        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "rightodo");
+        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "mecanumodo");
 
         resetEncoders();
 
@@ -221,12 +224,6 @@ public class Odometry implements Telemeter {
         data.add("xVel: " + xVel);
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
-
-//        data.add("--");
-//
-//        data.add("lastLeft: " + lastLeftPosition);
-//        data.add("lastRight: " + lastRightPosition);
-//        data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
     }

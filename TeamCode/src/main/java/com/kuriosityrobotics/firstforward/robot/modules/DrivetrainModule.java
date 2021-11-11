@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
