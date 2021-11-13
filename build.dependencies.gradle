@@ -23,7 +23,7 @@ dependencies {
     implementation 'org.firstinspires.ftc:gameAssets-FreightFrenzy:1.0.0' // freight frenzy targets
     implementation 'com.acmerobotics.roadrunner:core:0.5.4' // NOTE: roadrunner import IS NOT for pathfollowing. It is so the correct data types can be obtained for the
                                                             // FTCDashboard
-    implementation 'com.acmerobotics.dashboard:dashboard:0.4.1' // ftc dashboard very kewl
+    implementation 'com.acmerobotics.dashboard:dashboard:0.4.3' // ftc dashboard very kewl
 
 }
 

@@ -91,7 +91,7 @@ public class FileDump {
                     value = field.get(instance);
                     previousValues.put(field, value);
                 } catch (IllegalAccessException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Can't access field " + field.getName() + " of instance " + instance.toString(), e);
                 }
 
                 return previousValue == null || !value.equals(previousValue);
