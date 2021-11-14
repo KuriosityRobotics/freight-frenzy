@@ -32,15 +32,19 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
 
+    // current pos matches tuning, not supposed to match actual pos on the robot
+    final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
+    final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
+    final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
+
+    // Constants for perimeter targets
+    final float mmTargetHeight = 6 * MM_PER_INCH;
+    final float halfField        = 72 * MM_PER_INCH;
+    final float halfTile         = 12 * MM_PER_INCH;
+    final float oneAndHalfTile   = 36 * MM_PER_INCH;
+
     @Override
     public void setup(VuforiaLocalizer vuforia) {
-
-        // Constants for perimeter targets
-        final float mmTargetHeight = 6 * MM_PER_INCH;          // the height of the center of the target image above the floor
-        final float halfField        = 72 * MM_PER_INCH;
-        final float halfTile         = 12 * MM_PER_INCH;
-        final float oneAndHalfTile   = 36 * MM_PER_INCH;
-
         // Get trackables & activate them
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
         this.freightFrenzyTargets.activate();
@@ -50,11 +54,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
         identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
         identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
         identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
-
-        // current pos matches tuning, not supposed to match actual pos on the robot
-        final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;   // eg: Camera is 4 Inches in front of robot-center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;     // eg: Camera is ON the robot's center line
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
