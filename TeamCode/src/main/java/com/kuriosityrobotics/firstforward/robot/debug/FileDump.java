@@ -57,6 +57,9 @@ public class FileDump {
     public static void addField(String fieldName, Object receiver) {
         try {
             dataFields.add(new Pair<>(receiver.getClass().getDeclaredField(fieldName), receiver));
+            if (activated) {
+                Log.e("FileDump", fieldName + " added after activation");
+            }
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }

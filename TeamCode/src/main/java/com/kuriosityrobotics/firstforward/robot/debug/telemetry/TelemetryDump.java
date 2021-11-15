@@ -1,7 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -9,17 +14,21 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class TelemetryDump {
+public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
     private final ArrayList<Telemeter> telemeters = new ArrayList<>();
     public FtcDashboard dashboard;
     public TelemetryPacket packet;
+    public Canvas canvas;
+
+    private List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
@@ -32,6 +41,7 @@ public class TelemetryDump {
         this.dashboard = FtcDashboard.getInstance();
         this.dashboard.setTelemetryTransmissionInterval(25);
         this.packet = new TelemetryPacket();
+        this.canvas = new Canvas();
     }
 
     public void update() {
@@ -64,6 +74,16 @@ public class TelemetryDump {
 
         parseDashboardData();
         dashboard.sendTelemetryPacket(packet);
+    }
+
+    public void sendPose(Pose pose) {
+        Log.v("Dashboard", "Attempting to add pose...");
+        poseHistory.add(pose);
+        Log.v("Dashboard", "Pose successfully added");
+        DashboardUtil.drawRobot(canvas, pose);
+        Log.v("Dashboard", "Robot History Drawn");
+        DashboardUtil.drawPoseHistory(canvas, poseHistory);
+        Log.v("Dashboard", "Pose History Drawn");
     }
 
     public void parseDashboardData(){

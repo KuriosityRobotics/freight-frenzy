@@ -30,7 +30,7 @@ public class Odometry implements Telemeter {
     // velocity of the robot
     private double xVel = 0;
     private double yVel = 0;
-    private double angleVel = 0;
+    public double angleVel = 0;
 
     // change in position of the robot
     private double dx = 0;

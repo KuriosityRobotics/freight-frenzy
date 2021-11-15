@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.util.DashboardUtil.drawPoseHistory;
-import static com.kuriosityrobotics.firstforward.robot.util.DashboardUtil.drawRobot;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.CoroutineScope.launch;
 import static de.esoco.coroutine.step.CodeExecution.consume;
@@ -9,14 +7,11 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 import android.os.SystemClock;
 import android.util.Log;
 
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
-
-import com.acmerobotics.dashboard.canvas.Canvas;
 
 import org.apache.commons.math3.linear.RealMatrix;
 
@@ -38,9 +33,6 @@ public class SensorThread implements Runnable, Telemeter {
 
     private final LocalizationConsumer localizationConsumer;
 
-    Canvas canvas;
-    TelemetryPacket packet;
-
     public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer) {
         this.robot = robot;
         this.configLocation = configLocation;
@@ -50,9 +42,6 @@ public class SensorThread implements Runnable, Telemeter {
 
         this.odometry = new Odometry(robot);
         this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
-
-        packet = new TelemetryPacket();
-        canvas = packet.fieldOverlay();
     }
 
 
@@ -70,8 +59,7 @@ public class SensorThread implements Runnable, Telemeter {
 
             this.kalmanFilter.update(odometry, vuforia);
 
-            drawRobot(canvas, this.kalmanFilter.getFormattedPose());
-            drawPoseHistory(canvas, this.kalmanFilter.getPoseHistory());
+            robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
