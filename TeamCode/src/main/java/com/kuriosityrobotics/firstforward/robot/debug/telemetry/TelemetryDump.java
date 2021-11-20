@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
-import android.util.Log;
-
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -25,9 +23,9 @@ public class TelemetryDump implements PoseWatcher {
 
     private final ArrayList<Telemeter> telemeters = new ArrayList<>();
     public FtcDashboard dashboard;
-    public TelemetryPacket packet;
-    public Canvas canvas;
 
+    // TODO: Make an evictingblockingqueue?
+//    private EvictingBlockingQueue<Pose> poseHistory = new EvictingBlockingQueue<>();
     private List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
@@ -40,8 +38,6 @@ public class TelemetryDump implements PoseWatcher {
 
         this.dashboard = FtcDashboard.getInstance();
         this.dashboard.setTelemetryTransmissionInterval(25);
-        this.packet = new TelemetryPacket();
-        this.canvas = new Canvas();
     }
 
     public void update() {
@@ -71,33 +67,25 @@ public class TelemetryDump implements PoseWatcher {
 
         telemetry.addLine(msg.toString());
         telemetry.update();
-
-        parseDashboardData();
-        dashboard.sendTelemetryPacket(packet);
     }
 
+    @Override
     public void sendPose(Pose pose) {
-        Log.v("Dashboard", "Attempting to add pose...");
-        poseHistory.add(pose);
-        Log.v("Dashboard", "Pose successfully added");
-        DashboardUtil.drawRobot(canvas, pose);
-        Log.v("Dashboard", "Robot History Drawn");
-        DashboardUtil.drawPoseHistory(canvas, poseHistory);
-        Log.v("Dashboard", "Pose History Drawn");
-    }
-
-    public void parseDashboardData(){
-        for(Telemeter telemeter : telemeters){
-            if(telemeter.getDashboardData() != null) {
-                for (String key : telemeter.getDashboardData().keySet()) {
-                    sendDashboardData(key, telemeter.getDashboardData().get(key));
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas canvas = packet.fieldOverlay();
+        for (Telemeter telemeter : telemeters) {
+            if (telemeter.getDashboardData() != null) {
+                for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
+                    packet.put(entry.getKey(), entry.getValue());
                 }
             }
         }
-    }
 
-    public void sendDashboardData(String key, Object value){
-        packet.put(key,value);
+        dashboard.sendTelemetryPacket(packet);
+
+        poseHistory.add(pose);
+        DashboardUtil.drawRobot(canvas, pose);
+        DashboardUtil.drawPoseHistory(canvas, poseHistory);
     }
 
     private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {

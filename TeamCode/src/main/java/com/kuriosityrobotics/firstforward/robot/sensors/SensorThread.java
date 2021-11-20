@@ -16,6 +16,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import de.esoco.coroutine.Coroutine;
 
@@ -30,6 +31,7 @@ public class SensorThread implements Runnable, Telemeter {
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
+    private long lastPoseSendTime = 0;
 
     private final LocalizationConsumer localizationConsumer;
 
@@ -59,9 +61,13 @@ public class SensorThread implements Runnable, Telemeter {
 
             this.kalmanFilter.update(odometry, vuforia);
 
-            robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
-
             long currentTime = SystemClock.elapsedRealtime();
+
+            if (currentTime - lastPoseSendTime >= 250) {
+                robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
+                lastPoseSendTime = currentTime;
+            }
+
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
@@ -73,6 +79,16 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
+        data.add("Robot Pose: " + this.kalmanFilter.getFormattedPose());
+
+        return data;
+    }
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("Sensor Thread Update time: ",  updateTime);
+        data.put("Robot Pose: ",  this.kalmanFilter.getFormattedPose());
 
         return data;
     }

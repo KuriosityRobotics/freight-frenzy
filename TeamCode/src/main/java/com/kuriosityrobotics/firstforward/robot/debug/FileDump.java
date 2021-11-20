@@ -91,6 +91,7 @@ public class FileDump {
                 Object previousValue = previousValues.getOrDefault(field, null);
                 Object value;
                 try {
+                    field.setAccessible(true);
                     value = field.get(instance);
                     previousValues.put(field, value);
                 } catch (IllegalAccessException e) {
@@ -106,6 +107,7 @@ public class FileDump {
                             Object instance = n.second;
 
                             try {
+                                field.setAccessible(true);
                                 Object value = field.get(instance);
                                 return value.toString();
                             } catch (IllegalAccessException e) {

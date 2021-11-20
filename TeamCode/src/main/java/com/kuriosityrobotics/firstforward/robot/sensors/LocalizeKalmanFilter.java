@@ -210,10 +210,9 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     }
 
     public Pose getFormattedPose() {
-        return new Pose(matrixPose[0].getEntry(0,0), matrixPose[0].getEntry(1,0), Math.toDegrees(matrixPose[0].getEntry(2,0)));
-    }
-
-    public List<Pose> getPoseHistory() {
-        return poseHistory;
+        double x = matrixPose[0].getEntry(0,0);
+        double y = matrixPose[0].getEntry(1,0);
+        double heading = Math.toDegrees(matrixPose[0].getEntry(2,0));
+        return new Pose(x, y, heading);
     }
 }
