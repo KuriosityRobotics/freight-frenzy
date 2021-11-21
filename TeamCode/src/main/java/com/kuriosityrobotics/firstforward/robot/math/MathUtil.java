@@ -7,6 +7,10 @@ import java.util.Collection;
 public class MathUtil {
     private static final double EPSILON = 0.00001;
 
+    public static int toNum(boolean value) {
+        return value ? 1 : 0;
+    }
+
     /**
      * Wraps angle (in radians) to a value from -pi to pi
      *

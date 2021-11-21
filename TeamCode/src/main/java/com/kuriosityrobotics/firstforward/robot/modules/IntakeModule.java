@@ -33,7 +33,7 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_EXTENDED_POS = 0.8691;
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.5;
 
-    private static final int RING_BUFFER_CAPACITY = 150;
+    private static final int RING_BUFFER_CAPACITY = 100;
     private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
 
     private volatile double intakePower;
