@@ -33,15 +33,15 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private OpenGLMatrix detectedLocation = null;
 
     // current pos matches tuning, not supposed to match actual pos on the robot
-    final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
-    final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
-    final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
+    private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
+    private static final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
+    private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
 
     // Constants for perimeter targets
-    final float mmTargetHeight = 6 * MM_PER_INCH;
-    final float halfField        = 72 * MM_PER_INCH;
-    final float halfTile         = 12 * MM_PER_INCH;
-    final float oneAndHalfTile   = 36 * MM_PER_INCH;
+    private static final float mmTargetHeight = 6 * MM_PER_INCH;
+    private static final float halfField        = 72 * MM_PER_INCH;
+    private static final float halfTile         = 12 * MM_PER_INCH;
+    private static final float oneAndHalfTile   = 36 * MM_PER_INCH;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
