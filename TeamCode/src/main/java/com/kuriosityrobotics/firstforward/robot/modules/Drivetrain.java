@@ -157,23 +157,6 @@ public class Drivetrain implements Module, Telemeter {
         return new Point(xError, yError);
     }
 
-    //calculate angle from target (center) to pos
-    //used in goToPoint() and moveTowardsPoint()
-    // TODO remove?????
-    private double absRadDifference(Point pos, Point target) {
-        double rad;
-        double add = 0;
-        if (Math.abs(target.y - pos.y) < .00001) {
-            rad = 0;
-        } else {
-            rad = Math.atan((target.y - pos.y) / (target.x - pos.x));
-        }
-        if (target.x < pos.x) {
-            add = Math.PI;
-        }
-        return angleWrap(rad + add);
-    }
-
     public Pose getCurrentPose() {
         return robot.getSensorThread().odometry.getPose();
     }

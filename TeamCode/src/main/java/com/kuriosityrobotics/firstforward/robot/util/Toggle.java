@@ -3,12 +3,15 @@ package com.kuriosityrobotics.firstforward.robot.util;
 public class Toggle {
     private boolean previous = false;
     private boolean state = false;
+    private boolean ignoreInput = false;
 
     public boolean isToggled(boolean input) {
-        if (!previous && input) {
-            state = !state;
+        if (!ignoreInput) {
+            if (!previous && input) {
+                state = !state;
+            }
+            previous = input;
         }
-        previous = input;
         return state;
     }
 }

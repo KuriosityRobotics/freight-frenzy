@@ -1,21 +1,21 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
+import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
-import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -29,11 +29,12 @@ public class Robot {
 
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
-//    private final VisionThread visionThread;
+    private final VisionThread visionThread;
     private final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public final IntakeModule intakeModule;
+    public final OuttakeModule outtakeModule;
     public TelemetryDump telemetryDump;
 
     public LocalizationConsumer localizationConsumer;
@@ -61,31 +62,33 @@ public class Robot {
 
         drivetrain = new Drivetrain(this);
         intakeModule = new IntakeModule(this, true);
+        outtakeModule = new OuttakeModule(this);
 
         modules = new Module[]{
                 drivetrain,
-                intakeModule
+                intakeModule,
+                outtakeModule
         };
 
         localizationConsumer = new LocalizationConsumer();
 
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-//        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
         debugThread = new DebugThread(this, DEBUG);
 
         start();
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
-        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0, 0.0, 0.0));
     }
 
     public void start() {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-//                new Thread(visionThread),
+                //new Thread(visionThread)
                 new Thread(debugThread)
         };
 
@@ -99,6 +102,14 @@ public class Robot {
             return hardwareMap.dcMotor.get(name);
         } catch (IllegalArgumentException exception) {
             throw new Error("Motor with name " + name + " could not be found. Exception: " + exception);
+        }
+    }
+
+    public Servo getServo(String name) {
+        try {
+            return hardwareMap.servo.get(name);
+        } catch (IllegalArgumentException exception) {
+            throw new Error("Servo with name " + name + " could not be found. Exception: " + exception);
         }
     }
 
