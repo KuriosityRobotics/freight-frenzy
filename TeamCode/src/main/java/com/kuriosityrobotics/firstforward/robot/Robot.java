@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -44,11 +42,8 @@ public class Robot {
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
-        try {
-            telemetryDump = new TelemetryDump(telemetry, DEBUG);
-        } catch (NullPointerException e) {
-            Log.v("Robot", "No telemetry provided. More info: " + e);
-        }
+
+        telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
