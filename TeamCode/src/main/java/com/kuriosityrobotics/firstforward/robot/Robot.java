@@ -72,6 +72,7 @@ public class Robot {
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
         debugThread = new DebugThread(this);
 
+        start();
     }
 
     public void start() {
