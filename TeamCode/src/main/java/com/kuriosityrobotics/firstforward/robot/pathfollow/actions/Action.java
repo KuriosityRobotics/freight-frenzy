@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.pathfollow;
+package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
 import android.os.SystemClock;
 

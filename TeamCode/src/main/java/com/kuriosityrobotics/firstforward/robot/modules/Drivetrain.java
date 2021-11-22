@@ -173,6 +173,10 @@ public class Drivetrain implements Module, Telemeter {
         return new Point(xError, yError);
     }
 
+    public double distanceToPoint(Point point) {
+        return this.getCurrentPose().distance(point);
+    }
+
     public Pose getCurrentPose() {
         return robot.sensorThread.getOdometry().getPose();
     }
