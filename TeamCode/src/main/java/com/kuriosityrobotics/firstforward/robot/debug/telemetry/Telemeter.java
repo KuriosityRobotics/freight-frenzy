@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.telemetry;
+package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
 import java.util.ArrayList;
 

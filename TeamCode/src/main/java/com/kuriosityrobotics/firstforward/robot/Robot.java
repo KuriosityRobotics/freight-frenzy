@@ -5,7 +5,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
-import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -39,11 +39,15 @@ public class Robot {
     public final LynxModule revHub1;
 //    public final LynxModule revHub2;
 
+    private Boolean isDebugThreadOn;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
+
+        isDebugThreadOn = true;
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -65,7 +69,7 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation, localizationConsumer);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
-        debugThread = new DebugThread(this);
+        debugThread = new DebugThread(this, isDebugThreadOn);
 
         start();
     }
