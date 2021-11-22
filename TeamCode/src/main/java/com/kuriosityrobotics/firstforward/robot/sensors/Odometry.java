@@ -22,14 +22,14 @@ public class Odometry implements Telemeter {
     private final DcMotor mecanumEncoder;
 
     // Position of the robot, can be changed through constructor
-    private double worldX = 0;
-    private double worldY = 0;
-    private double worldHeadingRad = 0;
+    private double worldX;
+    private double worldY;
+    private double worldHeadingRad;
 
     // velocity of the robot
-    private double xVel = 0;
-    private double yVel = 0;
-    private double angleVel = 0;
+    public double xVel = 0;
+    public double yVel = 0;
+    public double angleVel = 0;
 
     // change in position of the robot
     private double dx = 0;
@@ -37,9 +37,9 @@ public class Odometry implements Telemeter {
     private double dHeading = 0;
 
     // For position calculation
-    private double lastLeftPosition = 0;
-    private double lastRightPosition = 0;
-    private double lastMecanumPosition = 0;
+    public double lastLeftPosition = 0;
+    public double lastRightPosition = 0;
+    public double lastMecanumPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;
@@ -87,7 +87,7 @@ public class Odometry implements Telemeter {
     private void calculatePosition() {
         // if odometry output is wrong, no worries, just find out which one needs to be reversed
         double newLeftPosition = yLeftEncoder.getCurrentPosition();
-        double newRightPosition = -yRightEncoder.getCurrentPosition();
+        double newRightPosition = yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;
@@ -107,7 +107,7 @@ public class Odometry implements Telemeter {
         // normalize to milliseconds then apply dimensional analysis to get to seconds
         xVel = 1000 * (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
         yVel = 1000 * (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
-        angleVel = 1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
+        angleVel = angleWrap(1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime));
 
         oldX = worldX;
         oldY = worldY;
@@ -221,11 +221,11 @@ public class Odometry implements Telemeter {
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
 
-//        data.add("--");
-//
-//        data.add("lastLeft: " + lastLeftPosition);
-//        data.add("lastRight: " + lastRightPosition);
-//        data.add("lastMecanum: " + lastMecanumPosition);
+        data.add("--");
+
+        data.add("lastLeft: " + lastLeftPosition);
+        data.add("lastRight: " + lastRightPosition);
+        data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
     }
