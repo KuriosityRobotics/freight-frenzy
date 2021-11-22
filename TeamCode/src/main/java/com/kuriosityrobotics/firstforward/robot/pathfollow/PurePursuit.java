@@ -7,6 +7,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.FeedFowardPID;
@@ -14,10 +15,17 @@ import com.kuriosityrobotics.firstforward.robot.util.FeedFowardPID;
 import java.util.ArrayList;
 
 public class PurePursuit {
-    WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
+    private final Robot robot;
+
+    // constants
+    private static final double STOP_THRESHOLD = 3;
+
+    private WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
     // params
-    double followRadius;
+    private double followRadius;
+
+    private final ActionExecutor actionExecutor;
 
     // motion magic
     private final MotionProfile profile;
@@ -28,8 +36,11 @@ public class PurePursuit {
     // helpers
     private int pathIndex; // which path segment is our follow point on? 0 is 0-1, 1 is 1-2, etc.
     private int closestIndex; // which path segment is our robot closest to? updated in clipToPath()
+    private boolean executedLastAction;
 
-    public PurePursuit(WayPoint[] path, double followRadius, double velocityFactor) {
+    public PurePursuit(Robot robot, WayPoint[] path, double followRadius, double velocityFactor) {
+        this.robot = robot;
+
         this.path = path;
         this.followRadius = followRadius;
 
@@ -37,17 +48,35 @@ public class PurePursuit {
             point.velocity *= velocityFactor;
         }
 
-        this.pathIndex = 0;
-
         this.profile = new MotionProfile(path);
+
+        this.actionExecutor = new ActionExecutor(robot);
+
+        this.executedLastAction = false;
+        this.pathIndex = 0;
+        this.actionExecutor.execute(path[0]);
     }
 
-    public PurePursuit(WayPoint[] path, double followRadius) {
-        this(path, followRadius, 0);
+    public PurePursuit(Robot robot, WayPoint[] path, double followRadius) {
+        this(robot, path, followRadius, 0);
+    }
+
+    public void follow() {
+        while (robot.isOpModeActive()) {
+            if (atEnd() && !executedLastAction) {
+                actionExecutor.execute(path[path.length - 1]);
+            } else if (atEnd() && actionExecutor.doneExecuting()) {
+                robot.drivetrain.setMovements(0, 0, 0);
+                return;
+            }
+
+            this.update();
+        }
     }
 
     int i = 0;
-    public void update(Robot robot) {
+
+    public void update() {
         Pose robotPose = robot.sensorThread.getOdometry().getPose();
         Point robotVelo = robot.sensorThread.getOdometry().getVelocity();
 
@@ -70,11 +99,14 @@ public class PurePursuit {
             i = 0;
         }
         i++;
+
 //        double x = xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x));
 //        double y = yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y));
 //        double heading = headingPID.calculateSpeed(targetHeading.getHeading() - robotPose.heading);
 //
 //        robot.drivetrain.setMovements(x, y, heading);
+
+        actionExecutor.tick();
     }
 
     private Point clipToPath(Point robotPosition) {
@@ -133,8 +165,12 @@ public class PurePursuit {
                 continue;
             } else {
                 //returns point that is closer to the end of the segment
+
                 if (i != pathIndex) {
-                    // TODO do actions
+                    for (int j = pathIndex + 1; j <= i; j++) {
+                        WayPoint point = path[j];
+                        actionExecutor.execute(point);
+                    }
 
                     // set the new target
                     pathIndex = i;
@@ -147,5 +183,9 @@ public class PurePursuit {
         // if we couldn't find any intersections
         // return the end of the path
         return path[path.length - 1];
+    }
+
+    public boolean atEnd() {
+        return robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD;
     }
 }

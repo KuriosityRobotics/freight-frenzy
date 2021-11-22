@@ -1,8 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
-
-import org.checkerframework.checker.units.qual.Angle;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.Action;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -70,5 +69,9 @@ public class WayPoint extends Point {
 
     public double getVelocity() {
         return velocity;
+    }
+
+    public ArrayList<Action> getActions() {
+        return this.actions;
     }
 }
