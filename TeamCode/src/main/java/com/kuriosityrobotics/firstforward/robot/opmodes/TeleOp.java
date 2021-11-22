@@ -22,6 +22,7 @@ public class TeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             // yeet
             updateDrivetrainStates();
+            FileDump.update();
         }
     }
 

@@ -32,7 +32,7 @@ public class FileDump {
 
     public static void activate() {
         try {
-            File file = new File(AppUtil.ROBOT_DATA_DIR + "/numerical-data/" + new Date().getTime() + ".csv");
+            File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
             System.out.printf("Started dumping to %s.%n", file.getAbsolutePath());
@@ -66,7 +66,7 @@ public class FileDump {
         MatOfByte mob = new MatOfByte();
         Imgcodecs.imencode(".jpg", frame, mob);
 
-        File file = new File(AppUtil.ROBOT_DATA_DIR + "/vision-replays/webcam-frame-" + new Date().getTime() + ".jpg");
+        File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-" + new Date().getTime() + ".jpg");
         try (FileOutputStream stream = new FileOutputStream(file)) {
             stream.write(mob.toArray());
         } catch (IOException e) {
