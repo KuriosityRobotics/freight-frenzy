@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
+package com.kuriosityrobotics.firstforward.robot.util.motionprofiling;
 
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -8,13 +8,22 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import java.util.ArrayList;
 
 public class MotionProfile {
-    public static final double MAX_VEL = 10; // TODO tune these!
-    public static final double MAX_ACCEL = 2;
+    public static final double ROBOT_MAX_VEL = 30; // TODO tune these!
+    public static final double ROBOT_MAX_ACCEL = 250;
+
+    private double maxVel, maxAccel;
 
     private ArrayList<MotionPathSegment> profile;
 
     public MotionProfile(WayPoint[] inputPath) {
+        this(inputPath, ROBOT_MAX_VEL, ROBOT_MAX_ACCEL);
+    }
+
+    public MotionProfile(WayPoint[] inputPath, double maxVel, double maxAccel) {
         this.profile = new ArrayList<>();
+
+        this.maxVel = maxVel;
+        this.maxAccel = maxAccel;
 
         generateHeadingProfile(inputPath);
         generateVelocityProfile(inputPath);
@@ -39,7 +48,7 @@ public class MotionProfile {
                     startVelo = 0.5;
 
                     // if second point doesn't have a target velo assume we're ramping up to max
-                    endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : MAX_VEL;
+                    endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : this.maxVel;
                 }
             } else { // 2nd + path segment
                 startVelo = lastVelocity;
@@ -51,7 +60,8 @@ public class MotionProfile {
             // generate the segment
             MotionPathSegment segment = new MotionPathSegment(
                     new MotionPoint(path[i], startVelo, path[i].getAngleLock()),
-                    new MotionPoint(path[i + 1], endVelo, path[i + 1].getAngleLock())
+                    new MotionPoint(path[i + 1], endVelo, path[i + 1].getAngleLock()),
+                    maxAccel
             );
 
             // use what value velocity actually gets to as the lastvelocity
