@@ -88,7 +88,7 @@ public class Odometry implements Telemeter {
         // if odometry output is wrong, no worries, just find out which one needs to be reversed
         double newLeftPosition = yLeftEncoder.getCurrentPosition();
         double newRightPosition = yRightEncoder.getCurrentPosition();
-        double newMecanumPosition = mecanumEncoder.getCurrentPosition();
+        double newMecanumPosition = -mecanumEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;
         double deltaRightPosition = newRightPosition - lastRightPosition;
