@@ -38,10 +38,10 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
 
     // Constants for perimeter targets
-    private static final float mmTargetHeight = 6 * MM_PER_INCH;
-    private static final float halfField        = 72 * MM_PER_INCH;
-    private static final float halfTile         = 12 * MM_PER_INCH;
-    private static final float oneAndHalfTile   = 36 * MM_PER_INCH;
+    private static final float MM_TARGET_HEIGHT = 6 * MM_PER_INCH;
+    private static final float HALF_FIELD = 72 * MM_PER_INCH;
+    private static final float HALF_TILE = 12 * MM_PER_INCH;
+    private static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -50,10 +50,10 @@ public class LocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage",       -halfField,  oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
-        identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
+        identifyTarget(0, "Blue Storage",       -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall", HALF_TILE,  -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)

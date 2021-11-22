@@ -107,7 +107,7 @@ public class Odometry implements Telemeter {
         // normalize to milliseconds then apply dimensional analysis to get to seconds
         xVel = 1000 * (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
         yVel = 1000 * (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
-        angleVel = angleWrap(1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime));
+        angleVel = 1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
 
         oldX = worldX;
         oldY = worldY;
@@ -221,11 +221,11 @@ public class Odometry implements Telemeter {
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
 
-        data.add("--");
-
-        data.add("lastLeft: " + lastLeftPosition);
-        data.add("lastRight: " + lastRightPosition);
-        data.add("lastMecanum: " + lastMecanumPosition);
+//        data.add("--");
+//
+//        data.add("lastLeft: " + lastLeftPosition);
+//        data.add("lastRight: " + lastRightPosition);
+//        data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
     }
