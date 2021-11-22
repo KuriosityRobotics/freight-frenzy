@@ -31,6 +31,16 @@ public class Odometry implements Telemeter {
     private double yVel = 0;
     private double angleVel = 0;
 
+    // old vel for acceleration calculations
+    public double oldxVel = 0;
+    public double oldyVel = 0;
+    public double oldangleVel = 0;
+
+    // acceleration calculations
+    public double xAccel = 0;
+    public double yAccel = 0;
+    public double angleAccel = 0;
+
     // change in position of the robot
     private double dx = 0;
     private double dy = 0;
@@ -69,6 +79,9 @@ public class Odometry implements Telemeter {
         FileDump.addField("xVel", this);
         FileDump.addField("yVel", this);
         FileDump.addField("angleVel", this);
+        FileDump.addField("xAccel", this);
+        FileDump.addField("yAccel", this);
+        FileDump.addField("angleAccel", this);
     }
 
     public Odometry(Robot robot) {
@@ -101,15 +114,24 @@ public class Odometry implements Telemeter {
 
     private void calculateVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
+        double dTime = (currentUpdateTime - lastUpdateTime) / 1000;
 
         // normalize to milliseconds then apply dimensional analysis to get to seconds
-        xVel = 1000 * (worldX - oldX) / (currentUpdateTime - lastUpdateTime);
-        yVel = 1000 * (worldY - oldY) / (currentUpdateTime - lastUpdateTime);
-        angleVel = 1000 * (worldHeadingRad - oldHeading) / (currentUpdateTime - lastUpdateTime);
+        xVel = (worldX - oldX) / (dTime);
+        yVel = (worldY - oldY) / (dTime);
+        angleVel = (worldHeadingRad - oldHeading) / (dTime);
+
+        xAccel = (xVel - oldxVel) / (dTime);
+        yAccel = (yVel - oldyVel) / (dTime);
+        angleAccel = (angleVel - oldangleVel) / (dTime);
 
         oldX = worldX;
         oldY = worldY;
-        oldHeading = angleWrap(worldHeadingRad);
+        oldHeading = worldHeadingRad;
+
+        oldxVel = xVel;
+        oldyVel = yVel;
+        oldangleVel = angleVel;
 
         lastUpdateTime = currentUpdateTime;
     }

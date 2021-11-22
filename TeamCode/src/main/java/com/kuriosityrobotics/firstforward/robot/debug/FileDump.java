@@ -28,7 +28,7 @@ public class FileDump {
     private static final ConcurrentHashMap<Field, Object> previousValues = new ConcurrentHashMap<>();
 
     private static PrintWriter writer;
-    private static long startTime;
+    private static long lastTime;
 
     public static void activate() {
         try {
@@ -45,11 +45,11 @@ public class FileDump {
                 .forEach(n -> n.setAccessible(true));
 
         writer.println(
-                dataFields.stream()
+                "time since last update, " + dataFields.stream()
                         .map(n -> n.first)
                         .map(Field::getName)
                         .collect(Collectors.joining(",")));
-        startTime = SystemClock.elapsedRealtime();
+        lastTime = SystemClock.elapsedRealtime();
 
         activated = true;
     }
@@ -97,8 +97,9 @@ public class FileDump {
 
                 return previousValue == null || !value.equals(previousValue);
             });
-            if (anyUpdated)
-                writer.println(SystemClock.elapsedRealtime() - startTime + "," + FileDump.dataFields.stream().map(n ->
+            if (anyUpdated) {
+                long newTime = SystemClock.elapsedRealtime();
+                writer.println(newTime - lastTime + "," + FileDump.dataFields.stream().map(n ->
                         {
                             Field field = n.first;
                             Object instance = n.second;
@@ -112,6 +113,9 @@ public class FileDump {
                             }
                         }
                 ).collect(Collectors.joining(",")));
+                writer.flush();
+                lastTime = newTime;
+            }
         }
     }
 

@@ -8,9 +8,9 @@ import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ActionExecutor;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.util.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
-import com.kuriosityrobotics.firstforward.robot.util.FeedFowardPID;
+import com.kuriosityrobotics.firstforward.robot.util.FeedForwardPID;
 
 import java.util.ArrayList;
 
@@ -29,8 +29,8 @@ public class PurePursuit {
 
     // motion magic
     private final MotionProfile profile;
-    private final FeedFowardPID yPID = new FeedFowardPID(0, 1, 0, 0);
-    private final FeedFowardPID xPID = new FeedFowardPID(0, 1, 0, 0);
+    private final FeedForwardPID yPID = new FeedForwardPID(0, 1, 0, 0);
+    private final FeedForwardPID xPID = new FeedForwardPID(0, 1, 0, 0);
     private final ClassicalPID headingPID = new ClassicalPID(1, 0, 0);
 
     // helpers
@@ -95,6 +95,8 @@ public class PurePursuit {
 
         if (i >= 500) {
 //            Log.v("PP", "clipped: " + clipped + " closest: " + closestIndex);
+            Pose velo = robot.sensorThread.getOdometry().getVelocity();
+            Log.v("PP", "velo: " + Math.sqrt((Math.pow(velo.x, 2) + Math.pow(velo.y, 2))));
             Log.v("PP", "Target velo: " + targetVelocity + " targetHeading: " + targetHeading);
             i = 0;
         }
