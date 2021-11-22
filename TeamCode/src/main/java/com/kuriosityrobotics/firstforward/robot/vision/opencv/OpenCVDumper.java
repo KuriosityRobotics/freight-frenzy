@@ -6,7 +6,7 @@ import org.opencv.core.Mat;
 
 public class OpenCVDumper implements OpenCvConsumer {
     private long lastCaptureTime;
-    private boolean isOn = false;
+    private boolean isOn = true;
 
     @Override
     public void processFrame(Mat frame) {
