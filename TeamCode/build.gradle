@@ -20,10 +20,10 @@ dependencies {
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
     // Matrix creation and operation for Kf
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-
     // vision (DO NOT UPGRADE, it will destroy vision)
     implementation 'org.openftc:easyopencv:1.4.4'
-
     // fancy stuff
+    // https://mvnrepository.com/artifact/org.reflections/reflections
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
     implementation 'de.esoco:coroutines:0.9.1'
 }

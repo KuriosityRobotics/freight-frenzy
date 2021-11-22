@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.sensors.FileDump;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -11,14 +9,13 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode(){
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
         }
-
         waitForStart();
         FileDump.activate();
 

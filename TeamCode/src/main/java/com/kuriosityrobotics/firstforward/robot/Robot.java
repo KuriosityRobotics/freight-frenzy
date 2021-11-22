@@ -67,6 +67,8 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation, localizationConsumer);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+
+        start();
     }
 
     public void start() {

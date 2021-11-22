@@ -18,7 +18,7 @@ public class Drivetrain implements Module, Telemeter {
     public double xMov;
     public double yMov;
     public double turnMov = 0;
-    public boolean zeroPowerBrake = true;
+    public boolean zeroPowerBrake = false;
 
     //braking states
     private boolean brake = false; // whether or not to actively brake
@@ -202,14 +202,4 @@ public class Drivetrain implements Module, Telemeter {
 
         return data;
     }
-
-    //    public class Movements {
-//        double xMovement, yMovement, turnMovement;
-//
-//        public Movements(double xMovement, double yMovement, double turnMovement) {
-//            this.xMovement = xMovement;
-//            this.yMovement = yMovement;
-//            this.turnMovement = turnMovement;
-//        }
-//    }
 }
