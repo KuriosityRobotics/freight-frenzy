@@ -17,7 +17,6 @@ public class TeleOp extends LinearOpMode {
             throw new RuntimeException(e);
         }
         waitForStart();
-        FileDump.activate();
 
         while (opModeIsActive()) {
             // yeet

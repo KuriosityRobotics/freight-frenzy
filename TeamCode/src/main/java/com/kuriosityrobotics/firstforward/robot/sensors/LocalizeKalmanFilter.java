@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 
 import org.apache.commons.math3.linear.MatrixUtils;
