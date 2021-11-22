@@ -29,7 +29,7 @@ public class FileDump {
             File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
-            System.out.println(String.format("Started dumping to %s.", file.getAbsolutePath()));
+            System.out.printf("Started dumping to %s.%n", file.getAbsolutePath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -71,6 +71,7 @@ public class FileDump {
                 Object previousValue = previousValues.getOrDefault(field, null);
                 Object value;
                 try {
+                    field.setAccessible(true);
                     value = field.get(instance);
                     previousValues.put(field, value);
                 } catch (IllegalAccessException e) {
@@ -86,6 +87,7 @@ public class FileDump {
                             Object instance = n.second;
 
                             try {
+                                field.setAccessible(true);
                                 Object value = field.get(instance);
                                 return value.toString();
                             } catch (IllegalAccessException e) {
