@@ -9,8 +9,8 @@ public class OpenCVDumper implements OpenCvConsumer {
     private long lastCaptureTime;
     private boolean isOn;
 
-    public OpenCVDumper(Robot robot) {
-        this.isOn = robot.isDebug();
+    public OpenCVDumper(boolean debug) {
+        this.isOn = debug;
     }
 
     @Override
