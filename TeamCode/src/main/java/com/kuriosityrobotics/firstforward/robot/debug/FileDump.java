@@ -36,6 +36,7 @@ public class FileDump {
             writer = new PrintWriter(file);
 
             System.out.printf("Started dumping to %s.%n", file.getAbsolutePath());
+            Log.v("FileDump", "Started dumping to: " + file.getAbsolutePath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
