@@ -43,7 +43,7 @@ public class Robot {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
-        telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        telemetryDump = new TelemetryDump(telemetry);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
