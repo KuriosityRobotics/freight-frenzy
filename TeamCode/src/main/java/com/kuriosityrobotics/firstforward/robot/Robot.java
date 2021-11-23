@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 public class Robot {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     private Thread[] threads;
@@ -39,15 +39,11 @@ public class Robot {
     public final LynxModule revHub1;
 //    public final LynxModule revHub2;
 
-    private Boolean isDebugThreadOn;
-
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
-
-        isDebugThreadOn = true;
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -69,7 +65,7 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation, localizationConsumer);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
-        debugThread = new DebugThread(this, isDebugThreadOn);
+        debugThread = new DebugThread(this, DEBUG);
 
         start();
     }
@@ -109,5 +105,9 @@ public class Robot {
 
     public SensorThread getSensorThread() {
         return this.sensorThread;
+    }
+
+    public boolean isDebug() {
+        return DEBUG;
     }
 }

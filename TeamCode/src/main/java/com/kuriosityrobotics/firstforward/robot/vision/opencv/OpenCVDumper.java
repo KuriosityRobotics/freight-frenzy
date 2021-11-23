@@ -1,12 +1,17 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 
 import org.opencv.core.Mat;
 
 public class OpenCVDumper implements OpenCvConsumer {
     private long lastCaptureTime;
-    private boolean isOn = true;
+    private boolean isOn;
+
+    public OpenCVDumper(Robot robot) {
+        this.isOn = robot.isDebug();
+    }
 
     @Override
     public void processFrame(Mat frame) {
