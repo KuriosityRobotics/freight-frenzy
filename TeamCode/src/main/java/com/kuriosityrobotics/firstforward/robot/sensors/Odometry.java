@@ -5,9 +5,10 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleW
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.apache.commons.math3.linear.MatrixUtils;

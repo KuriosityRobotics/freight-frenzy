@@ -31,6 +31,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
+    private CameraName cameraName;
 
     // current pos matches tuning, not supposed to match actual pos on the robot
     private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
@@ -60,7 +61,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
-        CameraName cameraName = vuforia.getCameraName();
+        cameraName = vuforia.getCameraName();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);

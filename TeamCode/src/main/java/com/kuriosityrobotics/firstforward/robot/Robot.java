@@ -1,23 +1,23 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
-import com.kuriosityrobotics.firstforward.robot.telemetry.TelemetryDump;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 
 public class Robot {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     private Thread[] threads;
@@ -26,6 +26,7 @@ public class Robot {
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
     private final VisionThread visionThread;
+    private final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public TelemetryDump telemetryDump;
@@ -41,11 +42,8 @@ public class Robot {
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
-        try {
-            telemetryDump = new TelemetryDump(telemetry, DEBUG);
-        } catch (NullPointerException e) {
-            RobotLog.v("No telemetry provided", e);
-        }
+
+        telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -67,6 +65,7 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation, localizationConsumer);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        debugThread = new DebugThread(this, DEBUG);
 
         start();
     }
@@ -75,7 +74,8 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-                new Thread(visionThread)
+                new Thread(visionThread),
+                new Thread(debugThread)
         };
 
         for (Thread thread : threads) {
@@ -105,5 +105,9 @@ public class Robot {
 
     public SensorThread getSensorThread() {
         return this.sensorThread;
+    }
+
+    public boolean isDebug() {
+        return DEBUG;
     }
 }

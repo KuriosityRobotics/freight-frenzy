@@ -8,7 +8,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -53,7 +53,6 @@ public class SensorThread implements Runnable, Telemeter {
 //                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
-            FileDump.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
             RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
