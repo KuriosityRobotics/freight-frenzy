@@ -112,4 +112,13 @@ public class FileDump {
                 ).collect(Collectors.joining(",")));
         }
     }
+
+    public static void close() {
+        if (activated) {
+            writer.close();
+            activated = false;
+
+            Log.i("FileDump", "Filedump has been stopped");
+        }
+    }
 }

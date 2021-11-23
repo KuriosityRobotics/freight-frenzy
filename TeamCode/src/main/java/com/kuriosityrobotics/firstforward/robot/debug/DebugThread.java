@@ -17,6 +17,8 @@ public class DebugThread implements Runnable, Telemeter {
     public DebugThread(Robot robot, Boolean isOn) {
         this.robot = robot;
         this.isOn = isOn;
+
+        FileDump.activate();
     }
 
     @Override
@@ -30,6 +32,8 @@ public class DebugThread implements Runnable, Telemeter {
                 lastLoopTime = currentTime;
             }
         }
+
+        FileDump.close();
     }
 
     @Override
@@ -48,6 +52,6 @@ public class DebugThread implements Runnable, Telemeter {
 
     @Override
     public boolean isOn() {
-        return true;
+        return isOn;
     }
 }
