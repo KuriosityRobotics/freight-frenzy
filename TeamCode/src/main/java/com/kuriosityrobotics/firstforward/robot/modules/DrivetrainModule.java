@@ -88,10 +88,10 @@ public class DrivetrainModule implements Module, Telemeter {
         bLeft = robot.getDcMotor("bLeft");
         bRight = robot.getDcMotor("bRight");
 
-        fLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        fRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        bLeft.setDirection(DcMotorSimple.Direction.REVERSE);
-        bRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        fRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        bLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        bRight.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public boolean isOn() {

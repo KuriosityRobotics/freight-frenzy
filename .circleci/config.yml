@@ -10,7 +10,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      - image: circleci/android:api-29-ndk
+      - image: circleci/android:api-30
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -24,9 +24,14 @@ jobs:
       JAVA_TOOL_OPTIONS: -Xmx1024m
       JAVA_OPTS: -Xmx1024m
       JVM_OPTS: -Xmx1024m
+      _JAVA_OPTIONS: -Xmx1024m
+      GRADLE_OPTS: -Xmx1024m
       TERM: dumb
 
     steps:
+      - run: sudo apt-get install build-essential
+      - run: sudo sudo apt-get install binutils
+
       - checkout
 
       # Download and cache dependencies

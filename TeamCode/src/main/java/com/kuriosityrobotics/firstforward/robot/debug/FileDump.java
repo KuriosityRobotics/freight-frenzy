@@ -35,7 +35,7 @@ public class FileDump {
             File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
-            System.out.println(String.format("Started dumping to %s.", file.getAbsolutePath()));
+            System.out.printf("Started dumping to %s.%n", file.getAbsolutePath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

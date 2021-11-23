@@ -23,9 +23,9 @@ public class Odometry implements Telemeter {
     private final DcMotor mecanumEncoder;
 
     // Position of the robot, can be changed through constructor
-    private double worldX = 0;
-    private double worldY = 0;
-    private double worldHeadingRad = 0;
+    private double worldX;
+    private double worldY;
+    private double worldHeadingRad;
 
     // velocity of the robot
     public double xVel = 0;
@@ -91,7 +91,7 @@ public class Odometry implements Telemeter {
     private void calculatePosition() {
         // if odometry output is wrong, no worries, just find out which one needs to be reversed
         double newLeftPosition = yLeftEncoder.getCurrentPosition();
-        double newRightPosition = -yRightEncoder.getCurrentPosition();
+        double newRightPosition = yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;

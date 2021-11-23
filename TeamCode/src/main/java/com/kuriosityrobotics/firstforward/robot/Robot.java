@@ -14,8 +14,10 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 
 public class Robot {
     private static final boolean DEBUG = false;
@@ -71,6 +73,7 @@ public class Robot {
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
         debugThread = new DebugThread(this);
 
+        start();
     }
 
     public void start() {

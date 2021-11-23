@@ -13,10 +13,9 @@ public class TeleOp extends LinearOpMode {
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
-            e.printStackTrace();
+            this.stop();
+            throw new RuntimeException(e);
         }
-
-        robot.start();
         waitForStart();
         FileDump.activate();
 
