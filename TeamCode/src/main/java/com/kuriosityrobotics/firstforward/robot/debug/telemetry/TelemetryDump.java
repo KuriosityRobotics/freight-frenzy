@@ -66,21 +66,23 @@ public class TelemetryDump implements PoseWatcher {
 
     @Override
     public void sendPose(Pose pose) {
-        TelemetryPacket packet = new TelemetryPacket();
-        Canvas canvas = packet.fieldOverlay();
-        for (Telemeter telemeter : telemeters) {
-            if (telemeter.getDashboardData() != null) {
-                for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
-                    packet.put(entry.getKey(), entry.getValue());
+        if (debug) {
+            TelemetryPacket packet = new TelemetryPacket();
+            Canvas canvas = packet.fieldOverlay();
+            for (Telemeter telemeter : telemeters) {
+                if (telemeter.getDashboardData() != null) {
+                    for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
+                        packet.put(entry.getKey(), entry.getValue());
+                    }
                 }
             }
+
+            dashboard.sendTelemetryPacket(packet);
+
+            poseHistory.add(pose);
+            DashboardUtil.drawRobot(canvas, pose);
+            DashboardUtil.drawPoseHistory(canvas, poseHistory);
         }
-
-        dashboard.sendTelemetryPacket(packet);
-
-        poseHistory.add(pose);
-        DashboardUtil.drawRobot(canvas, pose);
-        DashboardUtil.drawPoseHistory(canvas, poseHistory);
     }
 
 //    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {
