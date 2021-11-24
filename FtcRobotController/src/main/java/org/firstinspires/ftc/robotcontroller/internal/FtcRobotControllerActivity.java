@@ -40,6 +40,9 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -51,10 +54,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 
 import com.google.blocks.ftcrobotcontroller.ProgrammingWebHandlers;
 import com.google.blocks.ftcrobotcontroller.runtime.BlocksOpMode;
