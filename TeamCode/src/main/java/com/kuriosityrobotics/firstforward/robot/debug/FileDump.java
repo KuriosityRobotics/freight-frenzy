@@ -35,7 +35,7 @@ public class FileDump {
             File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + new Date().getTime() + ".csv");
             writer = new PrintWriter(file);
 
-            System.out.printf("Started dumping to %s.%n", file.getAbsolutePath());
+            Log.v("FileDump", "Started dumping to: " + file.getAbsolutePath());
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -57,9 +57,6 @@ public class FileDump {
     public static void addField(String fieldName, Object receiver) {
         try {
             dataFields.add(new Pair<>(receiver.getClass().getDeclaredField(fieldName), receiver));
-            if (activated) {
-                Log.e("FileDump", fieldName + " added after activation");
-            }
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(e);
         }
@@ -69,7 +66,7 @@ public class FileDump {
         MatOfByte mob = new MatOfByte();
         Imgcodecs.imencode(".jpg", frame, mob);
 
-        File file = new File(AppUtil.ROBOT_DATA_DIR + "/webcam-frame-" + new Date().getTime() + ".jpg");
+        File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-" + new Date().getTime() + ".jpg");
         try (FileOutputStream stream = new FileOutputStream(file)) {
             stream.write(mob.toArray());
         } catch (IOException e) {
@@ -115,6 +112,15 @@ public class FileDump {
                             }
                         }
                 ).collect(Collectors.joining(",")));
+        }
+    }
+
+    public static void close() {
+        if (activated) {
+            writer.close();
+            activated = false;
+
+            Log.i("FileDump", "Filedump has been stopped");
         }
     }
 }

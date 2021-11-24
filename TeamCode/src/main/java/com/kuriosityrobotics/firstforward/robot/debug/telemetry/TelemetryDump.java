@@ -8,14 +8,9 @@ import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
@@ -48,17 +43,17 @@ public class TelemetryDump implements PoseWatcher {
                 // ---Name---\n
                 msg.append("---").append(telemeter.getName()).append("---\n");
 
-                if (debug) {
-                    for (Map.Entry<String, Object> pair : getAllFields(telemeter)) {
-                        // Key: Value \n
-                        msg.append(pair.getKey()).append(": ").append(pair.getValue()).append("\n");
-                    }
-                } else {
-                    for (String line : telemeter.getTelemetryData()) {
-                        // telemetry_line\n
-                        msg.append(line).append("\n");
-                    }
+//                if (debug) {
+//                    for (Map.Entry<String, Object> pair : getAllFields(telemeter)) {
+//                        // Key: Value \n
+//                        msg.append(pair.getKey()).append(": ").append(pair.getValue()).append("\n");
+//                    }
+//                } else {
+                for (String line : telemeter.getTelemetryData()) {
+                    // telemetry_line\n
+                    msg.append(line).append("\n");
                 }
+//                }
 
                 // newline for every section
                 msg.append("\n");
@@ -88,15 +83,15 @@ public class TelemetryDump implements PoseWatcher {
         DashboardUtil.drawPoseHistory(canvas, poseHistory);
     }
 
-    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {
-        return Arrays.stream(telemeter.getClass().getDeclaredFields()) // cursed
-                .filter(n -> Modifier.isPublic(n.getModifiers()))
-                .collect(Collectors.toMap(Field::getName, n -> {
-                    try {
-                        return n.get(telemeter);
-                    } catch (IllegalAccessException e) {
-                        return null;
-                    }
-                })).entrySet();
-    }
+//    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {
+//        return Arrays.stream(telemeter.getClass().getDeclaredFields()) // cursed
+//                .filter(n -> Modifier.isPublic(n.getModifiers()))
+//                .collect(Collectors.toMap(Field::getName, n -> {
+//                    try {
+//                        return n.get(telemeter);
+//                    } catch (IllegalAccessException e) {
+//                        return null;
+//                    }
+//                })).entrySet();
+//    }
 }

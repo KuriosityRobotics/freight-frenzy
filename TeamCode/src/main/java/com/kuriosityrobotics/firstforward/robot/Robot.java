@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
@@ -14,7 +15,6 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.RobotLog;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -42,14 +42,11 @@ public class Robot {
     public final LynxModule revHub1;
 //    public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
-        try {
-            telemetryDump = new TelemetryDump(telemetry, DEBUG);
-        } catch (NullPointerException e) {
-            Log.v("Robot", "No telemetry provided" + e);
-        }
+
+        telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -68,12 +65,16 @@ public class Robot {
 
         localizationConsumer = new LocalizationConsumer();
 
-        sensorThread = new SensorThread(this, configLocation, localizationConsumer);
+        sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
-        debugThread = new DebugThread(this);
+        debugThread = new DebugThread(this, DEBUG);
 
         start();
+    }
+
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
     public void start() {
@@ -111,5 +112,9 @@ public class Robot {
 
     public SensorThread getSensorThread() {
         return this.sensorThread;
+    }
+
+    public boolean isDebug() {
+        return DEBUG;
     }
 }

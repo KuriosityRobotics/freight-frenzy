@@ -9,23 +9,31 @@ import java.util.ArrayList;
 
 public class DebugThread implements Runnable, Telemeter {
     private final Robot robot;
+    private boolean isOn;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public DebugThread(Robot robot) {
+    public DebugThread(Robot robot, Boolean isOn) {
         this.robot = robot;
+        this.isOn = isOn;
+
+        FileDump.activate();
     }
 
     @Override
     public void run() {
         while (robot.running()) {
-            FileDump.update();
+            if (isOn) {
+                FileDump.update();
 
-            long currentTime = SystemClock.elapsedRealtime();
-            updateTime = currentTime - lastLoopTime;
-            lastLoopTime = currentTime;
+                long currentTime = SystemClock.elapsedRealtime();
+                updateTime = currentTime - lastLoopTime;
+                lastLoopTime = currentTime;
+            }
         }
+
+        FileDump.close();
     }
 
     @Override
@@ -44,6 +52,6 @@ public class DebugThread implements Runnable, Telemeter {
 
     @Override
     public boolean isOn() {
-        return true;
+        return isOn;
     }
 }

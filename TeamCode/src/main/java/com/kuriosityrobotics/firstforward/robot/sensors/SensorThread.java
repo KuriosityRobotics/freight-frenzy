@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -35,14 +36,14 @@ public class SensorThread implements Runnable, Telemeter {
 
     private final LocalizationConsumer localizationConsumer;
 
-    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer) {
+    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer, Pose pose) {
         this.robot = robot;
         this.configLocation = configLocation;
         this.localizationConsumer = localizationConsumer;
 
         robot.telemetryDump.registerTelemeter(this);
 
-        this.odometry = new Odometry(robot);
+        this.odometry = new Odometry(robot, pose);
         this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
     }
 
