@@ -21,7 +21,7 @@ import java.util.List;
 public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     public RealMatrix[] matrixPose; // pose, cov
 
-    public List<Pose> poseHistory = new ArrayList<>();
+    public ArrayList<Pose> poseHistory = new ArrayList<>();
 
     // values
     private final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{

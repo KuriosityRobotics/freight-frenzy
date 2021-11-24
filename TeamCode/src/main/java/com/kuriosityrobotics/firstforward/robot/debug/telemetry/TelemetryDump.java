@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public class TelemetryDump implements PoseWatcher {
 
     // TODO: Make an evictingblockingqueue?
 //    private EvictingBlockingQueue<Pose> poseHistory = new EvictingBlockingQueue<>();
-    private List<Pose> poseHistory = new ArrayList<>();
+    private ArrayList<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
