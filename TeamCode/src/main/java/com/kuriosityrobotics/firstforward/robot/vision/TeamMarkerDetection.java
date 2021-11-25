@@ -38,6 +38,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         var area3 = sectionThree.crossProduct(RED).getNorm();
 
         double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
+
         if (closestToRed == area1)
             this.location = TeamMarkerLocation.LOCATION_1;
         else if (closestToRed == area2)
