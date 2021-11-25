@@ -71,12 +71,13 @@ public final class ManagedCamera implements Telemeter {
                 this.isFrontCameraActive = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
                 try {
-                    // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald)
+                    // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
+                    // anyways enough of this rant
                     Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
 
-                    for (Field f : aClass.getDeclaredFields()) {
-                        Log.e("Switchable camera: ", "Field name ===> " + f.getName());
-                    }
+//                    for (Field f : aClass.getDeclaredFields()) {
+//                        Log.e("Switchable camera: ", "Field name ===> " + f.getName());
+//                    }
                     Field isWebcamField = aClass.getDeclaredField("isWebcam");
                     isWebcamField.setAccessible(true);
                     isWebcamField.set(openCvCamera, true);
@@ -86,7 +87,7 @@ public final class ManagedCamera implements Telemeter {
 
                 vuforiaInitialisedYet = true;
             } else {
-                // control hub does not like multiple vuforias, so don't try spawning more than 1
+                // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Cameras
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {

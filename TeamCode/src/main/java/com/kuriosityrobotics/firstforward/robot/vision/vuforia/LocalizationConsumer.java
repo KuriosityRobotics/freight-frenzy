@@ -5,6 +5,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADI
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -33,10 +35,15 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
 
+    // Camera positions on robot (both front and back)
     // current pos matches tuning, not supposed to match actual pos on the robot
-    private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
-    private static final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
-    private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
+    private static final float CAMERA_FRONT_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
+    private static final float CAMERA_FRONT_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
+    private static final float CAMERA_FRONT_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
+
+    private static final float CAMERA_BACK_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
+    private static final float CAMERA_BACK_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
+    private static final float CAMERA_BACK_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
 
     // Constants for perimeter targets
     private static final float MM_TARGET_HEIGHT = 6 * MM_PER_INCH;
@@ -56,18 +63,24 @@ public class LocalizationConsumer implements VuforiaConsumer {
         identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
         identifyTarget(3, "Red Alliance Wall", HALF_TILE,  -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
 
-        OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
-                .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
+        OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
+                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
+
+        OpenGLMatrix cameraBackLocationOnRobot = OpenGLMatrix
+                .translation(CAMERA_BACK_FORWARD_DISPLACEMENT, CAMERA_BACK_LEFT_DISPLACEMENT, CAMERA_BACK_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
         SwitchableCamera switchableCamera = (SwitchableCamera) vuforia.getCamera();
 //        cameraName = switchableCamera.getActiveCamera();
         CameraName[] cameraNames = switchableCamera.getMembers();
+        Log.v("Switchable Cameras", "Camera 1 name: " + cameraNames[0]);
+        Log.v("Switchable Cameras", "Camera 2 name: " + cameraNames[1]);
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             for (CameraName cameraName : cameraNames) {
-                listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
+                listener.setCameraLocationOnRobot(cameraName, cameraFrontLocationOnRobot);
             }
         }
     }
