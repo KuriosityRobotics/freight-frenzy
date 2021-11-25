@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
     Robot robot;
@@ -189,7 +190,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("xMov: " + xMov);

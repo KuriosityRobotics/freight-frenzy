@@ -10,6 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -31,7 +32,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
-    private CameraName cameraName;
 
     // current pos matches tuning, not supposed to match actual pos on the robot
     private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
@@ -61,10 +61,14 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
-        cameraName = vuforia.getCameraName();
+        SwitchableCamera switchableCamera = (SwitchableCamera) vuforia.getCamera();
+//        cameraName = switchableCamera.getActiveCamera();
+        CameraName[] cameraNames = switchableCamera.getMembers();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
+            for (CameraName cameraName : cameraNames) {
+                listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);
+            }
         }
     }
 

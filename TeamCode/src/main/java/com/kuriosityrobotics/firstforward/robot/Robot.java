@@ -67,7 +67,7 @@ public class Robot {
 
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        visionThread = new VisionThread(this, localizationConsumer);
         debugThread = new DebugThread(this, DEBUG);
 
         start();
@@ -113,6 +113,7 @@ public class Robot {
     public SensorThread getSensorThread() {
         return this.sensorThread;
     }
+    public VisionThread getVisionThread() { return  this.visionThread; }
 
     public boolean isDebug() {
         return DEBUG;
