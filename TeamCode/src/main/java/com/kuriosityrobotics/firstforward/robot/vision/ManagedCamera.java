@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.opencv.core.Mat;
@@ -39,7 +40,7 @@ public final class ManagedCamera implements Telemeter {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera switchableCamera;
+    private SwitchableCamera switchableCamera;
 
     private boolean vuforiaInitialisedYet;
 
@@ -66,7 +67,7 @@ public final class ManagedCamera implements Telemeter {
 
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
-                switchableCamera = (org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera) vuforia.getCamera();
+                switchableCamera = (SwitchableCamera) vuforia.getCamera();
                 switchableCamera.setActiveCamera(cameraNameFront);
                 this.isFrontCameraActive = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
