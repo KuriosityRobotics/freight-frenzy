@@ -28,9 +28,9 @@ public class Odometry implements Telemeter {
     private double worldHeadingRad;
 
     // velocity of the robot
-    public double xVel = 0;
-    public double yVel = 0;
-    public double angleVel = 0;
+    private double xVel = 0;
+    private double yVel = 0;
+    private double angleVel = 0;
 
     // change in position of the robot
     private double dx = 0;
@@ -38,9 +38,9 @@ public class Odometry implements Telemeter {
     private double dHeading = 0;
 
     // For position calculation
-    public double lastLeftPosition = 0;
-    public double lastRightPosition = 0;
-    public double lastMecanumPosition = 0;
+    private double lastLeftPosition = 0;
+    private double lastRightPosition = 0;
+    private double lastMecanumPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;
