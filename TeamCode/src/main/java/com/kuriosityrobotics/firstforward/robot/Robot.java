@@ -1,6 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
@@ -39,7 +42,7 @@ public class Robot {
     public final LynxModule revHub1;
 //    public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -62,12 +65,16 @@ public class Robot {
 
         localizationConsumer = new LocalizationConsumer();
 
-        sensorThread = new SensorThread(this, configLocation, localizationConsumer);
+        sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
         visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
         debugThread = new DebugThread(this, DEBUG);
 
         start();
+    }
+
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
     public void start() {

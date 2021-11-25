@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 
 import org.opencv.core.Mat;

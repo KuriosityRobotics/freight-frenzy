@@ -66,5 +66,13 @@ public class Point {
         Point point = (Point) o;
         return doublesEqual(point.x, x) && doublesEqual(point.y, y);
     }
+
+    public double getX() {
+        return this.x;
+    }
+
+    public double getY() {
+        return this.y;
+    }
 }
 

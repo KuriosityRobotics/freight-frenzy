@@ -54,12 +54,12 @@ public class Odometry implements Telemeter {
     private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775/90); // 5.125
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
-    public Odometry(Robot robot, Point startingCoordinates, double startingHeadingRad) {
+    public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
 
-        this.worldX = startingCoordinates.x;
-        this.worldY = startingCoordinates.y;
-        this.worldHeadingRad = startingHeadingRad;
+        this.worldX = pose.x;
+        this.worldY = pose.y;
+        this.worldHeadingRad = pose.heading;
 
         yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
@@ -76,7 +76,8 @@ public class Odometry implements Telemeter {
     }
 
     public Odometry(Robot robot) {
-        this(robot, new Point(0,0), 0.0);
+        // (0,0) is the center of the field (IMPORTANT)
+        this(robot, new Pose(0.0,0.0,0.0));
     }
 
     public void update() {
@@ -221,12 +222,6 @@ public class Odometry implements Telemeter {
         data.add("xVel: " + xVel);
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
-
-//        data.add("--");
-//
-//        data.add("lastLeft: " + lastLeftPosition);
-//        data.add("lastRight: " + lastRightPosition);
-//        data.add("lastMecanum: " + lastMecanumPosition);
 
         return data;
     }
