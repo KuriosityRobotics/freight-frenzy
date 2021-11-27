@@ -15,6 +15,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsu
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.descriptive.StorelessUnivariateStatistic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +36,13 @@ public class SensorThread implements Runnable, Telemeter {
     private long lastPoseSendTime = 0;
 
     private final LocalizationConsumer localizationConsumer;
+
+    private RobotState robotState;
+
+    public enum RobotState {
+        DEPOSITING,
+        COLLECTING
+    }
 
     public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer, Pose pose) {
         this.robot = robot;

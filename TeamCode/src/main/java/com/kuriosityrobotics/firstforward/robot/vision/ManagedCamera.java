@@ -75,10 +75,6 @@ public final class ManagedCamera implements Telemeter {
                     // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
                     // anyways enough of this rant
                     Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
-
-//                    for (Field f : aClass.getDeclaredFields()) {
-//                        Log.e("Switchable camera: ", "Field name ===> " + f.getName());
-//                    }
                     Field isWebcamField = aClass.getDeclaredField("isWebcam");
                     isWebcamField.setAccessible(true);
                     isWebcamField.set(openCvCamera, true);
@@ -114,11 +110,7 @@ public final class ManagedCamera implements Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        if (isFrontCameraActive) {
-            data.add("activeCamera: " + "Webcam 1");
-        } else {
-            data.add("activeCamera: " + "Webcam 2");
-        }
+        data.add("Active Camera: " + switchableCamera.getActiveCamera());
 
         return data;
     }
