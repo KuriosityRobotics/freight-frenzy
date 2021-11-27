@@ -17,16 +17,17 @@ import org.apache.commons.collections4.BoundedCollection;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class IntakeModule implements Module, Telemeter {
     private static final double RPM_EPSILON = 60;
 
     // PPR = Ticks per Revolution(abrv different but doesn't matter)
     private static final double GOBILDA_1620_PPR = 103.8;
-    private static final double INTAKE_OCCUPIED_SD = 100;
+    private static final double INTAKE_OCCUPIED_SD = 50;
 
     // TODO: Tune
-    public static final double INTAKE_EXTEND_TIME = 1000;
+    public static final double INTAKE_EXTEND_TIME = 1500;
 
     public static final double INTAKE_RIGHT_EXTENDED_POS = 0.512;
     public static final double INTAKE_RIGHT_RETRACTED_POS = 0.87614;
@@ -40,6 +41,8 @@ public class IntakeModule implements Module, Telemeter {
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
+
+    private Optional<Robot> robot = Optional.empty();
 
     public volatile IntakePosition intakePosition = IntakePosition.EXTENDED;
 
@@ -74,6 +77,8 @@ public class IntakeModule implements Module, Telemeter {
 
     public IntakeModule(Robot robot, boolean isOn) {
         this(robot.hardwareMap, isOn);
+        this.robot = Optional.of(robot);
+
         robot.telemetryDump.registerTelemeter(this);
     }
 
@@ -144,6 +149,7 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     private synchronized void startIntakeExtension() {
+        this.robot.ifPresent(robot -> robot.outtakeModule.hopperOccupied());
         intakeOccupied = false;
         intakerRetractionStartTime = null;
         setIntakePosition(IntakePosition.EXTENDED);
@@ -179,7 +185,7 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     public boolean readyForOutake() {
-        return isRetracted() && intakeOccupied;
+        return /*isRetracted() && */intakeOccupied;
     }
 
     public String getName() {
