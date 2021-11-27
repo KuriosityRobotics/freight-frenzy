@@ -178,7 +178,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     public Pose getCurrentPose() {
-        return robot.sensorThread.getOdometry().getPose();
+        return robot.sensorThread.getPose();
     }
 
     @Override
@@ -194,6 +194,10 @@ public class Drivetrain implements Module, Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+
+        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+
+        data.add("--");
 
         data.add("Braking: " + brake);
         data.add("Brake Pose: " + brakePose);

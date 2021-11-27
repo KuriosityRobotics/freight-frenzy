@@ -42,7 +42,7 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
-        data.put("Vision Thread Update time: ", updateTime);
+        data.put("Vision Thread Update time: ", ""+updateTime);
         return data;
     }
 

@@ -47,7 +47,6 @@ public class SensorThread implements Runnable, Telemeter {
         this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
     }
 
-
     @Override
     public void run() {
         while (robot.running()) {
@@ -75,6 +74,18 @@ public class SensorThread implements Runnable, Telemeter {
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
+    public Pose getPose() {
+        return kalmanFilter.getPose();
+    }
+
+    public Pose getVelocity() {
+        return kalmanFilter.getRollingVelocity();
+    }
+
+    public Pose getOdomVelocity() {
+        return odometry.getInstantaneousVelocity();
+    }
+
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
@@ -88,8 +99,8 @@ public class SensorThread implements Runnable, Telemeter {
     @Override
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
-        data.put("Sensor Thread Update time: ",  updateTime);
-        data.put("Robot Pose: ",  this.kalmanFilter.getFormattedPose());
+        data.put("Sensor Thread Update time: ",  ""+updateTime);
+        data.put("Robot Pose: ",  this.kalmanFilter.getFormattedPose().toString());
 
         return data;
     }

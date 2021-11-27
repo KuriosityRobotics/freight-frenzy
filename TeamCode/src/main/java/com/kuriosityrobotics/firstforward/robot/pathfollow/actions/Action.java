@@ -9,7 +9,7 @@ public abstract class Action {
     private long startTime;
     private long timeSinceStart;
 
-    public void update() {
+    public void tick() {
         long currentTime = SystemClock.elapsedRealtime();
         if (!isStarted) {
             isStarted = true;

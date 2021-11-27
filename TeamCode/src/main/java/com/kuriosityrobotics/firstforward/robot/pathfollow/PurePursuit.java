@@ -1,52 +1,52 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ActionExecutor;
-import com.kuriosityrobotics.firstforward.robot.util.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.FeedForwardPID;
+import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
-public class PurePursuit {
+public class PurePursuit implements Telemeter {
     private final Robot robot;
 
     // constants
     private static final double STOP_THRESHOLD = 3;
+    private static final double ANGLE_THRESHOLD = Math.toRadians(1.5);
 
-    private WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
+    private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
     // params
-    private double followRadius;
+    private final double followRadius;
 
     private final ActionExecutor actionExecutor;
 
     // motion magic
     private final MotionProfile profile;
-    private final FeedForwardPID yPID = new FeedForwardPID(0, 1, 0, 0);
-    private final FeedForwardPID xPID = new FeedForwardPID(0, 1, 0, 0);
-    private final ClassicalPID headingPID = new ClassicalPID(1, 0, 0);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.015, 0.027, 0, 0);
+    private final FeedForwardPID xPID = new FeedForwardPID(0.0205, 0.0445, 0, 0);
+    private final ClassicalPID headingPID = new ClassicalPID(1.98, 0, 0.2);
 
     // helpers
     private int pathIndex; // which path segment is our follow point on? 0 is 0-1, 1 is 1-2, etc.
     private int closestIndex; // which path segment is our robot closest to? updated in clipToPath()
     private boolean executedLastAction;
 
-    public PurePursuit(Robot robot, WayPoint[] path, double followRadius, double velocityFactor) {
+    public PurePursuit(Robot robot, WayPoint[] path, double followRadius) {
         this.robot = robot;
+
+        robot.telemetryDump.registerTelemeter(this);
 
         this.path = path;
         this.followRadius = followRadius;
-
-        for (WayPoint point : path) {
-            point.velocity *= velocityFactor;
-        }
 
         this.profile = new MotionProfile(path);
 
@@ -57,14 +57,11 @@ public class PurePursuit {
         this.actionExecutor.execute(path[0]);
     }
 
-    public PurePursuit(Robot robot, WayPoint[] path, double followRadius) {
-        this(robot, path, followRadius, 0);
-    }
-
     public void follow() {
         while (robot.isOpModeActive()) {
             if (atEnd() && !executedLastAction) {
                 actionExecutor.execute(path[path.length - 1]);
+                executedLastAction = true;
             } else if (atEnd() && actionExecutor.doneExecuting()) {
                 robot.drivetrain.setMovements(0, 0, 0);
                 return;
@@ -74,41 +71,40 @@ public class PurePursuit {
         }
     }
 
-    int i = 0;
-
     public void update() {
-        Pose robotPose = robot.sensorThread.getOdometry().getPose();
-        Point robotVelo = robot.sensorThread.getOdometry().getVelocity();
+        Pose robotPose = robot.sensorThread.getPose();
+        Point robotVelo = robot.sensorThread.getVelocity();
 
         Point target = targetPosition(robotPose);
 
         Point clipped = clipToPath(robotPose);
 
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
-        AngleLock targetHeading = profile.interpolateTargetHeading(closestIndex, clipped);
+        AngleLock targetAngleLock = profile.interpolateTargetHeading(closestIndex, clipped);
 
         double headingToPoint = robot.drivetrain.relativeHeadingToPoint(target);
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
-        robot.drivetrain.setMovementsTowardPoint(target, 0.8);
+        double x = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x)), -1, 1);
+        double y = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y)), -1, 1);
+        double heading = targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK
+                ? 0
+                : Range.clip(headingPID.calculateSpeed(targetAngleLock.getHeading() - robotPose.heading), -1, 1);
 
-        if (i >= 500) {
-//            Log.v("PP", "clipped: " + clipped + " closest: " + closestIndex);
-            Pose velo = robot.sensorThread.getOdometry().getVelocity();
-            Log.v("PP", "velo: " + Math.sqrt((Math.pow(velo.x, 2) + Math.pow(velo.y, 2))));
-            Log.v("PP", "Target velo: " + targetVelocity + " targetHeading: " + targetHeading);
-            i = 0;
-        }
-        i++;
-
-//        double x = xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x));
-//        double y = yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y));
-//        double heading = headingPID.calculateSpeed(targetHeading.getHeading() - robotPose.heading);
-//
-//        robot.drivetrain.setMovements(x, y, heading);
+        robot.drivetrain.setMovements(x, y, heading);
 
         actionExecutor.tick();
+
+        // save values for dashboard
+        vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
+        targvel = targetVelocity;
+        xvel = robotVelo.x;
+        yvel = robotVelo.y;
+        targx = targetXVelo;
+        targy = targetYVelo;
+        heading = robotPose.heading;
+        targhead = targetAngleLock.getHeading();
     }
 
     private Point clipToPath(Point robotPosition) {
@@ -188,6 +184,38 @@ public class PurePursuit {
     }
 
     public boolean atEnd() {
-        return robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD;
+        AngleLock lastAngle = path[path.length - 1].getAngleLock();
+        boolean angleEnd = lastAngle.getType() != AngleLock.AngleLockType.LOCK
+                || Math.abs(robot.drivetrain.getCurrentPose().heading - lastAngle.getHeading()) <= ANGLE_THRESHOLD;
+        return robot.drivetrain.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
+                && angleEnd;
+    }
+
+    @Override
+    public String getName() {
+        return "PurePursuit";
+    }
+
+    @Override
+    public boolean isOn() {
+        return true;
+    }
+
+    double xvel, yvel, targx, targy, heading, targhead, targvel, vel;
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        HashMap<String, Object> map = new HashMap<>();
+
+        map.put("xVel", "" + xvel);
+        map.put("targx", "" + targx);
+        map.put("yvel", "" + yvel);
+        map.put("targy", "" + targy);
+        map.put("Heading", "" + heading);
+        map.put("targ heading", "" + targhead);
+        map.put("targvel", "" + targvel);
+        map.put("vel", "" + vel);
+
+        return map;
     }
 }

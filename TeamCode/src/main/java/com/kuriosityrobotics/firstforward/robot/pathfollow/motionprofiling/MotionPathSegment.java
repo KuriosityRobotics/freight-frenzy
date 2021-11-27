@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.util.motionprofiling;
+package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;

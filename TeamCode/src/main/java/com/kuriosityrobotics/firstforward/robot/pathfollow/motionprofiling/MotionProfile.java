@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.util.motionprofiling;
+package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -8,22 +8,24 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import java.util.ArrayList;
 
 public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 30; // TODO tune these!
-    public static final double ROBOT_MAX_ACCEL = 250;
+    public static final double ROBOT_MAX_VEL = 35;
+    public static final double ROBOT_MAX_ACCEL = 90;
+    public static final double ROBOT_MAX_DECCEL = 60;
 
-    private double maxVel, maxAccel;
+    private double maxVel, maxAccel, maxDeccel;
 
     private ArrayList<MotionPathSegment> profile;
 
     public MotionProfile(WayPoint[] inputPath) {
-        this(inputPath, ROBOT_MAX_VEL, ROBOT_MAX_ACCEL);
+        this(inputPath, ROBOT_MAX_VEL, ROBOT_MAX_ACCEL, ROBOT_MAX_DECCEL);
     }
 
-    public MotionProfile(WayPoint[] inputPath, double maxVel, double maxAccel) {
+    public MotionProfile(WayPoint[] inputPath, double maxVel, double maxAccel, double maxDeccel) {
         this.profile = new ArrayList<>();
 
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
+        this.maxDeccel = maxDeccel;
 
         generateHeadingProfile(inputPath);
         generateVelocityProfile(inputPath);
@@ -45,7 +47,7 @@ public class MotionProfile {
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : startVelo;
                 } else {
                     // default starting velo is something low
-                    startVelo = 0.5;
+                    startVelo = 2;
 
                     // if second point doesn't have a target velo assume we're ramping up to max
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : this.maxVel;
@@ -61,7 +63,7 @@ public class MotionProfile {
             MotionPathSegment segment = new MotionPathSegment(
                     new MotionPoint(path[i], startVelo, path[i].getAngleLock()),
                     new MotionPoint(path[i + 1], endVelo, path[i + 1].getAngleLock()),
-                    maxAccel
+                    endVelo >= startVelo ? maxAccel : maxDeccel
             );
 
             // use what value velocity actually gets to as the lastvelocity
@@ -98,31 +100,41 @@ public class MotionProfile {
                 boolean lockChanges = false;
                 double totalDist = 0;
                 int targetChangesIndex = 0;
-                double nextTargetHeading = 0; // how much distance we have to change angle
+                double nextTargetHeading = 0; // how much distance we have to change our heading
 
+                // starting from the next point, look for where the next angle change must occur
+                outerloop: //lemon
                 for (int j = i + 1; j < in.length; j++) {
                     totalDist += in[j].distance(in[j - 1]);
 
-                    if (in[j].getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
-                        lockChanges = true;
-                        targetChangesIndex = j;
-                        nextTargetHeading = in[j].getAngleLock().getHeading();
-                        break;
-                    } else if (in[j].getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
-                        // this only has meaning if it isn't the last point on the path
-                        if (j != in.length - 1) {
+                    // look for the next point that isn't CONTINUE_LAST
+                    switch(in[j].getAngleLock().getType()) {
+                        case LOCK:
+                            // if it's LOCK, we're trying to get to that lock heading
+
                             lockChanges = true;
                             targetChangesIndex = j;
+                            nextTargetHeading = in[j].getAngleLock().getHeading();
 
-                            double inHeading = new Line(in[j - 1], in[j]).getHeading();
-                            double outHeading = new Line(in[j], in[j + 1]).getHeading();
+                            break outerloop;
+                        case NO_LOCK:
+                            // if it's NO_LOCK, we'll estimate what angle we should be at at that point
+                            // by averaging the angles of the path before and after :)
 
-                            nextTargetHeading = (inHeading + outHeading) / 2;
-                            in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                            in[j].getAngleLock().heading = nextTargetHeading;
-                        }
+                            // this only has meaning if it isn't the last point on the path
+                            if (j != in.length - 1) {
+                                lockChanges = true;
+                                targetChangesIndex = j;
 
-                        break;
+                                double inHeading = new Line(in[j - 1], in[j]).getHeading();
+                                double outHeading = new Line(in[j], in[j + 1]).getHeading();
+
+                                nextTargetHeading = (inHeading + outHeading) / 2;
+                                in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
+                                in[j].getAngleLock().heading = nextTargetHeading;
+                            }
+
+                            break outerloop;
                     }
                 }
 
@@ -151,6 +163,15 @@ public class MotionProfile {
 
                 // jump over this section we just interpolated
                 interpolatedTo = targetChangesIndex;
+            } else if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
+                // switch all the next CONTINUE points to reflect this one
+                int j = i;
+                while (j + 1 < in.length && in[j+1].getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
+                    in[j+1].getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
+                    j++;
+                }
+
+                interpolatedTo = j;
             }
         }
 
