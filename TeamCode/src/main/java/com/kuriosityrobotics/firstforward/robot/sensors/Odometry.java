@@ -15,7 +15,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
-public class Odometry implements Telemeter {
+public class Odometry extends RollingVelocityCalculator implements Telemeter {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
@@ -64,7 +64,7 @@ public class Odometry implements Telemeter {
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
-        robot.telemetryDump.registerTelemeter(this);
+//        robot.telemetryDump.registerTelemeter(this);
 
         this.worldX = pose.x;
         this.worldY = pose.y;
@@ -92,7 +92,9 @@ public class Odometry implements Telemeter {
     public void update() {
         calculatePosition();
 
-        calculateVelocity();
+        calculateInstantaneousVelocity();
+
+//        this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
     private void calculatePosition() {
@@ -112,7 +114,7 @@ public class Odometry implements Telemeter {
         lastMecanumPosition = newMecanumPosition;
     }
 
-    private void calculateVelocity() {
+    private void calculateInstantaneousVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
         double dTime = (currentUpdateTime - lastUpdateTime) / 1000;
 
@@ -255,7 +257,7 @@ public class Odometry implements Telemeter {
         return new Pose(worldX, worldY, worldHeadingRad);
     }
 
-    public Pose getVelocity() {
+    public Pose getInstantaneousVelocity() {
         return new Pose(xVel, yVel, angleVel);
     }
 

@@ -12,7 +12,7 @@ public class WayPoint extends Point {
     boolean targetVelocity;
     double velocity;
 
-    ArrayList<Action> actions;
+    final ArrayList<Action> actions;
 
     public WayPoint(double x, double y, AngleLock angleLock, boolean targetVelocity, double velocity, ArrayList<Action> actions) {
         super(x, y);
@@ -42,11 +42,20 @@ public class WayPoint extends Point {
     }
 
     public WayPoint(double x, double y, ArrayList<Action> actions) {
-        this(x, y, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0), false, 0, actions);
+        this(x, y, new AngleLock(), false, 0, actions);
     }
 
     public WayPoint(double x, double y, double velocity) {
-        this(x, y, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0), true, velocity);
+        this(x, y, new AngleLock(), true, velocity);
+    }
+
+    public WayPoint(double x, double y, AngleLock angleLock, Action action) {
+        this(x, y, angleLock, false, 0, new ArrayList<>());
+        this.actions.add(action);
+    }
+
+    public WayPoint(double x, double y, double heading, Action action) {
+        this(x, y, new AngleLock(heading), action);
     }
 
     public WayPoint(double x, double y) {

@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -11,31 +13,28 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 /**
- * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia
- * Odometry is used as prediction to generate estimate
- * Vuforia is used as measurement to generate correction
+ * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
+ * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
-public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
+public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
     public RealMatrix[] matrixPose; // pose, cov
 
-    public ArrayList<Pose> poseHistory = new ArrayList<>();
-
     // values
-    private final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
-            {Math.pow(0.125,2), 0, 0},
-            {0, Math.pow(0.125,2), 0},
-            {0, 0, Math.pow(Math.toRadians(2),2)}
+    private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
+            {Math.pow(0.125, 2), 0, 0},
+            {0, Math.pow(0.125, 2), 0},
+            {0, 0, Math.pow(Math.toRadians(2), 2)}
     });
 
-    public LocalizeKalmanFilter(Robot robot, RealMatrix matrixPose){
+    public LocalizeKalmanFilter(Robot robot, RealMatrix matrixPose) {
         robot.telemetryDump.registerTelemeter(this);
         this.matrixPose = new RealMatrix[]{matrixPose, STARTING_COVARIANCE};
     }
 
-    public LocalizeKalmanFilter(Robot robot, RealMatrix[] matrixPose){
+    public LocalizeKalmanFilter(Robot robot, RealMatrix[] matrixPose) {
         robot.telemetryDump.registerTelemeter(this);
         this.matrixPose = matrixPose;
     }
@@ -43,43 +42,43 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     /**
      * Provides next estimate of discrete-time pose of robot based on update and/or observation
      * Smartly decides estimate method based on information given
-     * @param update: the control update (odometry)
-     *              Controls generalized as: Y distance, X distance, turn amount
-     *              Controls are generalized from actual encoder updates (dY, dX, dHeading odo math generates)
-     * @param obs: the observation that is used to correct (vuforia)
-     *           column 1 is the actual tracker information (position on field)
-     *           column 2 is where the robot is in the trackers coordinate system
+     *
+     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
+     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
+     *                dHeading odo math generates)
+     * @param obs:    the observation that is used to correct (vuforia) column 1 is the actual
+     *                tracker information (position on field) column 2 is where the robot is in the
+     *                trackers coordinate system
      */
-    public void update(RealMatrix update, RealMatrix obs){
-        Pose pose = getFormattedPose();
-        poseHistory.add(pose);
-
-        if (update != null && obs == null) matrixPose = prediction(matrixPose,update);
+    void update(RealMatrix update, RealMatrix obs) {
+        if (update != null && obs == null) matrixPose = prediction(matrixPose, update);
         else if (update == null && obs != null) matrixPose = correction(matrixPose, obs);
-        else if (update != null && obs != null) matrixPose = fuse(matrixPose,update,obs);
+        else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
+
+        calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
     /**
      * Generates prediction based on odometry update
-     * @param prev: the previous discrete-time step estimate
-     *            Pose2D represented in a SimpleMatrix
-     * @param update: the control update (odometry)
-     *              Controls generalized as: Y distance, X distance, turn amount
-     *              Controls are generalized from actual encoder updates (dY, dX, dHeading odo math generates)
+     *
+     * @param prev:   the previous discrete-time step estimate Pose2D represented in a SimpleMatrix
+     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
+     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
+     *                dHeading odo math generates)
      * @return prediction
      */
     @Override
     public RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
 
         // set up
-        double prevX = prev[0].getEntry(0,0);
-        double prevY = prev[0].getEntry(1,0);
-        double prevHeading = angleWrap(prev[0].getEntry(2,0));
+        double prevX = prev[0].getEntry(0, 0);
+        double prevY = prev[0].getEntry(1, 0);
+        double prevHeading = angleWrap(prev[0].getEntry(2, 0));
         RealMatrix prevCov = prev[1];
 
-        double odoDX = update.getEntry(0,0);
-        double odoDY = update.getEntry(1,0);
-        double odoDTheta = angleWrap(update.getEntry(2,0));
+        double odoDX = update.getEntry(0, 0);
+        double odoDY = update.getEntry(1, 0);
+        double odoDTheta = angleWrap(update.getEntry(2, 0));
 
         RealMatrix G = MatrixUtils.createRealMatrix(new double[][]{
                 {1, 0, -odoDX * Math.sin(prevHeading) + odoDY * Math.cos(prevHeading)},
@@ -94,9 +93,9 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         });
 
         RealMatrix M = MatrixUtils.createRealMatrix(new double[][]{
-                {0.0015 * Math.pow(odoDX,2), 0, 0},
-                {0, 0.0015 * Math.pow(odoDY,2), 0},
-                {0, 0, 0.00017 * Math.pow(odoDTheta,2)}
+                {0.0015 * Math.pow(odoDX, 2), 0, 0},
+                {0, 0.0015 * Math.pow(odoDY, 2), 0},
+                {0, 0, 0.00017 * Math.pow(odoDTheta, 2)}
         }); // plugged in random values for now, would want to make acceleration (slip) based, this is basically error per update
 
         // calculate
@@ -117,11 +116,11 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
 
     /**
      * Generates correction based on vuforia tracker observation
-     * @param pred: the prediction that needs to be correct
-     *            Pose2D represented in SimpleMatrix
-     * @param obs: the observation that is used to correct (vuforia)
-     *           column 1 is the actual tracker information (position on field)
-     *           column 2 is where the robot is in the trackers coordinate system
+     *
+     * @param pred: the prediction that needs to be correct Pose2D represented in SimpleMatrix
+     * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
+     *              information (position on field) column 2 is where the robot is in the trackers
+     *              coordinate system
      * @return: corrected prediction
      */
     @Override
@@ -129,13 +128,13 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         // set up
 
         // Important: package tracker data with tracker info in col 0 and observation in col 1(Currently this way, but if something strange happens, here it is)
-        double tX = obs.getEntry(0,0);
-        double tY = obs.getEntry(1,0);
-        double tPhi = angleWrap(obs.getEntry(2,0));
+        double tX = obs.getEntry(0, 0);
+        double tY = obs.getEntry(1, 0);
+        double tPhi = angleWrap(obs.getEntry(2, 0));
 
-        double predX = pred[0].getEntry(0,0);
-        double predY = pred[0].getEntry(1,0);
-        double predHeading = angleWrap(pred[0].getEntry(2,0));
+        double predX = pred[0].getEntry(0, 0);
+        double predY = pred[0].getEntry(1, 0);
+        double predHeading = angleWrap(pred[0].getEntry(2, 0));
         RealMatrix predCov = pred[1];
 
         RealMatrix predObs = MatrixUtils.createRealMatrix(new double[][]{
@@ -160,26 +159,25 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         RealMatrix K = predCov.multiply(H.transpose().multiply(MatrixUtils.inverse(S)));
 
         RealMatrix error = obs.getColumnMatrix(1).subtract(predObs);
-        error.setEntry(2,0, angleWrap(error.getEntry(2,0)));
+        error.setEntry(2, 0, angleWrap(error.getEntry(2, 0)));
 
         RealMatrix correct = pred[0].add(K.multiply(error));
-        correct.setEntry(2,0, angleWrap(correct.getEntry(2,0)));
+        correct.setEntry(2, 0, angleWrap(correct.getEntry(2, 0)));
         RealMatrix correctCov = predCov.subtract(K.multiply(H).multiply(predCov));
 
-        return new RealMatrix[]{correct,correctCov};
+        return new RealMatrix[]{correct, correctCov};
     }
 
     /**
-     * Generates prediction and corrects it
-     * Simply runs prediction and correction back to back
-     * @param prev: the previous discrete-time step estimate
-     *            Pose2D represented in a SimpleMatrix
-     * @param update: the control update (odometry)
-     *              Controls generalized as: Y distance, X distance, turn amount
-     *              Controls are generalized from actual encoder updates (dY, dX, dHeading odo math generates)
-     * @param obs: the observation that is used to correct (vuforia)
-     *           column 1 is the actual tracker information (position on field)
-     *           column 2 is where the robot is in the trackers coordinate system
+     * Generates prediction and corrects it Simply runs prediction and correction back to back
+     *
+     * @param prev:   the previous discrete-time step estimate Pose2D represented in a SimpleMatrix
+     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
+     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
+     *                dHeading odo math generates)
+     * @param obs:    the observation that is used to correct (vuforia) column 1 is the actual
+     *                tracker information (position on field) column 2 is where the robot is in the
+     *                trackers coordinate system
      * @return corrected prediction
      */
     @Override
@@ -189,14 +187,40 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
         return correction;
     }
 
+    public Pose getPose() {
+        double x = matrixPose[0].getEntry(0, 0);
+        double y = matrixPose[0].getEntry(1, 0);
+        double heading = matrixPose[0].getEntry(2, 0);
+        return new Pose(x, y, heading);
+    }
+
+    public Pose getFormattedPose() {
+        double x = matrixPose[0].getEntry(0, 0);
+        double y = matrixPose[0].getEntry(1, 0);
+        double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
+        return new Pose(x, y, heading);
+    }
+
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
+        data.add("velo: " + getRollingVelocity().toString());
         data.add("STD: " + MatrixUtil.toSTDString(matrixPose[1]));
 
         return data;
+    }
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        HashMap<String, Object> map = new HashMap<>();
+
+        map.put("pose: ", MatrixUtil.toPoseString(matrixPose[0]));
+        map.put("velo: ", getRollingVelocity().toString());
+        map.put("STD: ", MatrixUtil.toSTDString(matrixPose[1]));
+
+        return map;
     }
 
     @Override
@@ -208,11 +232,5 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     public boolean isOn() {
         return true;
     }
-
-    public Pose getFormattedPose() {
-        double x = matrixPose[0].getEntry(0,0);
-        double y = matrixPose[0].getEntry(1,0);
-        double heading = Math.toDegrees(matrixPose[0].getEntry(2,0));
-        return new Pose(x, y, heading);
-    }
 }
+

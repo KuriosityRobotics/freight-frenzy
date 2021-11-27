@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.util.motionprofiling;
+package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 /**
  * One segment of a motion profile, e.g. a section with a constant acceleration (ramp up, maintian,

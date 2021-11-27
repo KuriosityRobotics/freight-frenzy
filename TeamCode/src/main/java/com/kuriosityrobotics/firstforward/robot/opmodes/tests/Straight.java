@@ -1,16 +1,15 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes;
+package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
-public class Autonomous extends LinearOpMode {
+public class Straight extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
@@ -21,7 +20,7 @@ public class Autonomous extends LinearOpMode {
         }
 
         PurePursuit pp = new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(0, 0, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0), new Action() {
+                new WayPoint(0, 0, 0, new Action() {
                     @Override
                     public void tick() {
                         super.tick();
@@ -34,7 +33,8 @@ public class Autonomous extends LinearOpMode {
                     }
                 }),
                 new WayPoint(0, 20),
-                new WayPoint(-30, 40, new Action() {
+                new WayPoint(0, 40, new Action() {
+//                new WayPoint(-30, 40, new Action() {
                     @Override
                     public void tick() {
                         super.tick();
@@ -46,7 +46,8 @@ public class Autonomous extends LinearOpMode {
                         return true;
                     }
                 }),
-                new WayPoint(-30, 60, 0)
+//                new WayPoint(-30, 60, 0)
+                new WayPoint(0, 50, 0)
         }, 10);
 
         waitForStart();

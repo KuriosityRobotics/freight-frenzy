@@ -30,7 +30,7 @@ public class ActionExecutor {
         while (i.hasNext()) {
             Action action = i.next();
 
-            action.update();
+            action.tick();
 
             if (action.isCompleted()) {
                 i.remove();
