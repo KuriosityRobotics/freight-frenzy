@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
 
