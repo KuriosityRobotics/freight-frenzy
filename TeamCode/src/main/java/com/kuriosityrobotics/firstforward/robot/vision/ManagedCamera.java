@@ -81,7 +81,7 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
-            //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.currentThreadTimeMillis()));
+            //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.elapsedRealtime()));
 
             Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
             //!!

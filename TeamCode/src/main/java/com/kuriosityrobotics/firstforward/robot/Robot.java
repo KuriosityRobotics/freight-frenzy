@@ -5,6 +5,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
+import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -28,10 +29,11 @@ public class Robot {
 
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
-    private final VisionThread visionThread;
+//    private final VisionThread visionThread;
     private final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
+    public final IntakeModule intakeModule;
     public TelemetryDump telemetryDump;
 
     public LocalizationConsumer localizationConsumer;
@@ -40,7 +42,7 @@ public class Robot {
     private final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
-//    public final LynxModule revHub2;
+    public final LynxModule revHub2;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
         this.hardwareMap = hardwareMap;
@@ -51,23 +53,25 @@ public class Robot {
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
             revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
-//            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
+            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
             throw new Exception("One or more of the REV hubs could not be found. More info: " + e);
         }
 
         drivetrain = new Drivetrain(this);
+        intakeModule = new IntakeModule(this, true);
 
         modules = new Module[]{
-                drivetrain
+                drivetrain,
+                intakeModule
         };
 
         localizationConsumer = new LocalizationConsumer();
 
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+//        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
         debugThread = new DebugThread(this, DEBUG);
 
         start();
@@ -81,7 +85,7 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-                new Thread(visionThread),
+//                new Thread(visionThread),
                 new Thread(debugThread)
         };
 

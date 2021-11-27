@@ -49,7 +49,7 @@ public class FileDump {
                         .map(n -> n.first)
                         .map(Field::getName)
                         .collect(Collectors.joining(",")));
-        startTime = SystemClock.currentThreadTimeMillis();
+        startTime = SystemClock.elapsedRealtime();
 
         activated = true;
     }
@@ -98,7 +98,7 @@ public class FileDump {
                 return previousValue == null || !value.equals(previousValue);
             });
             if (anyUpdated)
-                writer.println(SystemClock.currentThreadTimeMillis() - startTime + "," + FileDump.dataFields.stream().map(n ->
+                writer.println(SystemClock.elapsedRealtime() - startTime + "," + FileDump.dataFields.stream().map(n ->
                         {
                             Field field = n.first;
                             Object instance = n.second;

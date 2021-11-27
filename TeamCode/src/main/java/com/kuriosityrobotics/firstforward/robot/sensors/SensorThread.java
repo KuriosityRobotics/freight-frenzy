@@ -53,7 +53,7 @@ public class SensorThread implements Runnable, Telemeter {
         while (robot.running()) {
             launch(scope -> {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
-//                bulkDataCoroutine.runAsync(scope, robot.revHub2);
+                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
 
