@@ -40,7 +40,7 @@ public class Robot {
     private final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
-//    public final LynxModule revHub2;
+    public final LynxModule revHub2;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
         this.hardwareMap = hardwareMap;
@@ -51,8 +51,8 @@ public class Robot {
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
             revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-//            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
-//            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 1");
+            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
             throw new Exception("One or more of the REV hubs could not be found. More info: " + e);
         }

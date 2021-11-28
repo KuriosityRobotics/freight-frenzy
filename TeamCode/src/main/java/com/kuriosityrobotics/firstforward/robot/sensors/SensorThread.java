@@ -37,7 +37,7 @@ public class SensorThread implements Runnable, Telemeter {
 
     private final LocalizationConsumer localizationConsumer;
 
-    private RobotState robotState;
+    public RobotState robotState = RobotState.DEPOSITING;
 
     public enum RobotState {
         DEPOSITING,
@@ -61,7 +61,7 @@ public class SensorThread implements Runnable, Telemeter {
         while (robot.running()) {
             launch(scope -> {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
-//                bulkDataCoroutine.runAsync(scope, robot.revHub2);
+                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
 
@@ -75,6 +75,14 @@ public class SensorThread implements Runnable, Telemeter {
             if (currentTime - lastPoseSendTime >= 250) {
                 robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
                 lastPoseSendTime = currentTime;
+            }
+
+            if (-90.0 <= this.kalmanFilter.getFormattedPose().heading && this.kalmanFilter.getFormattedPose().heading <= 90.0) {
+                robotState = RobotState.COLLECTING;
+                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap, "Webcam 1");
+            } else {
+                robotState = RobotState.DEPOSITING;
+                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap,"Webcam 2");
             }
 
             updateTime = currentTime - lastLoopTime;

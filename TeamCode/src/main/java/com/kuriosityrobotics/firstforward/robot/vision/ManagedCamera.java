@@ -29,13 +29,14 @@ import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera implements Telemeter {
-    private static final String VUFORIA_LICENCE_KEY = "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
-            "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
-            "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
-            "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
-            "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
-            "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
-            "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
+    private static final String VUFORIA_LICENCE_KEY =
+            "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
+                    "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
+                    "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
+                    "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
+                    "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
+                    "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
+                    "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
 
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
@@ -88,7 +89,7 @@ public final class ManagedCamera implements Telemeter {
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraNameFront);
+            openCvCamera = OpenCvCameraFactory.getInstance().createSwitchableWebcam(cameraNameFront, cameraNameBack);
         }
 
         // set stuff up so opencv can also run
@@ -110,7 +111,13 @@ public final class ManagedCamera implements Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("Active Camera: " + switchableCamera.getActiveCamera());
+        if (switchableCamera.getActiveCamera() == cameraNameFront) {
+            data.add("Active Camera: Front Webcam");
+        } else if (switchableCamera.getActiveCamera() == cameraNameBack) {
+            data.add("Active Camera: Back Webcam");
+        } else {
+            data.add("Active Camera: no camera is active?");
+        }
 
         return data;
     }
@@ -159,5 +166,15 @@ public final class ManagedCamera implements Telemeter {
             switchableCamera.setActiveCamera(cameraNameFront);
         }
         isFrontCameraActive = !isFrontCameraActive;
+    }
+
+    public void setCamera(HardwareMap hardwareMap, String cameraName) {
+        WebcamName webcamName = hardwareMap.get(WebcamName.class, cameraName);
+        if (webcamName == cameraNameBack) {
+            isFrontCameraActive = false;
+        } else {
+            isFrontCameraActive = true;
+        }
+        this.switchableCamera.setActiveCamera(webcamName);
     }
 }
