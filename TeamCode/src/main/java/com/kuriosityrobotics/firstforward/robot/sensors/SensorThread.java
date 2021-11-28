@@ -77,13 +77,13 @@ public class SensorThread implements Runnable, Telemeter {
                 lastPoseSendTime = currentTime;
             }
 
-            if (-90.0 <= this.kalmanFilter.getFormattedPose().heading && this.kalmanFilter.getFormattedPose().heading <= 90.0) {
-                robotState = RobotState.COLLECTING;
-                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap, "Webcam 1");
-            } else {
-                robotState = RobotState.DEPOSITING;
-                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap,"Webcam 2");
-            }
+//            if (-90.0 <= this.kalmanFilter.getFormattedPose().heading && this.kalmanFilter.getFormattedPose().heading <= 90.0) {
+//                robotState = RobotState.COLLECTING;
+//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap, "Webcam 1");
+//            } else {
+//                robotState = RobotState.DEPOSITING;
+//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap,"Webcam 2");
+//            }
 
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;

@@ -10,7 +10,6 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -48,7 +47,7 @@ public final class ManagedCamera implements Telemeter {
     private List<OpenCvConsumer> openCvConsumers;
 
     private WebcamName cameraNameFront;
-    private WebcamName cameraNameBack;
+    private WebcamName cameraNameLeft;
 
     private boolean isFrontCameraActive;
 
@@ -56,7 +55,7 @@ public final class ManagedCamera implements Telemeter {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
         this.cameraNameFront = hardwareMap.get(WebcamName.class, camera1);
-        this.cameraNameBack = hardwareMap.get(WebcamName.class, camera2);
+        this.cameraNameLeft = hardwareMap.get(WebcamName.class, camera2);
 
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
@@ -64,13 +63,13 @@ public final class ManagedCamera implements Telemeter {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(cameraNameFront, cameraNameBack);
+                parameters.cameraName = ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(cameraNameFront, cameraNameLeft);
 
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 switchableCamera = (SwitchableCamera) vuforia.getCamera();
-                switchableCamera.setActiveCamera(cameraNameFront);
-                this.isFrontCameraActive = true;
+                switchableCamera.setActiveCamera(cameraNameLeft);
+                this.isFrontCameraActive = false;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
                 try {
                     // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
@@ -89,18 +88,25 @@ public final class ManagedCamera implements Telemeter {
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createSwitchableWebcam(cameraNameFront, cameraNameBack);
+            openCvCamera = OpenCvCameraFactory.getInstance().createSwitchableWebcam(cameraNameFront, cameraNameLeft);
         }
 
         // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(() -> {
-            openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-            openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+        openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
-            openCvCamera.setPipeline(new CameraConsumerProcessor());
-            openCvCamera.startStreaming(1920, 1080);
+                openCvCamera.setPipeline(new CameraConsumerProcessor());
+                openCvCamera.startStreaming(1920, 1080);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                Log.d("Managed Camera", "Error: " + errorCode);
+            }
         });
-
     }
 
     public ManagedCamera(String camera1, String camera2, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
@@ -113,7 +119,7 @@ public final class ManagedCamera implements Telemeter {
 
         if (switchableCamera.getActiveCamera() == cameraNameFront) {
             data.add("Active Camera: Front Webcam");
-        } else if (switchableCamera.getActiveCamera() == cameraNameBack) {
+        } else if (switchableCamera.getActiveCamera() == cameraNameLeft) {
             data.add("Active Camera: Back Webcam");
         } else {
             data.add("Active Camera: no camera is active?");
@@ -161,7 +167,7 @@ public final class ManagedCamera implements Telemeter {
 
     public void switchCameras() {
         if (isFrontCameraActive) {
-            switchableCamera.setActiveCamera(cameraNameBack);
+            switchableCamera.setActiveCamera(cameraNameLeft);
         } else {
             switchableCamera.setActiveCamera(cameraNameFront);
         }
@@ -170,7 +176,7 @@ public final class ManagedCamera implements Telemeter {
 
     public void setCamera(HardwareMap hardwareMap, String cameraName) {
         WebcamName webcamName = hardwareMap.get(WebcamName.class, cameraName);
-        if (webcamName == cameraNameBack) {
+        if (webcamName == cameraNameLeft) {
             isFrontCameraActive = false;
         } else {
             isFrontCameraActive = true;
