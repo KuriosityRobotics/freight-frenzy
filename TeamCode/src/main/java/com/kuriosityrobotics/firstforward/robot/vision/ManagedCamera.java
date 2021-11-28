@@ -71,7 +71,19 @@ public final class ManagedCamera {
             openCvCamera.setPipeline(new CameraConsumerProcessor());
             openCvCamera.startStreaming(1920, 1080);
         });
+    }
 
+    public ManagedCamera(WebcamName cameraName, OpenCvConsumer openCvConsumer) {
+        openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
+
+        // set stuff up so opencv can also run
+        openCvCamera.openCameraDeviceAsync(() -> {
+        openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+        openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+
+        openCvCamera.setPipeline(new CameraConsumerProcessor());
+        openCvCamera.startStreaming(1920, 1080);
+    });
     }
 
     public ManagedCamera(String cameraName, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
@@ -83,7 +95,7 @@ public final class ManagedCamera {
         public Mat processFrame(Mat input) {
             //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.elapsedRealtime()));
 
-            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
+//            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
             //!!
             // c++ moment
             Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
@@ -95,9 +107,9 @@ public final class ManagedCamera {
             // distribute the data
             CoroutineScope.launch(scope ->
             {
-                if (vuforiaConsumer != null) {
-                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
-                }
+//                if (vuforiaConsumer != null) {
+//                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
+//                }
                 openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
             });
 

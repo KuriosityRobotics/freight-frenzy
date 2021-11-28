@@ -1,21 +1,28 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 public class TeamMarkerDetection implements OpenCvConsumer {
-    private static final Rect boundingBox1 = new Rect(1, 2, 3, 4);
-    private static final Rect boundingBox2 = new Rect(1, 2, 3, 4);
-    private static final Rect boundingBox3 = new Rect(1, 2, 3, 4);
+    static final Point TOP = new Point(0,0);
+    static final Point MID_TOP = new Point(640, 0);
+    static final Point END_TOP = new Point(1280,0);
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(640,1080);
+    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(1280,1080);
+    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(1920,1080);
+    static final int REGION_WIDTH = 20;
+    static final int REGION_HEIGHT = 20;
     private static final Vector3D RED = new Vector3D(255, 0, 0);
 
-    public static enum TeamMarkerLocation {
+    public enum TeamMarkerLocation {
         LOCATION_1,
         LOCATION_2,
         LOCATION_3
@@ -29,23 +36,24 @@ public class TeamMarkerDetection implements OpenCvConsumer {
 
     @Override
     public void processFrame(Mat frame) {
-        var sectionOne = new Vector3D(Core.mean(frame.submat(boundingBox1)).val);
-        var sectionTwo = new Vector3D(Core.mean(frame.submat(boundingBox2)).val);
-        var sectionThree = new Vector3D(Core.mean(frame.submat(boundingBox3)).val);
+        Mat region1 = frame.submat(new Rect(TOP, REGION1_TOPLEFT_ANCHOR_POINT));
+        Mat region2 = frame.submat(new Rect(MID_TOP, REGION2_TOPLEFT_ANCHOR_POINT));
+        Mat region3 = frame.submat(new Rect(END_TOP, REGION3_TOPLEFT_ANCHOR_POINT));
 
-        var area1 = sectionOne.crossProduct(RED).getNorm();
-        var area2 = sectionTwo.crossProduct(RED).getNorm();
-        var area3 = sectionThree.crossProduct(RED).getNorm();
+        var sectionOne = (new Vector3D(Core.mean(region1).val)).crossProduct(RED).getNorm();
+        var sectionTwo = (new Vector3D(Core.mean(region2).val)).crossProduct(RED).getNorm();
+        var sectionThree = (new Vector3D(Core.mean(region3).val)).crossProduct(RED).getNorm();
 
-        double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
-
-        if (closestToRed == area1)
-            this.location = TeamMarkerLocation.LOCATION_1;
-        else if (closestToRed == area2)
-            this.location = TeamMarkerLocation.LOCATION_2;
-        else if (closestToRed == area3)
-            this.location = TeamMarkerLocation.LOCATION_3;
-        else
-            System.err.println("something is terribly broken");
+        double temp = Math.max(sectionOne, sectionTwo);
+        double max = Math.max(temp, sectionThree);
+        if (Math.abs(sectionOne - max) < 0.0001) {
+            location = TeamMarkerLocation.LOCATION_1;
+        } else if (Math.abs(sectionTwo - max) < 0.0001) {
+            location = TeamMarkerLocation.LOCATION_2;
+        } else if (Math.abs(sectionThree - max) < 0.0001){
+            location = TeamMarkerLocation.LOCATION_3;
+        } else {
+            Log.e("Team marker detection", "something is terribly broken and should b fixed asap");
+        }
     }
 }
