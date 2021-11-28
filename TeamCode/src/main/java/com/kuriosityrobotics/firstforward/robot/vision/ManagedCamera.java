@@ -18,6 +18,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -90,14 +91,9 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
-            //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.elapsedRealtime()));
-
-//            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
-            //!!
-            // c++ moment
             Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
                 Mat matCopy = input.clone();
-                consumer.processFrame(matCopy);
+                consumer.processFrame(input);
                 matCopy.release(); // c++ moment
             }));
 
