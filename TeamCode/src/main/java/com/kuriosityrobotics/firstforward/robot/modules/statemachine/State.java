@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.statemachine;
 
 public class State {
     private final Runnable apply;

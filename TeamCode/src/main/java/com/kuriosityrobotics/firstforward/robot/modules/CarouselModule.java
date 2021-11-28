@@ -6,6 +6,7 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.util.Range;
 
@@ -32,9 +33,11 @@ public class CarouselModule implements Module, Telemeter {
     public CarouselModule(Robot robot) {
         this.robot = robot;
         carouselMotor = (DcMotorEx) robot.getDcMotor("carousel_motor");
+        carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    private static final double MAX_CAROUSEL_SPEED = 2*PI/3;
+    private static final double MAX_CAROUSEL_SPEED = Math.toRadians(25);
+    private static final double MAX_SPEED_MS = 700;
 
     public void update() {
         if (spin) {
@@ -42,8 +45,8 @@ public class CarouselModule implements Module, Telemeter {
                 spinStartTimeMillis = SystemClock.elapsedRealtime();
             }
 
-            double unclippedSpeed = MAX_CAROUSEL_SPEED * (SystemClock.elapsedRealtime() - spinStartTimeMillis) * .04;
-            carouselMotor.setVelocity(-Math.min(unclippedSpeed, MAX_CAROUSEL_SPEED), AngleUnit.RADIANS);
+            double speed = MAX_CAROUSEL_SPEED * ((SystemClock.elapsedRealtime() - spinStartTimeMillis) / MAX_SPEED_MS);
+            carouselMotor.setVelocity(-speed, AngleUnit.RADIANS);
         } else {
             spinStartTimeMillis = null;
             carouselMotor.setVelocity(0);
@@ -62,7 +65,7 @@ public class CarouselModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("carousel spinning: " + spin);
+        data.add("spin: " + spin);
 
         return data;
     }

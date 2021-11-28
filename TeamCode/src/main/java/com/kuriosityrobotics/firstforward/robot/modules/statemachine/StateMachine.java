@@ -1,8 +1,6 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.statemachine;
 
 import android.os.SystemClock;
-
-import de.esoco.lib.datatype.Tuple;
 
 public class StateMachine {
     private State target;
