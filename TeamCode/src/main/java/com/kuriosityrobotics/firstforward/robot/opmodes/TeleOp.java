@@ -30,6 +30,7 @@ public class TeleOp extends LinearOpMode {
             //robot.drivetrain.setBrakePose(new Pose(0,24,0));
             updateIntakeStates();
             updateOuttakeStates();
+            updateCarouselStates();
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
         }
     }
@@ -84,5 +85,9 @@ public class TeleOp extends LinearOpMode {
 //            robot.outtakeModule.currentlyDoingAction = true;
 //        }
 //        prevY = gamepad2.y;
+    }
+
+    private void updateCarouselStates() {
+        robot.carouselModule.spin = gamepad2.x;
     }
 }

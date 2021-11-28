@@ -1,0 +1,69 @@
+package com.kuriosityrobotics.firstforward.robot.modules;
+
+import static java.lang.Math.PI;
+
+import android.os.SystemClock;
+
+import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
+import java.util.ArrayList;
+
+public class CarouselModule implements Module, Telemeter {
+    private static final double CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE = 2 * PI;
+    private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
+    private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
+
+    private final Robot robot;
+    private final boolean isOn = true;
+
+    //states
+    public volatile boolean spin = false;
+
+    private Long spinStartTimeMillis = null;
+
+    //motors
+    private DcMotorEx carouselMotor;
+
+    public CarouselModule(Robot robot) {
+        this.robot = robot;
+        carouselMotor = (DcMotorEx) robot.getDcMotor("carousel_motor");
+    }
+
+    private static final double MAX_CAROUSEL_SPEED = 2*PI/3;
+
+    public void update() {
+        if (spin) {
+            if (spinStartTimeMillis == null) {
+                spinStartTimeMillis = SystemClock.elapsedRealtime();
+            }
+
+            double unclippedSpeed = MAX_CAROUSEL_SPEED * (SystemClock.elapsedRealtime() - spinStartTimeMillis) * .04;
+            carouselMotor.setVelocity(-Math.min(unclippedSpeed, MAX_CAROUSEL_SPEED), AngleUnit.RADIANS);
+        } else {
+            spinStartTimeMillis = null;
+            carouselMotor.setVelocity(0);
+        }
+    }
+
+    public boolean isOn() {
+        return isOn;
+    }
+
+    public String getName() {
+        return "CarouselModule";
+    }
+
+    @Override
+    public ArrayList<String> getTelemetryData() {
+        ArrayList<String> data = new ArrayList<>();
+
+        data.add("carousel spinning: " + spin);
+
+        return data;
+    }
+}

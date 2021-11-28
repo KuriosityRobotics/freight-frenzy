@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot;
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -35,6 +36,7 @@ public class Robot {
     public final Drivetrain drivetrain;
     public final IntakeModule intakeModule;
     public final OuttakeModule outtakeModule;
+    public final CarouselModule carouselModule;
 
     public TelemetryDump telemetryDump;
 
@@ -65,11 +67,13 @@ public class Robot {
         drivetrain = new Drivetrain(this);
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
+        carouselModule = new CarouselModule(this);
 
         modules = new Module[]{
                 drivetrain,
                 intakeModule,
-                outtakeModule
+                outtakeModule,
+                carouselModule
         };
 
         localizationConsumer = new LocalizationConsumer();
