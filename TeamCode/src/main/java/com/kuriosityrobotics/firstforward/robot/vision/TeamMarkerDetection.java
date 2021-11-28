@@ -2,10 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
-
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.opencv.core.Core;
@@ -14,8 +11,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
 
 public class TeamMarkerDetection implements OpenCvConsumer {
     private static final Vector3D RED = new Vector3D(255, 0, 0);
@@ -32,7 +27,6 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         return location;
     }
 
-    // TODO: write 4-D to 3-D since core.mean returns 4 dimensions but vector 3d only takes 3
     private static double rgbaToRgb(double value[])[] {
         return new double[]{
                 value[0],
