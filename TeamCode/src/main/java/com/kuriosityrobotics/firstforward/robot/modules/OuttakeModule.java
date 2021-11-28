@@ -11,14 +11,14 @@ import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
     //constants
-    private static final double HOPPER_EXTENDED = 0.9;
-    private static final double HOPPER_RETRACTED = 0.087;
+    private static final double LINKAGE_EXTENDED = 0.9;
+    private static final double LINKAGE_RETRACTED = 0.087;
     private static final double HOPPER_PIVOT_IN = 0.906181;
-    private static final double HOPPER_HOLD = .7;
+    private static final double HOPPER_RESTING_POSITION = .692386;
     //TODO determine actual marking
 
     public enum HopperDumpPosition {
-        DUMP_OUTWARDS(.1593),
+        DUMP_OUTWARDS(.0),
         DUMP_INWARDS(.9887);
 
         private final double position;
@@ -29,9 +29,9 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        TOP(-410),
-        MID(-205),
-        DOWN(0);
+        TOP(-885),
+        MID(-466),
+        DOWN(-2);
 
         private final int position;
 
@@ -64,19 +64,19 @@ public class OuttakeModule implements Module, Telemeter {
     private OuttakeState outtakeState = OuttakeState.IDLE;
 
     enum OuttakeState {
-//        SLIDES_UP(SLIDE_RAISE_TIME, () -> {
+        //        SLIDES_UP(SLIDE_RAISE_TIME, () -> {
 //            slide.setPower(1);
 //            slide.setTargetPosition(slideLevel.position);
 //        }),
-        LINKAGE_OUT(HOPPER_EXTEND_TIME, () -> linkage.setPosition(HOPPER_EXTENDED)),
+        LINKAGE_OUT(HOPPER_EXTEND_TIME, () -> linkage.setPosition(LINKAGE_EXTENDED)),
         DUMP(HOPPER_DUMP_TIME, () -> hopper.setPosition(dumpMode.position)),
-        HOLD(1, () -> hopper.setPosition(HOPPER_HOLD)),
+        HOPPER_RESTING(1, () -> hopper.setPosition(HOPPER_RESTING_POSITION)),
         LINKAGE_IN(HOPPER_EXTEND_TIME, () -> {
             pivot.setPosition(HOPPER_PIVOT_IN);
-            linkage.setPosition(HOPPER_RETRACTED);
+            linkage.setPosition(LINKAGE_RETRACTED);
         }),
         SLIDES_DOWN(SLIDE_RAISE_TIME, () -> {
-            slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+            slideLevel = VerticalSlideLevel.DOWN;
         }),
         IDLE(0, () -> {
         });
@@ -129,13 +129,9 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(1);
 
-        hopper.setPosition(HOPPER_HOLD);
+        hopper.setPosition(HOPPER_RESTING_POSITION);
         pivot.setPosition(HOPPER_PIVOT_IN);
-        linkage.setPosition(HOPPER_RETRACTED);
-    }
-
-    public void setLevel(VerticalSlideLevel slideLevel) {
-        OuttakeModule.slideLevel = slideLevel;
+        linkage.setPosition(LINKAGE_RETRACTED);
     }
 
     public void dump(HopperDumpPosition dumpMode) {
@@ -148,13 +144,12 @@ public class OuttakeModule implements Module, Telemeter {
         isHopperOccupied = true;
     }
 
+    public boolean readyForIntake() {
+        return slide.getCurrentPosition() > -10
+                && Math.abs(pivot.getPosition() - HOPPER_PIVOT_IN) < 0.1;
+    }
+
     public void update() {
-        if (this.isHopperOccupied) {
-            slide.setPower(1);
-            slide.setTargetPosition(slideLevel.position);
-        }
-
-
         if (this.outtakeState != OuttakeState.IDLE && this.outtakeState.shouldTransition()) {
             switch (this.outtakeState) {
 //                case SLIDES_UP:
@@ -164,10 +159,10 @@ public class OuttakeModule implements Module, Telemeter {
                     this.outtakeState = OuttakeState.DUMP;
                     break;
                 case DUMP:
-                    this.outtakeState = OuttakeState.HOLD;
+                    this.outtakeState = OuttakeState.HOPPER_RESTING;
                     this.isHopperOccupied = false;
                     break;
-                case HOLD:
+                case HOPPER_RESTING:
                     this.outtakeState = OuttakeState.LINKAGE_IN;
                     break;
                 case LINKAGE_IN:
@@ -175,11 +170,23 @@ public class OuttakeModule implements Module, Telemeter {
                     break;
                 case SLIDES_DOWN:
                     this.outtakeState = OuttakeState.IDLE;
-                    slide.setPower(0);
+//                    slide.setPower(0);
                     break;
             }
 
             this.outtakeState.executeTransition();
+        }
+
+        if (slide.getTargetPosition() >= -15) {
+            slide.setPower(0);
+        } else {
+            slide.setPower(1);
+        }
+
+        if (robot.intakeModule.retractIntake) {
+            slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+        } else {
+            slide.setTargetPosition(slideLevel.position);
         }
     }
 
@@ -198,8 +205,11 @@ public class OuttakeModule implements Module, Telemeter {
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>() {{
             add("State:  " + outtakeState.toString());
+            add("slideLevel: " + slideLevel.name());
+            add("--");
             add("slide target:  " + slide.getTargetPosition());
             add("current slide:  " + slide.getCurrentPosition());
+            add("hopper occupied:  " + isHopperOccupied);
         }};
         return data;
     }

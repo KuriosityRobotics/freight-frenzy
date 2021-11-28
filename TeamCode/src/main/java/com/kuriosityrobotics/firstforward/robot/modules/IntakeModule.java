@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import android.annotation.SuppressLint;
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -17,7 +16,6 @@ import org.apache.commons.collections4.BoundedCollection;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 public class IntakeModule implements Module, Telemeter {
     private static final double RPM_EPSILON = 60;
@@ -25,6 +23,7 @@ public class IntakeModule implements Module, Telemeter {
     // PPR = Ticks per Revolution(abrv different but doesn't matter)
     private static final double GOBILDA_1620_PPR = 103.8;
     private static final double INTAKE_OCCUPIED_SD = 50;
+    private volatile double lastSd = 0;
 
     // TODO: Tune
     public static final double INTAKE_EXTEND_TIME = 1500;
@@ -34,17 +33,19 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_EXTENDED_POS = 0.8691;
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.5;
 
-    private static final int RING_BUFFER_CAPACITY = 100;
+    private static final int RING_BUFFER_CAPACITY = 300;
     private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
 
-    private volatile double intakePower;
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
 
-    private Optional<Robot> robot = Optional.empty();
+    private Robot robot;
 
+    // states
     public volatile IntakePosition intakePosition = IntakePosition.EXTENDED;
+    public volatile boolean retractIntake = false;
+    public volatile double intakePower;
 
     private Long intakerRetractionStartTime;
     private volatile boolean intakeOccupied = false;
@@ -53,7 +54,7 @@ public class IntakeModule implements Module, Telemeter {
         if (intakePower < 0.1 || intakeRpmRingBuffer.isEmpty())
             return false;
         var sd = MathUtil.sd(intakeRpmRingBuffer);
-        Log.v("intake", "" + sd);
+        lastSd = sd;
         return INTAKE_OCCUPIED_SD < sd && sd < 300;
     }
 
@@ -77,7 +78,7 @@ public class IntakeModule implements Module, Telemeter {
 
     public IntakeModule(Robot robot, boolean isOn) {
         this(robot.hardwareMap, isOn);
-        this.robot = Optional.of(robot);
+        this.robot = robot;
 
         robot.telemetryDump.registerTelemeter(this);
     }
@@ -115,18 +116,12 @@ public class IntakeModule implements Module, Telemeter {
         }
     }
 
-    public void setPower(double power) {
-        if (power < 0 && intakerRetractionStartTime != null)
-            startIntakeExtension();
-
-        if (intakerRetractionStartTime == null && power != this.intakePower) {
-            this.intakePower = power;
-            intakeMotor.setPower(power);
-        }
-    }
-
     public void update() {
         synchronized (intakeRpmRingBuffer) {
+            if (intakePower < 0 && intakerRetractionStartTime != null) {
+                startIntakeExtension();
+            }
+
 //            Log.v("Intake Module", "Intake motor velo: " + intakeMotor.getVelocity());
             intakeRpmRingBuffer.add(intakeMotor.getVelocity() * 60 / GOBILDA_1620_PPR);
 
@@ -140,27 +135,34 @@ public class IntakeModule implements Module, Telemeter {
             }
 
             if (intakerRetractionStartTime != null && SystemClock.elapsedRealtime() - intakerRetractionStartTime >= INTAKE_EXTEND_TIME) {
-                setPower(intakePower / .75);
                 startIntakeExtension();
-            } else if (intakeOccupied) {
-                startIntakeRetraction();
+            } else if (intakeOccupied && !retractIntake) {
+                retractIntake = true;
+            }
+
+            if (retractIntake && intakerRetractionStartTime == null) {
+                if (robot.outtakeModule.readyForIntake()) {
+                    setIntakePosition(IntakePosition.RETRACTED);
+                    intakerRetractionStartTime = SystemClock.elapsedRealtime();
+                }
+            }
+
+            if (intakerRetractionStartTime != null) {
+                intakeMotor.setPower(1);
+            } else {
+                intakeMotor.setPower(intakePower);
             }
         }
     }
 
     private synchronized void startIntakeExtension() {
-        this.robot.ifPresent(robot -> robot.outtakeModule.hopperOccupied());
+        if (robot != null) {
+            robot.outtakeModule.hopperOccupied();
+        }
         intakeOccupied = false;
         intakerRetractionStartTime = null;
         setIntakePosition(IntakePosition.EXTENDED);
-    }
-
-    public void startIntakeRetraction() {
-        if (intakerRetractionStartTime == null) {
-            setIntakePosition(IntakePosition.RETRACTED);
-            setPower(.75);
-            intakerRetractionStartTime = SystemClock.elapsedRealtime();
-        }
+        retractIntake = false;
     }
 
     public boolean isOn() {
@@ -172,20 +174,14 @@ public class IntakeModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format("Intake speed (RPM): %f", getRPM()));
+//        data.add(String.format("Intake speed (RPM): %f", getRPM()));
+        data.add("retract: " + retractIntake);
         data.add(String.format("Intake position:  %s", intakePosition));
         data.add(String.format("Intake occupied:  %b", intakeOccupied));
-        data.add(String.format("Ready for outake:  %b", readyForOutake()));
+//        data.add(String.format("sd:  %f", lastSd));
+//        data.add(String.format("buf len:  %d", intakeRpmRingBuffer.size()));
 
         return data;
-    }
-
-    public boolean isRetracted() {
-        return this.intakePosition == IntakePosition.RETRACTED;
-    }
-
-    public boolean readyForOutake() {
-        return /*isRetracted() && */intakeOccupied;
     }
 
     public String getName() {
