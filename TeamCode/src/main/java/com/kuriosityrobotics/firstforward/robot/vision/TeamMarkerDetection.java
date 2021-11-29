@@ -2,24 +2,35 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Date;
 
 public class TeamMarkerDetection implements OpenCvConsumer {
     private static final Vector3D RED = new Vector3D(255, 0, 0);
 
-    public static enum TeamMarkerLocation {
+    public enum TeamMarkerLocation {
         LOCATION_1,
         LOCATION_2,
         LOCATION_3
     }
+
+    private long lastCaptureTime = 0;
 
     private volatile TeamMarkerLocation location;
 
@@ -39,9 +50,9 @@ public class TeamMarkerDetection implements OpenCvConsumer {
     public void processFrame(Mat frame) {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
 
-        final Rect boundingBox1 = new Rect(new Point(0, 0), new Point((int) (frame.width() / 3), frame.height()));
-        final Rect boundingBox2 = new Rect(new Point((int) (frame.width() / 3), 0), new Point((int) (2 * frame.width() / 3), frame.height()));
-        final Rect boundingBox3 = new Rect(new Point((int) (2 * frame.width() / 3), 0), new Point(frame.width(), frame.height()));
+        final Rect boundingBox1 = new Rect(new Point(0, (int) (frame.height() / 3)), new Point((int) (frame.width() / 3), (int) (2 * frame.height() / 3)));
+        final Rect boundingBox2 = new Rect(new Point((int) (frame.width() / 3), (int) (frame.height() / 3)), new Point((int) (2 * frame.width() / 3), frame.height()));
+        final Rect boundingBox3 = new Rect(new Point((int) (2 * frame.width() / 3), (int) (frame.height() / 3)), new Point(frame.width(), (int) (2 * frame.height() / 3)));
 
         var submat1 = frame.submat(boundingBox1);
         var submat2 = frame.submat(boundingBox2);
@@ -49,6 +60,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         var sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
         var sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
         var sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
+
         submat1.release();
         submat2.release();
         submat3.release();
@@ -67,8 +79,21 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         } else if (closestToRed == area3) {
             Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
             this.location = TeamMarkerLocation.LOCATION_3;
-        } else
-            System.err.println("something is terribly broken");
+        } else {
+            Log.v("Team Marker Detection","something is terribly broken");
+        }
 
+        long millis = System.currentTimeMillis();
+        if (millis - lastCaptureTime > 500) {
+            File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-" + new Date().getTime() + ".jpg");
+            MatOfByte mob = new MatOfByte();
+            Imgcodecs.imencode(".jpg", frame, mob);
+            try (FileOutputStream stream = new FileOutputStream(file)) {
+                stream.write(mob.toArray());
+            } catch (IOException e) {
+                Log.w("VisionDump", e);
+            }
+            lastCaptureTime = millis;
+        }
     }
 }

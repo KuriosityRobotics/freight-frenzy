@@ -6,6 +6,7 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.TeamMarkerDetection;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
