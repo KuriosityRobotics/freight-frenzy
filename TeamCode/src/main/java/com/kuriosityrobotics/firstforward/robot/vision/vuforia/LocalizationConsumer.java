@@ -69,18 +69,18 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, -90, 0, 0));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
 
         OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 120, 90, 0));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
 
         // Let all the trackable listeners know where the phone is.
         SwitchableCamera switchableCamera = (SwitchableCamera) vuforia.getCamera();
         CameraName[] cameraNames = switchableCamera.getMembers();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            listener.setCameraLocationOnRobot(cameraNames[0], cameraFrontLocationOnRobot);
+            listener.setCameraLocationOnRobot(cameraNames[0], cameraLeftLocationOnRobot);
             listener.setCameraLocationOnRobot(cameraNames[1], cameraFrontLocationOnRobot);
         }
     }
@@ -154,15 +154,16 @@ public class LocalizationConsumer implements VuforiaConsumer {
             VectorF translation = detectedLocation.getTranslation();
             Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
             double robotHeadingFIRST = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
+            Log.v("Vision", "FTC heading: " + robotHeadingFIRST);
 
             // convert to our coordinate system because FTC coordinate system bad and our is better and more readable :sunglas: :lemonthink:
-            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(180 - (robotHeadingFIRST - 90)))));
+            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(-robotHeadingFIRST))));
             double robotXOurs = (robotLocation.y + (HALF_FIELD / MM_PER_INCH)) - (CAMERA_FRONT_FORWARD_DISPLACEMENT * Math.cos(robotHeadingOurs) / MM_PER_INCH) - (CAMERA_FRONT_LEFT_DISPLACEMENT * Math.sin(robotHeadingOurs) / MM_PER_INCH);
             double robotYOurs = (-robotLocation.x + (HALF_FIELD / MM_PER_INCH)) + (CAMERA_FRONT_FORWARD_DISPLACEMENT * Math.sin(robotHeadingOurs) / MM_PER_INCH) - (CAMERA_FRONT_LEFT_DISPLACEMENT * Math.cos(robotHeadingOurs) / MM_PER_INCH);
 
-//            Log.v("Vision", "x: " + robotXOurs);
-//            Log.v("Vision", "y: " + robotYOurs);
-//            Log.v("Vision", "heading: " + robotHeadingOurs);
+            Log.v("Vision", "x: " + robotXOurs);
+            Log.v("Vision", "y: " + robotYOurs);
+            Log.v("Vision", "heading: " + robotHeadingOurs);
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},

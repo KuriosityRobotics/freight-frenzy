@@ -46,16 +46,16 @@ public final class ManagedCamera implements Telemeter {
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    public WebcamName cameraNameFront;
     public WebcamName cameraNameLeft;
+    public WebcamName cameraNameFront;
 
     private boolean isFrontCameraActive;
 
     public ManagedCamera(String camera1, String camera2, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        this.cameraNameFront = hardwareMap.get(WebcamName.class, camera1);
-        this.cameraNameLeft = hardwareMap.get(WebcamName.class, camera2);
+        this.cameraNameLeft = hardwareMap.get(WebcamName.class, camera1);
+        this.cameraNameFront = hardwareMap.get(WebcamName.class, camera2);
 
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
@@ -63,12 +63,12 @@ public final class ManagedCamera implements Telemeter {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(cameraNameFront, cameraNameLeft);
+                parameters.cameraName = ClassFactory.getInstance().getCameraManager().nameForSwitchableCamera(cameraNameLeft, cameraNameFront);
 
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 switchableCamera = (SwitchableCamera) vuforia.getCamera();
-                switchableCamera.setActiveCamera(cameraNameLeft);
+                switchableCamera.setActiveCamera(cameraNameFront);
                 this.isFrontCameraActive = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
                 try {
@@ -88,7 +88,7 @@ public final class ManagedCamera implements Telemeter {
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createSwitchableWebcam(cameraNameFront, cameraNameLeft);
+            openCvCamera = OpenCvCameraFactory.getInstance().createSwitchableWebcam(cameraNameLeft, cameraNameFront);
         }
 
         // set stuff up so opencv can also run
@@ -117,9 +117,9 @@ public final class ManagedCamera implements Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        if (switchableCamera.getActiveCamera() == cameraNameFront) {
+        if (switchableCamera.getActiveCamera() == cameraNameLeft) {
             data.add("Active Camera: Front Webcam");
-        } else if (switchableCamera.getActiveCamera() == cameraNameLeft) {
+        } else if (switchableCamera.getActiveCamera() == cameraNameFront) {
             data.add("Active Camera: Left Webcam");
         } else {
             data.add("Active Camera: no camera is active?");
@@ -167,16 +167,16 @@ public final class ManagedCamera implements Telemeter {
 
     public void switchCameras() {
         if (isFrontCameraActive) {
-            switchableCamera.setActiveCamera(cameraNameLeft);
-        } else {
             switchableCamera.setActiveCamera(cameraNameFront);
+        } else {
+            switchableCamera.setActiveCamera(cameraNameLeft);
         }
         isFrontCameraActive = !isFrontCameraActive;
     }
 
     public void setCamera(HardwareMap hardwareMap, String cameraName) {
         WebcamName webcamName = hardwareMap.get(WebcamName.class, cameraName);
-        if (webcamName == cameraNameLeft) {
+        if (webcamName == this.cameraNameFront) {
             isFrontCameraActive = false;
         } else {
             isFrontCameraActive = true;
