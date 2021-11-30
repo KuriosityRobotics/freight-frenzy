@@ -40,14 +40,14 @@ public final class ManagedCamera implements Telemeter {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private SwitchableCamera switchableCamera;
+    public SwitchableCamera switchableCamera;
 
     private boolean vuforiaInitialisedYet;
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    private WebcamName cameraNameFront;
-    private WebcamName cameraNameLeft;
+    public WebcamName cameraNameFront;
+    public WebcamName cameraNameLeft;
 
     private boolean isFrontCameraActive;
 
