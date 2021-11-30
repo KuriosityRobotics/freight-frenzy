@@ -69,7 +69,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, 90, 90, -90));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, -90, 0, 0));
 
         OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
