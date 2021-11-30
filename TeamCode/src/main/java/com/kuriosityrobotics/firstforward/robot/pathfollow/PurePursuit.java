@@ -86,17 +86,23 @@ public class PurePursuit implements Telemeter {
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
-        double x = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x)), -1, 1);
-        double y = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y)), -1, 1);
-        double heading = targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK
-                ? 0
-                : Range.clip(headingPID.calculateSpeed(targetAngleLock.getHeading() - robotPose.heading), -1, 1);
+        double targetHeading = targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK
+                ? headingToPoint - robotPose.heading
+                : targetAngleLock.getHeading() - robotPose.heading;
 
-        robot.drivetrain.setMovements(x, y, heading);
+        double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x)), -1, 1);
+        double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y)), -1, 1);
+        double angPow = Range.clip(headingPID.calculateSpeed(targetHeading), -1, 1);
+
+        if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK) {
+            angPow *= 0.6; // idk? it's less important??
+        }
+
+        robot.drivetrain.setMovements(xPow, yPow, angPow);
 
         actionExecutor.tick();
 
-        // save values for dashboard
+        // save values for dashboard lemon
         vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         targvel = targetVelocity;
         xvel = robotVelo.x;
