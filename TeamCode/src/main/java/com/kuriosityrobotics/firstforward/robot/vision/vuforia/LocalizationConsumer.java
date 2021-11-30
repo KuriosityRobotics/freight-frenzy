@@ -77,6 +77,8 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
         // Let all the trackable listeners know where the phone is.
         SwitchableCamera switchableCamera = (SwitchableCamera) vuforia.getCamera();
+        // cameraNames[0] is Webcam 1
+        // cameraNames[1] is Webcam 2
         CameraName[] cameraNames = switchableCamera.getMembers();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();

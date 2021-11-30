@@ -17,9 +17,6 @@ public class VisionThread implements Runnable, Telemeter {
     private ManagedCamera managedCamera;
     private final Robot robot;
 
-    private final String webcamNameFront;
-    private final String webcamNameBack;
-
     private final OpenCVDumper openCVDumper;
 
     private long updateTime = 0;
@@ -27,12 +24,10 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, LocalizationConsumer localizationConsumer) {
         this.robot = robot;
-        this.webcamNameFront = "Webcam 1";
-        this.webcamNameBack = "Webcam 2";
         robot.telemetryDump.registerTelemeter(this);
         this.localizationConsumer = localizationConsumer;
         openCVDumper = new OpenCVDumper(robot.isDebug());
-        this.managedCamera = new ManagedCamera(webcamNameFront, webcamNameBack, robot.hardwareMap, localizationConsumer, openCVDumper);
+        this.managedCamera = new ManagedCamera("Webcam 1", "Webcam 2", robot.hardwareMap, localizationConsumer, openCVDumper);
         robot.telemetryDump.registerTelemeter(managedCamera);
     }
 
