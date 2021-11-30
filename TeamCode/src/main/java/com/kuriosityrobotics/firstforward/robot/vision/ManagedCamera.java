@@ -68,8 +68,8 @@ public final class ManagedCamera implements Telemeter {
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 switchableCamera = (SwitchableCamera) vuforia.getCamera();
-                switchableCamera.setActiveCamera(cameraNameLeft);
-                this.isFrontCameraActive = false;
+                switchableCamera.setActiveCamera(cameraNameFront);
+                this.isFrontCameraActive = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
                 try {
                     // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
