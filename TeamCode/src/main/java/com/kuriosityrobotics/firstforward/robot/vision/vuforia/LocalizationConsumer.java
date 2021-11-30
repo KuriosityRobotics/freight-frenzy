@@ -13,6 +13,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -71,19 +72,18 @@ public class LocalizationConsumer implements VuforiaConsumer {
                 .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
 
-        OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
-                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
+//        OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
+//                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
+//                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
 
         // Let all the trackable listeners know where the phone is.
-        SwitchableCamera switchableCamera = (SwitchableCamera) vuforia.getCamera();
+        Camera camera = vuforia.getCamera();
         // cameraNames[0] is Webcam 1
         // cameraNames[1] is Webcam 2
-        CameraName[] cameraNames = switchableCamera.getMembers();
+        CameraName cameraName = camera.getCameraName();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            listener.setCameraLocationOnRobot(cameraNames[0], cameraLeftLocationOnRobot);
-            listener.setCameraLocationOnRobot(cameraNames[1], cameraFrontLocationOnRobot);
+            listener.setCameraLocationOnRobot(cameraName, cameraLeftLocationOnRobot);
         }
     }
 
