@@ -5,7 +5,6 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGR
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.YZX;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import android.util.Log;
@@ -53,12 +52,11 @@ public class LocalizationConsumer implements VuforiaConsumer {
     // Constants for perimeter targets
     private static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
     private static final float HALF_FIELD = 70f * MM_PER_INCH;
-    private static final float HALF_TILE = 11.75f * MM_PER_INCH;
-    private static final float ONE_AND_HALF_TILE = 35.25f * MM_PER_INCH;
-    private static final float TWO_AND_HALF_TILE = 58.25f * MM_PER_INCH;
-    private static final float FULL_TILE = 23.5f * MM_PER_INCH;
-    private static final float FULL_FIELD = 140f * MM_PER_INCH;
+    private static final float ONE_TILE = 23.5f * MM_PER_INCH;
 
+    private static final float FULL_FIELD = HALF_FIELD * 2f;
+    private static final float ONE_AND_HALF_TILE = ONE_TILE * 1.5f;
+    private static final float HALF_TILE = ONE_TILE * 0.5f;
     @Override
     public void setup(VuforiaLocalizer vuforia) {
         // Get trackables & activate them
@@ -66,29 +64,18 @@ public class LocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-//        identifyTarget(0, "Blue Storage",       -HALF_FIELD,  ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-//        identifyTarget(1, "Blue Alliance Wall",  HALF_TILE,   HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 0);
-//        identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-//        identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
-        identifyTarget(2, "Red Storage",        HALF_FIELD - ONE_AND_HALF_TILE, FULL_FIELD, MM_TARGET_HEIGHT, 90, 0, -90);
-        identifyTarget(3, "Red Alliance Wall",   0,  TWO_AND_HALF_TILE, MM_TARGET_HEIGHT, 0, 90, 0);
+        identifyTarget(0, "Blue Storage",       -HALF_FIELD,  ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall",  HALF_TILE,   HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
 
 //        OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
 //                .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
 //                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
 
-//        OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
-//                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
-//                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
-
         OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
-                .translation(-CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 90, -30));
-
-        OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
-                .translation(-CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, YZX, DEGREES, 90, 180, 0));
-
+                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
 
         // Let all the trackable listeners know where the phone is.
         Camera camera = vuforia.getCamera();
@@ -97,7 +84,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
         CameraName cameraName = camera.getCameraName();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            listener.setCameraLocationOnRobot(cameraName, cameraLeftLocationOnRobot);
+            listener.setCameraLocationOnRobot(cameraName, cameraFrontLocationOnRobot);
         }
     }
 
@@ -169,25 +156,31 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
             VectorF translation = detectedLocation.getTranslation();
             Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-            double robotHeadingFIRST = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
-            Log.v("Vision", "FTC heading: " + robotHeadingFIRST);
+            double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
 
             // convert to our coordinate system because FTC coordinate system bad and our is better and more readable :sunglas: :lemonthink:
 //            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(-robotHeadingFIRST))));
 //            double robotXOurs = (robotLocation.y + (HALF_FIELD / MM_PER_INCH)) - (CAMERA_FRONT_FORWARD_DISPLACEMENT * Math.cos(robotHeadingOurs) / MM_PER_INCH) - (CAMERA_FRONT_LEFT_DISPLACEMENT * Math.sin(robotHeadingOurs) / MM_PER_INCH);
 //            double robotYOurs = (-robotLocation.x + (HALF_FIELD / MM_PER_INCH)) + (CAMERA_FRONT_FORWARD_DISPLACEMENT * Math.sin(robotHeadingOurs) / MM_PER_INCH) - (CAMERA_FRONT_LEFT_DISPLACEMENT * Math.cos(robotHeadingOurs) / MM_PER_INCH);
 
-//            Log.v("Vision", "x: " + robotXOurs);
-//            Log.v("Vision", "y: " + robotYOurs);
-//            Log.v("Vision", "heading: " + robotHeadingOurs);
-            Log.v("Vision", "x: " + robotLocation.x);
-            Log.v("Vision", "y: " + robotLocation.y);
-            Log.v("Vision", "heading: " + robotHeadingFIRST);
+            Log.v("Vision", "FTC Coordinate System");
+            Log.v("Vision", "FTC x: " + robotLocation.x);
+            Log.v("Vision", "FTC y: " + robotLocation.y);
+            Log.v("Vision", "FTC heading: " + heading);
+
+            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(heading + 180))));
+            double robotXOurs = robotLocation.y + HALF_FIELD / MM_PER_INCH;
+            double robotYOurs = -robotLocation.x + HALF_FIELD / MM_PER_INCH;
+
+            Log.v("Vision", "Kuriosity Coordinate System");
+            Log.v("Vision", "Kuriosity x: " + robotXOurs);
+            Log.v("Vision", "Kuriosity y: " + robotYOurs);
+            Log.v("Vision", "Kuriosity heading: " + robotHeadingOurs);
 
             return MatrixUtils.createRealMatrix(new double[][]{
-                    {robotLocation.x, 0},
-                    {robotLocation.y, 0},
-                    {robotHeadingFIRST, 0}
+                    {robotXOurs, 0},
+                    {robotYOurs, 0},
+                    {robotHeadingOurs, 0}
             });
         }
     }

@@ -19,7 +19,6 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -39,18 +38,16 @@ public final class ManagedCamera implements Telemeter {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    public Camera webCam;
-
     private boolean vuforiaInitialisedYet;
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    public WebcamName cameraName1;
+    public WebcamName cameraName;
 
-    public ManagedCamera(String camera1, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(String name, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        this.cameraName1 = hardwareMap.get(WebcamName.class, camera1);
+        this.cameraName = hardwareMap.get(WebcamName.class, name);
 
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
@@ -58,11 +55,10 @@ public final class ManagedCamera implements Telemeter {
                 VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 2");
+                parameters.cameraName = cameraName;
 
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
-                webCam = vuforia.getCamera();
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
                 vuforiaInitialisedYet = true;
@@ -71,7 +67,7 @@ public final class ManagedCamera implements Telemeter {
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName1);
+            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
         }
 
         // set stuff up so opencv can also run
