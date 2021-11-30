@@ -68,7 +68,7 @@ public final class ManagedCamera implements Telemeter {
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 switchableCamera = (SwitchableCamera) vuforia.getCamera();
-                switchableCamera.setActiveCamera(cameraNameFront);
+                switchableCamera.setActiveCamera(cameraNameLeft);
                 this.isFrontCameraActive = true;
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
                 try {
@@ -120,7 +120,7 @@ public final class ManagedCamera implements Telemeter {
         if (switchableCamera.getActiveCamera() == cameraNameFront) {
             data.add("Active Camera: Front Webcam");
         } else if (switchableCamera.getActiveCamera() == cameraNameLeft) {
-            data.add("Active Camera: Back Webcam");
+            data.add("Active Camera: Left Webcam");
         } else {
             data.add("Active Camera: no camera is active?");
         }
