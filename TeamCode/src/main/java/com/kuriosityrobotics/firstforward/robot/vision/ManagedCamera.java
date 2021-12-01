@@ -62,6 +62,10 @@ public final class ManagedCamera implements Telemeter {
             vuforia.close();
             vuforia = null;
         }
+        if (openCvCamera != null) {
+            openCvCamera.closeCameraDevice();
+            openCvCamera = null;
+        }
         if (vuforiaConsumer != null) {
             // setup vuforia
             VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();

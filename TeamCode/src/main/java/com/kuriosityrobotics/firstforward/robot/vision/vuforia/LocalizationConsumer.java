@@ -62,6 +62,9 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private static final float ONE_AND_HALF_TILE = ONE_TILE * 1.5f;
     private static final float HALF_TILE = ONE_TILE * 0.5f;
 
+    private static final double HALF_ROBOT_WIDTH = 11.75 / 2;
+    private static final double HALF_ROBOT_LENGTH = 12.75 / 2;
+
     private static final OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
             .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
             .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
@@ -179,8 +182,8 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
             // convert to our coordinate system because FTC coordinate system bad and our is better and more readable :sunglas: :lemonthink:
             double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(180 - heading))));
-            double robotXOurs = robotLocation.y + HALF_FIELD / MM_PER_INCH;
-            double robotYOurs = -robotLocation.x + HALF_FIELD / MM_PER_INCH;
+            double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH) - HALF_ROBOT_WIDTH;
+            double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH) - HALF_ROBOT_LENGTH;
             //            Log.v("Vision", "FTC Coordinate System");
 //            Log.v("Vision", "FTC x: " + robotLocation.x);
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
