@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 
 public class Robot {
@@ -42,9 +43,16 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
+    public WebcamName cameraName1;
+    public WebcamName cameraName2;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws Exception {
+
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
+
+        this.cameraName1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        this.cameraName2 = hardwareMap.get(WebcamName.class, "Webcam 2");
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
@@ -63,7 +71,7 @@ public class Robot {
                 drivetrain
         };
 
-        localizationConsumer = new LocalizationConsumer();
+        localizationConsumer = new LocalizationConsumer(cameraName1, cameraName2);
 
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
@@ -74,7 +82,7 @@ public class Robot {
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
-        // TODO: UPDATE WITH ACTUAL ROBOT LOCATION AT START
+        // TODO: UPDATE WITH ACTUAL ROBOT LOCATION
         this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 

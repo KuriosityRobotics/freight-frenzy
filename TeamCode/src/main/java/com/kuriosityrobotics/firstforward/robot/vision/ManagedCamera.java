@@ -8,10 +8,8 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.opencv.core.Mat;
@@ -38,36 +36,44 @@ public final class ManagedCamera implements Telemeter {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private boolean vuforiaInitialisedYet;
-
     private List<OpenCvConsumer> openCvConsumers;
 
-    public WebcamName cameraName;
+    public WebcamName cameraName1;
+    public WebcamName cameraName2;
 
-    public ManagedCamera(String name, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public WebcamName activeCamera;
+    private VuforiaLocalizer vuforia;
+
+    public ManagedCamera(WebcamName name1, WebcamName name2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        this.cameraName = hardwareMap.get(WebcamName.class, name);
+        this.cameraName1 = name1;
+        this.cameraName2 = name2;
 
+        activateCamera(cameraName1);
+    }
+
+    public void activateCamera(WebcamName cameraName) {
+        if (activeCamera == cameraName) {
+            return;
+        }
+
+        if (vuforia != null) {
+            vuforia.close();
+            vuforia = null;
+        }
         if (vuforiaConsumer != null) {
-            if(!vuforiaInitialisedYet) {
-                // setup vuforia
-                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-                parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = cameraName;
+            // setup vuforia
+            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+            parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
+            parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
+            parameters.cameraName = cameraName;
 
-                VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-                vuforiaConsumer.setup(vuforia);
-                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
-
-                vuforiaInitialisedYet = true;
-            } else {
-                // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Cameras
-                throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
-            }
+            vuforia = ClassFactory.getInstance().createVuforia(parameters);
+            vuforiaConsumer.setup(vuforia);
+            openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
+            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName2);
         }
 
         // set stuff up so opencv can also run
@@ -86,11 +92,13 @@ public final class ManagedCamera implements Telemeter {
                 Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
+
+        this.activeCamera = cameraName;
     }
 
-    public ManagedCamera(String camera1, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
-        this(camera1, hardwareMap, null, openCvConsumers);
-    }
+//    public ManagedCamera(String camera1, String camera2, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
+//        this(camera1, camera2, hardwareMap, null, openCvConsumers);
+//    }
 
     @Override
     public String getName() {

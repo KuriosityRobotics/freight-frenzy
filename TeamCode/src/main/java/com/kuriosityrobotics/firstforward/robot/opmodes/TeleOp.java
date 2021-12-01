@@ -23,6 +23,12 @@ public class TeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             // yeet
             updateDrivetrainStates();
+
+            if (gamepad1.a) {
+                robot.getVisionThread().getManagedCamera().activateCamera(robot.cameraName1);
+            } else if (gamepad1.b) {
+                robot.getVisionThread().getManagedCamera().activateCamera(robot.cameraName2);
+            }
         }
     }
 
