@@ -1,12 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.Action;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous

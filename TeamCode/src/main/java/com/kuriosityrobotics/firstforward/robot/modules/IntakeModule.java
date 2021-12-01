@@ -165,6 +165,10 @@ public class IntakeModule implements Module, Telemeter {
         retractIntake = false;
     }
 
+    public boolean isIntakeRetracting() {
+        return intakerRetractionStartTime != null;
+    }
+
     public boolean isOn() {
         return isOn;
     }

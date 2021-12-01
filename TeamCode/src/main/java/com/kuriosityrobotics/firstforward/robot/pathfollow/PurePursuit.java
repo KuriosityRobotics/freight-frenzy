@@ -6,7 +6,6 @@ import com.kuriosityrobotics.firstforward.robot.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.FeedForwardPID;
