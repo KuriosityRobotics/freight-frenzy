@@ -168,7 +168,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
             Log.v("Vision", "FTC y: " + robotLocation.y);
             Log.v("Vision", "FTC heading: " + heading);
 
-            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(heading + 180))));
+            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(180 - heading))));
             double robotXOurs = robotLocation.y + HALF_FIELD / MM_PER_INCH;
             double robotYOurs = -robotLocation.x + HALF_FIELD / MM_PER_INCH;
 
@@ -180,7 +180,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},
                     {robotYOurs, 0},
-                    {robotHeadingOurs, 0}
+                    {Math.toRadians(robotHeadingOurs), 0}
             });
         }
     }

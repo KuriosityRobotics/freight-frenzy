@@ -74,6 +74,7 @@ public class Robot {
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+        // TODO: UPDATE WITH ACTUAL ROBOT LOCATION AT START
         this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
