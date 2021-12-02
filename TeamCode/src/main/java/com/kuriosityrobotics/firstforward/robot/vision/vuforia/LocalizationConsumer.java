@@ -182,9 +182,9 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
             // convert to our coordinate system because FTC coordinate system bad and our is better and more readable :sunglas: :lemonthink:
             double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(180 - heading))));
-            double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH) - HALF_ROBOT_WIDTH;
-            double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH) - HALF_ROBOT_LENGTH;
-            //            Log.v("Vision", "FTC Coordinate System");
+            double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
+            double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
+//            Log.v("Vision", "FTC Coordinate System");
 //            Log.v("Vision", "FTC x: " + robotLocation.x);
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
 //            Log.v("Vision", "FTC heading: " + heading);

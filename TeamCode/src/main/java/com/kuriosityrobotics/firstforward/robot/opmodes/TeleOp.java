@@ -13,7 +13,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode(){
         try {
             // TODO: change
-            robot = new Robot(hardwareMap, telemetry, this, new Pose(32.0, 60.0, Math.toRadians(-90)));
+            robot = new Robot(hardwareMap, telemetry, this, new Pose(6.5, 75.5, Math.toRadians(90)));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
