@@ -19,6 +19,8 @@ public class Autonomous extends LinearOpMode {
 
         PurePursuit pp = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(0, 0, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0)),
+                new WayPoint(0, 20),
+                new WayPoint(-30, 40),
                 new WayPoint(-30, 60, 0)
         }, 10);
 
