@@ -17,7 +17,7 @@ public class PlebDetect extends LinearOpMode {
     @Override
     public void runOpMode() {
         this.detector =  new TeamMarkerDetection();
-        this.managedCamera = new ManagedCamera("Webcam 1", hardwareMap, detector);
+        this.managedCamera = new ManagedCamera("Webcam 2", hardwareMap, detector);
 
         waitForStart();
         while (opModeIsActive()) {
