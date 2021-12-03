@@ -68,7 +68,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         var area1 = sectionOne.crossProduct(RED).getNorm();
         var area2 = sectionTwo.crossProduct(RED).getNorm();
         var area3 = sectionThree.crossProduct(RED).getNorm();
-        Log.d(getClass().getName(), "pepega");
+
         double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
         if (closestToRed == area1) {
             Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
@@ -79,8 +79,6 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         } else if (closestToRed == area3) {
             Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
             this.location = TeamMarkerLocation.LOCATION_3;
-        } else {
-            Log.v("Team Marker Detection","something is terribly broken");
         }
 
         long millis = System.currentTimeMillis();
