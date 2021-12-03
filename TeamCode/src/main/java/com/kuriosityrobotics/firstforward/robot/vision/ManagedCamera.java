@@ -10,13 +10,16 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,26 +41,28 @@ public final class ManagedCamera implements Telemeter {
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    public WebcamName cameraName1;
-    public WebcamName cameraName2;
+    private WebcamName cameraName1;
+    private WebcamName cameraName2;
 
-    public WebcamName activeCamera;
+    private SwitchableCamera switchableCamera;
+    private WebcamName activeCameraName;
     private VuforiaLocalizer vuforia;
 
-    public ManagedCamera(WebcamName name1, WebcamName name2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(WebcamName cameraName1, WebcamName cameraName2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        this.cameraName1 = name1;
-        this.cameraName2 = name2;
 
-        activateCamera(cameraName1);
+        this.cameraName1 = cameraName1;
+        this.cameraName2 = cameraName2;
+        SwitchableCameraName switchableCameraName = ClassFactory.getInstance()
+                .getCameraManager()
+                .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
+        initializeVulforia(switchableCameraName);
+
+        activateCamera(this.cameraName2);
     }
 
-    public void activateCamera(WebcamName cameraName) {
-        if (activeCamera == cameraName) {
-            return;
-        }
-
+    private void initializeVulforia(SwitchableCameraName switchableCameraName) {
         if (vuforia != null) {
             vuforia.close();
             vuforia = null;
@@ -66,16 +71,30 @@ public final class ManagedCamera implements Telemeter {
             openCvCamera.closeCameraDevice();
             openCvCamera = null;
         }
+
         if (vuforiaConsumer != null) {
             // setup vuforia
             VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
             parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
             parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-            parameters.cameraName = cameraName;
-
+            parameters.cameraName = switchableCameraName;
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
+            switchableCamera = (SwitchableCamera) vuforia.getCamera();
+
             vuforiaConsumer.setup(vuforia);
             openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
+
+            try {
+                // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
+                // anyways enough of this rant
+                Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
+                Field isWebcamField = aClass.getDeclaredField("isWebcam");
+                isWebcamField.setAccessible(true);
+                isWebcamField.set(openCvCamera, true);
+            } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
+                Log.e("Switchable Cameras: ", "cannot set isWebcam ", e);
+            }
+
         } else {
             openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName2);
         }
@@ -96,13 +115,21 @@ public final class ManagedCamera implements Telemeter {
                 Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
-
-        this.activeCamera = cameraName;
     }
 
-//    public ManagedCamera(String camera1, String camera2, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
-//        this(camera1, camera2, hardwareMap, null, openCvConsumers);
-//    }
+    public void activateCamera(WebcamName cameraName) {
+        if (this.activeCameraName == cameraName) {
+            return;
+        }
+
+        if (switchableCamera == null) {
+            Log.e("ManagedCamera", "Not a switchable camera");
+            return;
+        }
+
+        this.switchableCamera.setActiveCamera(cameraName);
+        this.activeCameraName = cameraName;
+    }
 
     @Override
     public String getName() {

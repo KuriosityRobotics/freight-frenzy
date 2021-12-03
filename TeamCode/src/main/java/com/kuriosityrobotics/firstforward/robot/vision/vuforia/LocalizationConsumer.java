@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
@@ -13,7 +12,6 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -34,8 +32,8 @@ public class LocalizationConsumer implements VuforiaConsumer {
     // Accessible values
     private static final float MM_PER_INCH = 25.4f;
 
-    private WebcamName camera1;
-    private WebcamName camera2;
+    private WebcamName cameraName1;
+    private WebcamName cameraName2;
 
     private VuforiaTrackables freightFrenzyTargets;
 
@@ -72,14 +70,17 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private static final OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
             .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
             .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
+    private SwitchableCamera switchableCamera;
 
-    public LocalizationConsumer(WebcamName camera1, WebcamName camera2) {
-        this.camera1 = camera1;
-        this.camera2 = camera2;
+    public LocalizationConsumer(WebcamName cameraName1, WebcamName cameraName2) {
+        this.cameraName1 = cameraName1;
+        this.cameraName2 = cameraName2;
     }
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
+        this.switchableCamera = (SwitchableCamera) vuforia.getCamera();
+
         // Get trackables & activate them
         if (this.freightFrenzyTargets != null) {
             this.freightFrenzyTargets.deactivate();
@@ -94,19 +95,11 @@ public class LocalizationConsumer implements VuforiaConsumer {
         identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
         identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
 
-        // Let all the trackable listeners know where the phone is.
-        // cameraNames[0] is Webcam 1
-        // cameraNames[1] is Webcam 2
-        CameraName cameraName = vuforia.getCamera().getCameraName();
+        // Let all the trackable listeners know where the cameras are.
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            if (cameraName == camera1) {
-                listener.setCameraLocationOnRobot(cameraName, cameraLeftLocationOnRobot);
-            } else if (cameraName == camera2) {
-                listener.setCameraLocationOnRobot(cameraName, cameraFrontLocationOnRobot);
-            } else {
-                Log.d("Localization Consumer", "Something is broken");
-            }
+            listener.setCameraLocationOnRobot(cameraName1, cameraLeftLocationOnRobot);
+            listener.setCameraLocationOnRobot(cameraName2, cameraFrontLocationOnRobot);
         }
     }
 
@@ -178,16 +171,29 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
             VectorF translation = detectedLocation.getTranslation();
             Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-            double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
+            double wrongHeading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
 
-            // convert to our coordinate system because FTC coordinate system bad and our is better and more readable :sunglas: :lemonthink:
-            double robotHeadingOurs = (Math.toDegrees(angleWrap(Math.toRadians(180 - heading))));
+            // Vulforia report wrong heading for switchable camera. Correct it here
+            double heading = 0;
+            CameraName activeWebcamName = this.switchableCamera.getActiveCamera();
+            if (activeWebcamName == cameraName1) {
+                heading = Math.toDegrees(angleWrap(Math.toRadians(wrongHeading - 180)));
+            } else if (activeWebcamName == cameraName2) {
+                heading = Math.toDegrees(angleWrap(Math.toRadians(wrongHeading - 90)));
+            } else {
+                heading = wrongHeading;
+            }
+
+            // Convert from FTC coordinate system to Kuriosity's
+            double robotHeadingOurs = Math.toDegrees(angleWrap(Math.toRadians(180 - heading)));
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
-//            Log.v("Vision", "FTC Coordinate System");
-//            Log.v("Vision", "FTC x: " + robotLocation.x);
-//            Log.v("Vision", "FTC y: " + robotLocation.y);
-//            Log.v("Vision", "FTC heading: " + heading);
+
+            Log.v("Vision", "FTC Coordinate System");
+            Log.v("Vision", "FTC x: " + robotLocation.x);
+            Log.v("Vision", "FTC y: " + robotLocation.y);
+            Log.v("Vision", "FTC wrong heading: " + wrongHeading);
+            Log.v("Vision", "FTC heading: " + heading);
 
             Log.v("Vision", "Kuriosity Coordinate System");
             Log.v("Vision", "Kuriosity x: " + robotXOurs);
