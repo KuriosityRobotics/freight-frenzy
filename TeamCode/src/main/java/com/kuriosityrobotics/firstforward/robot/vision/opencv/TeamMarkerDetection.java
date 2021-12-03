@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.vision;
+package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import android.util.Log;
 

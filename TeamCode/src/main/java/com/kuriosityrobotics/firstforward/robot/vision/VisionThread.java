@@ -6,6 +6,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetection;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 
 import java.util.ArrayList;
