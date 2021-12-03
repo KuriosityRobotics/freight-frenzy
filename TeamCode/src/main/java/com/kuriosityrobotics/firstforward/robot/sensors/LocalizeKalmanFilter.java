@@ -51,9 +51,11 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                trackers coordinate system
      */
     void update(RealMatrix update, RealMatrix obs) {
-        if (update != null && obs == null) matrixPose = prediction(matrixPose, update);
-        else if (update == null && obs != null) matrixPose = correction(matrixPose, obs);
-        else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
+        synchronized (this) {
+            if (update != null && obs == null) matrixPose = prediction(matrixPose, update);
+            else if (update == null && obs != null) matrixPose = correction(matrixPose, obs);
+            else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
+        }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
     }
@@ -188,10 +190,13 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public Pose getPose() {
-        double x = matrixPose[0].getEntry(0, 0);
-        double y = matrixPose[0].getEntry(1, 0);
-        double heading = matrixPose[0].getEntry(2, 0);
-        return new Pose(x, y, heading);
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = matrixPose[0].getEntry(2, 0);
+
+            return new Pose(x, y, heading);
+        }
     }
 
     public Pose getFormattedPose() {

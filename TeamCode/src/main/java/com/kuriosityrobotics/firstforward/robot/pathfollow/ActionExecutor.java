@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 
 import java.util.ArrayList;
@@ -25,19 +27,24 @@ public class ActionExecutor {
     }
 
     public void tick() {
-        Iterator<Action> i = executing.iterator();
-        while (i.hasNext()) {
-            Action action = i.next();
+        synchronized(this) {
+            Iterator<Action> i = executing.iterator();
+            while (i.hasNext()) {
+                Action action = i.next();
 
-            action.tick(this.robot);
+                action.tick(this.robot);
 
-            if (action.isCompleted()) {
-                i.remove();
+                if (action.isCompleted()) {
+                    Log.v("action", ""+action.getClass().getName()+" completed");
+                    i.remove();
+                }
             }
         }
     }
 
     public boolean doneExecuting() {
-        return this.executing.isEmpty();
+        synchronized(this) {
+            return this.executing.isEmpty();
+        }
     }
 }

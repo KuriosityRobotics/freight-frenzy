@@ -89,7 +89,7 @@ class MotionPathSegment {
 
                 return new AngleLock(((distAlong / totalDist) * (endHeading - startHeading)) + startHeading);
             } else {
-                return start.angleLock;
+                return end.angleLock;
             }
         } else {
             throw new IllegalArgumentException("Each point of a MotionPathSegment should either be angle locked or unlocked! (e.g. no CONTINUE) This should be guaranteed by interpolatePath() in MotionProfile.");

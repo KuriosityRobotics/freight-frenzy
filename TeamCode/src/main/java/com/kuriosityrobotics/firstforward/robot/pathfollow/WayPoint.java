@@ -1,7 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class WayPoint extends Point {
@@ -31,8 +33,20 @@ public class WayPoint extends Point {
         this(x, y, angleLock, targetVelocity, velocity, new ArrayList<>());
     }
 
+    public WayPoint(Pose pose, double velocity, ArrayList<Action> actions) {
+        this(pose.x, pose.y, new AngleLock(pose.heading), true, velocity, actions);
+    }
+
     public WayPoint(double x, double y, AngleLock angleLock) {
         this(x, y, angleLock, false, 0);
+    }
+
+    public WayPoint(Pose pose) {
+        this(pose.x, pose.y, new AngleLock(pose.heading));
+    }
+
+    public WayPoint(Pose pose, Action action) {
+        this(pose.x, pose.y, action);
     }
 
     public WayPoint(double x, double y, double heading, double velocity) {

@@ -4,7 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class CarouselAction extends Action {
-    private static final long WAIT_TIME_MS = 2000;
+    private static final long WAIT_TIME_MS = 3000;
 
     @Override
     public void tick(Robot robot) {

@@ -47,7 +47,7 @@ public class MotionProfile {
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : startVelo;
                 } else {
                     // default starting velo is something low
-                    startVelo = 2;
+                    startVelo = 10;
 
                     // if second point doesn't have a target velo assume we're ramping up to max
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : this.maxVel;
@@ -84,7 +84,8 @@ public class MotionProfile {
             WayPoint currentPoint = in[i];
 
             if (i == 0 && currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
-                throw new IllegalArgumentException("The first point in a path cannot have an angleLock of CONTINUE_LAST!");
+//                throw new IllegalArgumentException("The first point in a path cannot have an angleLock of CONTINUE_LAST!");
+                currentPoint.getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
             }
 
             if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {

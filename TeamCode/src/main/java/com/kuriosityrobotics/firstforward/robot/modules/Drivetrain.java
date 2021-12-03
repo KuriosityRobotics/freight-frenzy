@@ -29,7 +29,7 @@ public class Drivetrain implements Module, Telemeter {
 
     //braking controller
     ClassicalPID angularBrakeController = new ClassicalPID(1, 0, 3);
-    ClassicalPID distanceBrakeController = new ClassicalPID(0.05, .000002, 0.7);
+    ClassicalPID distanceBrakeController = new ClassicalPID(0.03, .000002, 0.7);
 
     public Drivetrain(Robot robot) {
         this.robot = robot;
@@ -119,8 +119,8 @@ public class Drivetrain implements Module, Telemeter {
     private void setMovementTowardsBrake() {
         Pose currentPosition = getCurrentPose();
 
-        double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)); // to use for PID
-        double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading);
+        double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)) * 0.55; // to use for PID
+        double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading) * 0.85;
 
         Point components = relativeComponentsToPoint(brakePose).scale(moveSpeed);
         double xError = components.x;
@@ -179,6 +179,15 @@ public class Drivetrain implements Module, Telemeter {
 
     public Pose getCurrentPose() {
         return robot.sensorThread.getPose();
+    }
+
+    public Pose getVelocity() {
+        return robot.sensorThread.getVelocity();
+    }
+
+    public double getOrthVelocity() {
+        Pose velo = getVelocity();
+        return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
     }
 
     @Override

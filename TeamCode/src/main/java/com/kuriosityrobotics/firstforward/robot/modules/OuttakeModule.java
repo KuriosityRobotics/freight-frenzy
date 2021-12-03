@@ -13,9 +13,8 @@ public class OuttakeModule implements Module, Telemeter {
     //time constants
     //TODO determine time
     private static final long HOPPER_EXTEND_TIME = 500;
-    private static final long HOPPER_ROTATE_TIME = 950;
     private static final long HOPPER_DUMP_TIME = 600;
-    private static final long SLIDE_RAISE_TIME = 350;
+    private static final long SLIDE_RAISE_TIME = 0;
 
     //constants
     private static final double LINKAGE_EXTENDED = 0.9;
@@ -135,6 +134,9 @@ public class OuttakeModule implements Module, Telemeter {
         hopper.setPosition(HOPPER_RESTING_POSITION);
         pivot.setPosition(HOPPER_PIVOT_IN);
         linkage.setPosition(LINKAGE_RETRACTED);
+
+        slideLevel = VerticalSlideLevel.DOWN;
+        outtakeState = OuttakeState.IDLE;
     }
 
     public void dump(HopperDumpPosition dumpMode) {

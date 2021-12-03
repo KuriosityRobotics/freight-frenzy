@@ -5,7 +5,7 @@ import android.os.SystemClock;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 
 public abstract class Action {
-    protected boolean completed;
+    protected boolean completed = false;
 
     private boolean isStarted = false;
     private long startTime;
