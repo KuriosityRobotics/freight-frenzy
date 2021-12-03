@@ -8,7 +8,8 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -16,6 +17,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import de.esoco.coroutine.Coroutine;
 
@@ -25,22 +27,23 @@ public class SensorThread implements Runnable, Telemeter {
     private final String configLocation;
     private final Robot robot;
 
-    public final Odometry odometry;
+    private final Odometry odometry;
     private final LocalizeKalmanFilter kalmanFilter;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
+    private long lastPoseSendTime = 0;
 
     private final LocalizationConsumer localizationConsumer;
 
-    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer) {
+    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer, Pose pose) {
         this.robot = robot;
         this.configLocation = configLocation;
         this.localizationConsumer = localizationConsumer;
 
         robot.telemetryDump.registerTelemeter(this);
 
-        this.odometry = new Odometry(robot);
+        this.odometry = new Odometry(robot, pose);
         this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
     }
 
@@ -50,10 +53,9 @@ public class SensorThread implements Runnable, Telemeter {
         while (robot.running()) {
             launch(scope -> {
                 bulkDataCoroutine.runAsync(scope, robot.revHub1);
-//                bulkDataCoroutine.runAsync(scope, robot.revHub2);
+                bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
-            FileDump.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
             RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
@@ -61,6 +63,12 @@ public class SensorThread implements Runnable, Telemeter {
             this.kalmanFilter.update(odometry, vuforia);
 
             long currentTime = SystemClock.elapsedRealtime();
+
+            if (currentTime - lastPoseSendTime >= 250) {
+                robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
+                lastPoseSendTime = currentTime;
+            }
+
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
@@ -72,6 +80,16 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
+        data.add("Robot Pose: " + this.kalmanFilter.getFormattedPose());
+
+        return data;
+    }
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("Sensor Thread Update time: ",  updateTime);
+        data.put("Robot Pose: ",  this.kalmanFilter.getFormattedPose());
 
         return data;
     }
@@ -85,4 +103,6 @@ public class SensorThread implements Runnable, Telemeter {
     public boolean isOn() {
         return true;
     }
+
+    public Odometry getOdometry() { return this.odometry; }
 }

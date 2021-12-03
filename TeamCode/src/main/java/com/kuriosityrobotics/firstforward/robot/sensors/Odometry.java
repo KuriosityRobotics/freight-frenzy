@@ -1,13 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -22,14 +22,14 @@ public class Odometry implements Telemeter {
     private final DcMotor mecanumEncoder;
 
     // Position of the robot, can be changed through constructor
-    private double worldX = 0;
-    private double worldY = 0;
-    private double worldHeadingRad = 0;
+    private double worldX;
+    private double worldY;
+    private double worldHeadingRad;
 
     // velocity of the robot
-    private double xVel = 0;
-    private double yVel = 0;
-    private double angleVel = 0;
+    public double xVel = 0;
+    public double yVel = 0;
+    public double angleVel = 0;
 
     // change in position of the robot
     private double dx = 0;
@@ -37,9 +37,9 @@ public class Odometry implements Telemeter {
     private double dHeading = 0;
 
     // For position calculation
-    private double lastLeftPosition = 0;
-    private double lastRightPosition = 0;
-    private double lastMecanumPosition = 0;
+    public double lastLeftPosition = 0;
+    public double lastRightPosition = 0;
+    public double lastMecanumPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;
@@ -53,12 +53,12 @@ public class Odometry implements Telemeter {
     private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775/90); // 5.125
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
-    public Odometry(Robot robot, Point startingCoordinates, double startingHeadingRad) {
+    public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
 
-        this.worldX = startingCoordinates.x;
-        this.worldY = startingCoordinates.y;
-        this.worldHeadingRad = startingHeadingRad;
+        this.worldX = pose.x;
+        this.worldY = pose.y;
+        this.worldHeadingRad = pose.heading;
 
         yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
@@ -75,7 +75,8 @@ public class Odometry implements Telemeter {
     }
 
     public Odometry(Robot robot) {
-        this(robot, new Point(0,0), 0.0);
+        // (0,0) is the center of the field (IMPORTANT)
+        this(robot, new Pose(0.0,0.0,0.0));
     }
 
     public void update() {
@@ -87,7 +88,7 @@ public class Odometry implements Telemeter {
     private void calculatePosition() {
         // if odometry output is wrong, no worries, just find out which one needs to be reversed
         double newLeftPosition = yLeftEncoder.getCurrentPosition();
-        double newRightPosition = -yRightEncoder.getCurrentPosition();
+        double newRightPosition = yRightEncoder.getCurrentPosition();
         double newMecanumPosition = mecanumEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;
@@ -142,7 +143,7 @@ public class Odometry implements Telemeter {
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
         //worldAngleRad =  (leftPodNewPosition - rightPodNewPosition) * INCHES_PER_ENCODER_TICK / (2 * P);
-        worldHeadingRad += dTheta;
+        worldHeadingRad = worldHeadingRad + dTheta;
     }
 
     /*
@@ -221,12 +222,6 @@ public class Odometry implements Telemeter {
         data.add("yVel: " + yVel);
         data.add("angleVel: " + angleVel);
 
-//        data.add("--");
-//
-//        data.add("lastLeft: " + lastLeftPosition);
-//        data.add("lastRight: " + lastRightPosition);
-//        data.add("lastMecanum: " + lastMecanumPosition);
-
         return data;
     }
 
@@ -240,6 +235,8 @@ public class Odometry implements Telemeter {
     public Pose getPose() {
         return new Pose(worldX, worldY, worldHeadingRad);
     }
+
+    public double getVelMag(){ return Math.hypot(xVel, yVel); }
 
     @Override
     public String getName() {

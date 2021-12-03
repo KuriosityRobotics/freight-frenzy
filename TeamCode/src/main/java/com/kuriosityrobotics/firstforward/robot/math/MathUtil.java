@@ -1,7 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
+import org.apache.commons.math3.stat.descriptive.moment.Mean;
+
+import java.util.Collection;
+
 public class MathUtil {
     private static final double EPSILON = 0.00001;
+
+    public static int toNum(boolean value) {
+        return value ? 1 : 0;
+    }
 
     /**
      * Wraps angle (in radians) to a value from -pi to pi
@@ -21,13 +29,20 @@ public class MathUtil {
      * @return The wrapped angle, which will lie within pi of the centerOfWrap.
      */
     public static double angleWrap(double angle, double centerOfWrap) {
-        if (angle > centerOfWrap + Math.PI) {
-            return angleWrap(angle - (2 * Math.PI), centerOfWrap);
-        } else if (angle < centerOfWrap - Math.PI) {
-            return angleWrap(angle + (2 * Math.PI), centerOfWrap);
-        } else {
-            return angle;
+
+        angle -= centerOfWrap;
+        int times = (int) (angle / (2 * Math.PI));
+        angle -= times * 2 * Math.PI;
+
+        // angle is between 0 and 360, change so its between -180 and 180
+        if (angle < -Math.PI) {
+            angle += (2 * Math.PI);
         }
+        else if (angle > Math.PI) {
+            angle -= (2 * Math.PI);
+        }
+
+        return angle + centerOfWrap;
     }
 
     public static boolean doublesEqual(double a, double b) {
@@ -41,5 +56,17 @@ public class MathUtil {
         }
 
         return max;
+    }
+
+    public static double mean(Collection<Double> t) {
+        return new Mean().evaluate(t.stream().mapToDouble(n -> n).toArray());
+    }
+
+    public static double sd(Collection<Double> t) {
+        return Math.sqrt(
+                t.stream()
+                        .mapToDouble(n -> Math.pow(n - mean(t), 2))
+                        .sum() / t.size()
+        );
     }
 }

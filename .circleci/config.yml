@@ -24,6 +24,8 @@ jobs:
       JAVA_TOOL_OPTIONS: -Xmx1024m
       JAVA_OPTS: -Xmx1024m
       JVM_OPTS: -Xmx1024m
+      _JAVA_OPTIONS: -Xmx1024m
+      GRADLE_OPTS: -Xmx1024m
       TERM: dumb
 
     steps:

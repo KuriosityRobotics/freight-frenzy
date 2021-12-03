@@ -3,6 +3,8 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -15,6 +17,8 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,15 +67,21 @@ public final class ManagedCamera {
             openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
         }
 
-        // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(() -> {
-            openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-            openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+        openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
-            openCvCamera.setPipeline(new CameraConsumerProcessor());
-            openCvCamera.startStreaming(1920, 1080);
+                openCvCamera.setPipeline(new CameraConsumerProcessor());
+                openCvCamera.startStreaming(1920, 1080);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                Log.d("Managed Camera", "Error: " + errorCode);
+            }
         });
-
     }
 
     public ManagedCamera(String cameraName, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
@@ -81,23 +91,18 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
-            //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.currentThreadTimeMillis()));
-
-            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
-            //!!
-            // c++ moment
             Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
                 Mat matCopy = input.clone();
-                consumer.processFrame(matCopy);
+                consumer.processFrame(input);
                 matCopy.release(); // c++ moment
             }));
 
             // distribute the data
             CoroutineScope.launch(scope ->
             {
-                if (vuforiaConsumer != null) {
-                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
-                }
+//                if (vuforiaConsumer != null) {
+//                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
+//                }
                 openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
             });
 

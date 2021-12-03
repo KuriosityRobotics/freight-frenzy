@@ -26,9 +26,7 @@ public class PurePursuit {
     }
 
     public void update(Robot robot, double moveSpeed) {
-        Point robotPosition = robot.getSensorThread().odometry.getPose();
-//        Point clipped = clipToPath(robotPosition);
-//        Log.v("PP", "clipped: " + clipped.toString());
+        Point robotPosition = robot.sensorThread.getOdometry().getPose();
 
         Point targetPosition = targetPosition(robotPosition);
 
@@ -81,8 +79,6 @@ public class PurePursuit {
         // search the furthest segment first (so the next one)
         // return the first intersection closest to the end of its path segment
         for (int i = lookAheadUntil; i >= pathIndex; i--) {
-            Log.v("PP", "i: " + i);
-
             Line pathSegment = new Line(path[i], path[i + 1]);
 
             ArrayList<Point> pathIntersections = radius.getSegmentIntersections(pathSegment);

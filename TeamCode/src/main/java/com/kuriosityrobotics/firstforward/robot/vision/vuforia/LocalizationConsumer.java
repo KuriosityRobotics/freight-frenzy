@@ -31,37 +31,37 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
+    private CameraName cameraName;
+
+    // current pos matches tuning, not supposed to match actual pos on the robot
+    private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
+    private static final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
+    private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
+
+    // Constants for perimeter targets
+    private static final float MM_TARGET_HEIGHT = 6 * MM_PER_INCH;
+    private static final float HALF_FIELD = 72 * MM_PER_INCH;
+    private static final float HALF_TILE = 12 * MM_PER_INCH;
+    private static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
-
-        // Constants for perimeter targets
-        final float mmTargetHeight = 6 * MM_PER_INCH;          // the height of the center of the target image above the floor
-        final float halfField        = 72 * MM_PER_INCH;
-        final float halfTile         = 12 * MM_PER_INCH;
-        final float oneAndHalfTile   = 36 * MM_PER_INCH;
-
         // Get trackables & activate them
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage",       -halfField,  oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(1, "Blue Alliance Wall",  halfTile,   halfField,      mmTargetHeight, 90, 0, 0);
-        identifyTarget(2, "Red Storage",        -halfField, -oneAndHalfTile, mmTargetHeight, 90, 0, 90);
-        identifyTarget(3, "Red Alliance Wall",   halfTile,  -halfField,      mmTargetHeight, 90, 0, 180);
-
-        // current pos matches tuning, not supposed to match actual pos on the robot
-        final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;   // eg: Camera is 4 Inches in front of robot-center
-        final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;   // eg: Camera is 8 Inches above ground
-        final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;     // eg: Camera is ON the robot's center line
+        identifyTarget(0, "Blue Storage",       -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall", HALF_TILE,  -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
 
         OpenGLMatrix cameraLocationOnRobot = OpenGLMatrix
                 .translation(CAMERA_FORWARD_DISPLACEMENT, CAMERA_LEFT_DISPLACEMENT, CAMERA_VERTICAL_DISPLACEMENT)
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, -90, -90, 0));
 
         // Let all the trackable listeners know where the phone is.
-        CameraName cameraName = vuforia.getCameraName();
+        cameraName = vuforia.getCameraName();
         for (VuforiaTrackable trackable : freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             listener.setCameraLocationOnRobot(cameraName, cameraLocationOnRobot);

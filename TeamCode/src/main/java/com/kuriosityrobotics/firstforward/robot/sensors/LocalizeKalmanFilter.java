@@ -1,15 +1,17 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathFunctions.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia
@@ -17,8 +19,9 @@ import java.util.ArrayList;
  * Vuforia is used as measurement to generate correction
  */
 public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
+    public RealMatrix[] matrixPose; // pose, cov
 
-    public RealMatrix[] pose; // pose, cov
+    public ArrayList<Pose> poseHistory = new ArrayList<>();
 
     // values
     private final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -27,14 +30,14 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
             {0, 0, Math.pow(Math.toRadians(2),2)}
     });
 
-    public LocalizeKalmanFilter(Robot robot, RealMatrix pose){
+    public LocalizeKalmanFilter(Robot robot, RealMatrix matrixPose){
         robot.telemetryDump.registerTelemeter(this);
-        this.pose = new RealMatrix[]{pose, STARTING_COVARIANCE};
+        this.matrixPose = new RealMatrix[]{matrixPose, STARTING_COVARIANCE};
     }
 
-    public LocalizeKalmanFilter(Robot robot, RealMatrix[] pose){
+    public LocalizeKalmanFilter(Robot robot, RealMatrix[] matrixPose){
         robot.telemetryDump.registerTelemeter(this);
-        this.pose = pose;
+        this.matrixPose = matrixPose;
     }
 
     /**
@@ -48,9 +51,12 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
      *           column 2 is where the robot is in the trackers coordinate system
      */
     public void update(RealMatrix update, RealMatrix obs){
-        if (update != null && obs == null) pose = prediction(pose,update);
-        else if (update == null && obs != null) pose = correction(pose, obs);
-        else if (update != null && obs != null) pose = fuse(pose,update,obs);
+        Pose pose = getFormattedPose();
+        poseHistory.add(pose);
+
+        if (update != null && obs == null) matrixPose = prediction(matrixPose,update);
+        else if (update == null && obs != null) matrixPose = correction(matrixPose, obs);
+        else if (update != null && obs != null) matrixPose = fuse(matrixPose,update,obs);
     }
 
     /**
@@ -187,8 +193,8 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("pose: " + MatrixUtil.toPoseString(pose[0]));
-        data.add("STD: " + MatrixUtil.toSTDString(pose[1]));
+        data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
+        data.add("STD: " + MatrixUtil.toSTDString(matrixPose[1]));
 
         return data;
     }
@@ -201,5 +207,12 @@ public class LocalizeKalmanFilter implements KalmanFilter, Telemeter {
     @Override
     public boolean isOn() {
         return true;
+    }
+
+    public Pose getFormattedPose() {
+        double x = matrixPose[0].getEntry(0,0);
+        double y = matrixPose[0].getEntry(1,0);
+        double heading = Math.toDegrees(matrixPose[0].getEntry(2,0));
+        return new Pose(x, y, heading);
     }
 }
