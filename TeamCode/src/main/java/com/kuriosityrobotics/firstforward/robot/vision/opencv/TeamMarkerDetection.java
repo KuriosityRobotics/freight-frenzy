@@ -51,7 +51,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
 
         final Rect boundingBox1 = new Rect(new Point((int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(2 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
-        final Rect boundingBox2 = new Rect(new Point(2 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(3 * (int) (frame.width() / 5), frame.height()));
+        final Rect boundingBox2 = new Rect(new Point(2 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(3 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
         final Rect boundingBox3 = new Rect(new Point(3 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(4 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
 
         var submat1 = frame.submat(boundingBox1);
