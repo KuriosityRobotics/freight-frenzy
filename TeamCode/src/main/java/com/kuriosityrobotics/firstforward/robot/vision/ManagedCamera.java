@@ -6,6 +6,8 @@ import de.esoco.coroutine.*;
 
 import android.util.Log;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -20,6 +22,8 @@ import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMI
 import org.openftc.easyopencv.*;
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -65,23 +69,21 @@ public final class ManagedCamera {
             openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
         }
 
-        // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(new AsyncCameraOpenListener() {
+        openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                openCvCamera.setViewportRenderer(GPU_ACCELERATED);
-                openCvCamera.setViewportRenderingPolicy(OPTIMIZE_VIEW);
+                openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
-                openCvCamera.setPipeline(new CameraConsumerProcessor());
-                openCvCamera.startStreaming(1920, 1080);
-            }
+            openCvCamera.setPipeline(new CameraConsumerProcessor());
+            openCvCamera.startStreaming(1920, 1080);
+        }
 
             @Override
             public void onError(int errorCode) {
-                Log.d("ManagedCamera", "error: " + errorCode);
+                Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
-
     }
 
     public ManagedCamera(String cameraName, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {

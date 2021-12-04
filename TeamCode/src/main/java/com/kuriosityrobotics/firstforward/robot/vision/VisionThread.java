@@ -6,6 +6,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetection;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 
 import java.util.ArrayList;
@@ -13,13 +14,13 @@ import java.util.HashMap;
 
 public class VisionThread implements Runnable, Telemeter {
     private LocalizationConsumer localizationConsumer;
+    private TeamMarkerDetection teamMarkerDetector;
+    private final OpenCVDumper openCVDumper;
 
     public ManagedCamera managedCamera;
     private final Robot robot;
 
     private final String webcamName;
-
-    private final OpenCVDumper openCVDumper;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
@@ -29,13 +30,15 @@ public class VisionThread implements Runnable, Telemeter {
         this.webcamName = webcamName;
         robot.telemetryDump.registerTelemeter(this);
         this.localizationConsumer = localizationConsumer;
-        openCVDumper = new OpenCVDumper(robot.isDebug());
+        this.teamMarkerDetector = new TeamMarkerDetection();
+        this.openCVDumper = new OpenCVDumper(robot.isDebug());
     }
 
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> telemetryData = new ArrayList<>();
         telemetryData.addAll(localizationConsumer.logPositionandDetection());
+        telemetryData.add("Team marker location: " + teamMarkerDetector.getLocation());
         return telemetryData;
     }
 
