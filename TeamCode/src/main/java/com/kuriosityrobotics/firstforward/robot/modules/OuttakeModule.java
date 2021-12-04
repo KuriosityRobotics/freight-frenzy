@@ -150,7 +150,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public boolean readyForIntake() {
-        return slide.getCurrentPosition() > -10
+        return slide.getCurrentPosition() > -50
                 && Math.abs(pivot.getPosition() - HOPPER_PIVOT_IN) < 0.1;
     }
 
@@ -188,7 +188,7 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setPower(1);
         }
 
-        if (robot.intakeModule.retractIntake) {
+        if (robot.intakeModule.isIntakeRetracting()) {
             slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
         } else {
             slide.setTargetPosition(slideLevel.position);

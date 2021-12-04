@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class MotionProfile {
     public static final double ROBOT_MAX_VEL = 35;
     public static final double ROBOT_MAX_ACCEL = 90;
-    public static final double ROBOT_MAX_DECCEL = 60;
+    public static final double ROBOT_MAX_DECCEL = 45;
 
     private double maxVel, maxAccel, maxDeccel;
 
@@ -47,7 +47,7 @@ public class MotionProfile {
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : startVelo;
                 } else {
                     // default starting velo is something low
-                    startVelo = 10;
+                    startVelo = 5;
 
                     // if second point doesn't have a target velo assume we're ramping up to max
                     endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : this.maxVel;
@@ -63,7 +63,7 @@ public class MotionProfile {
             MotionPathSegment segment = new MotionPathSegment(
                     new MotionPoint(path[i], startVelo, path[i].getAngleLock()),
                     new MotionPoint(path[i + 1], endVelo, path[i + 1].getAngleLock()),
-                    endVelo >= startVelo ? maxAccel : maxDeccel
+                    maxAccel, maxDeccel
             );
 
             // use what value velocity actually gets to as the lastvelocity

@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -28,8 +30,8 @@ public class Drivetrain implements Module, Telemeter {
     private double timeStopped = 0;
 
     //braking controller
-    ClassicalPID angularBrakeController = new ClassicalPID(1, 0, 3);
-    ClassicalPID distanceBrakeController = new ClassicalPID(0.03, .000002, 0.7);
+    ClassicalPID angularBrakeController = new ClassicalPID(0.5, 0, 1);
+    ClassicalPID distanceBrakeController = new ClassicalPID(0.03, 0, 0.7);
 
     public Drivetrain(Robot robot) {
         this.robot = robot;
@@ -120,7 +122,7 @@ public class Drivetrain implements Module, Telemeter {
         Pose currentPosition = getCurrentPose();
 
         double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)) * 0.55; // to use for PID
-        double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading) * 0.85;
+        double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading) * 0.65;
 
         Point components = relativeComponentsToPoint(brakePose).scale(moveSpeed);
         double xError = components.x;
@@ -157,7 +159,7 @@ public class Drivetrain implements Module, Telemeter {
 
         double absoluteHeadingToPoint = absoluteHeadingToPoint(point);
 
-        return absoluteHeadingToPoint - currentPosition.heading;
+        return angleWrap(absoluteHeadingToPoint - currentPosition.heading);
     }
 
     public Point relativeComponentsToPoint(Point point) {

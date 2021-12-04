@@ -1,7 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
+import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
 
@@ -11,13 +14,14 @@ class MotionPathSegment {
     MotionPoint start;
     MotionPoint end;
 
-    private double maxAccel;
+    private double maxAccel, maxDeccel;
 
-    public MotionPathSegment(MotionPoint start, MotionPoint end, double maxAccel) {
+    public MotionPathSegment(MotionPoint start, MotionPoint end, double maxAccel, double maxDeccel) {
         this.start = start;
         this.end = end;
 
         this.maxAccel = maxAccel;
+        this.maxDeccel = maxDeccel;
 
         this.motionSegments = new ArrayList<>();
 
@@ -34,7 +38,8 @@ class MotionPathSegment {
             double accelSign = Math.signum(end.velocity - start.velocity);
 
             // vf^2 = vi^2 + 2ad. d = ((vf^2 - vi^2) / 2a)
-            double distanceNeeded = (Math.pow(end.velocity, 2) - Math.pow(start.velocity, 2)) / (2 * this.maxAccel * accelSign);
+            double accel = end.velocity > start.velocity ? maxAccel : maxDeccel;
+            double distanceNeeded = (Math.pow(end.velocity, 2) - Math.pow(start.velocity, 2)) / (2 * accel * accelSign);
 
             if (distanceNeeded > totalDistance) {
                 // vf = sqrt(vi^2 + 2ad).
@@ -43,7 +48,27 @@ class MotionPathSegment {
                 // ramp up the entire way
                 motionSegments.add(new MotionSegment(start.velocity, 0, maxVel, totalDistance));
             } else {
-                if (end.velocity > start.velocity) {
+                if (end.velocity == 0) {
+                    // try to peak first
+                    double switchPoint = (Math.pow(end.velocity, 2) - Math.pow(start.velocity, 2) + (2 * maxDeccel * totalDistance))
+                            / ((2 * maxAccel) + (2 * maxDeccel));
+                    double maxVel = Math.sqrt(Math.pow(start.velocity, 2) + (2 * maxAccel * switchPoint));
+
+                    Log.d("mp", "switchpoint: " + switchPoint);
+                    Log.d("mp", "maxvel: " + maxVel);
+
+                    if (maxVel > MotionProfile.ROBOT_MAX_VEL) {
+                        double up = (Math.pow(MotionProfile.ROBOT_MAX_VEL, 2) - Math.pow(start.velocity, 2)) / (2 * maxAccel);
+                        double down = (Math.pow(end.velocity, 2) - Math.pow(MotionProfile.ROBOT_MAX_VEL, 2)) / (2 * -maxDeccel);
+
+                        motionSegments.add(new MotionSegment(start.velocity, 0, MotionProfile.ROBOT_MAX_VEL, up));
+                        motionSegments.add(new MotionSegment(MotionProfile.ROBOT_MAX_VEL, up, MotionProfile.ROBOT_MAX_VEL, totalDistance - down));
+                        motionSegments.add(new MotionSegment(MotionProfile.ROBOT_MAX_VEL, totalDistance - down, end.velocity, totalDistance));
+                    } else {
+                        motionSegments.add(new MotionSegment(start.velocity, 0, maxVel, switchPoint));
+                        motionSegments.add(new MotionSegment(maxVel, switchPoint, end.velocity, totalDistance));
+                    }
+                } else if (end.velocity > start.velocity) {
                     // ramp up velo
                     motionSegments.add(new MotionSegment(start.velocity, 0, end.velocity, distanceNeeded));
 
@@ -61,7 +86,7 @@ class MotionPathSegment {
     }
 
     public double interpolateTargetVelocity(Point clippedPosition) {
-        double distAlongPath = this.start.distance(clippedPosition);
+        double distAlongPath = Range.clip(this.start.distance(clippedPosition), 0, start.distance(end));
 
         for (MotionSegment segment : this.motionSegments) {
             if (distAlongPath <= segment.endDistanceAlongPath && distAlongPath >= segment.startDistanceAlongPath) {

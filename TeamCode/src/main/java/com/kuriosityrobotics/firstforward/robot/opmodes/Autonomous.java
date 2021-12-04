@@ -17,8 +17,13 @@ import java.util.ArrayList;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class Autonomous extends LinearOpMode {
     private static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
-    private static final Pose CAROUSEL = new Pose(12.5, 122, Math.toRadians(-80));
+
+    private static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
+
     private static final Pose WOBBLE = new Pose(36, 93, Math.toRadians(-30));
+
+    private static final Pose WALL_ENT = new Pose(9, 100, Math.toRadians(180));
+    public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
 
     public void runOpMode() {
         Robot robot = null;
@@ -34,7 +39,7 @@ public class Autonomous extends LinearOpMode {
         PurePursuit toCarousel = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 4, 0.5 * MotionProfile.ROBOT_MAX_VEL),
-                new WayPoint(CAROUSEL.x, CAROUSEL.y - 5, CAROUSEL.heading, 3),
+                new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 3),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y, CAROUSEL.heading, 0, carouselActions)
         }, 4);
 
@@ -42,8 +47,13 @@ public class Autonomous extends LinearOpMode {
         wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
         PurePursuit toWobble = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(CAROUSEL, new RaiseOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
-                new WayPoint((CAROUSEL.x + WOBBLE.x) / 2., (CAROUSEL.y + WOBBLE.y) / 2.),
                 new WayPoint(WOBBLE, 0, wobbleActions)
+        }, 4);
+
+        PurePursuit toPark = new PurePursuit(robot, new WayPoint[]{
+                new WayPoint(CAROUSEL),
+                new WayPoint(WALL_ENT, 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(PARK, 0, new ArrayList<>())
         }, 4);
 
         waitForStart();
@@ -54,6 +64,8 @@ public class Autonomous extends LinearOpMode {
         toCarousel.follow();
 
         // to wobble
-        toWobble.follow();
+//        toWobble.follow();
+
+        toPark.follow();
     }
 }

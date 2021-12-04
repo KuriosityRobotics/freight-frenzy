@@ -35,7 +35,7 @@ public class PurePursuit implements Telemeter {
 
     // motion magic
     private final MotionProfile profile;
-    private final FeedForwardPID yPID = new FeedForwardPID(0.026, 0.012, 0, 0.01);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.028, 0.0085, 0, 0.01);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.035, 0, 0);
     private final ClassicalPID headingPID = new ClassicalPID(0.57, 0, 0);
 //    private final ClassicalPID headingPID = new ClassicalPID(0, 0, 0.2);
@@ -69,17 +69,21 @@ public class PurePursuit implements Telemeter {
 
     public void follow() {
         while (robot.isOpModeActive()) {
-            if (atEnd() && !executedLastAction) {
+            boolean atEnd = atEnd();
+            if (atEnd && !executedLastAction) {
                 Log.v("PP", "Last action!");
                 actionExecutor.execute(path[path.length - 1]);
                 executedLastAction = true;
-            } else if (atEnd() && actionExecutor.doneExecuting()) {
+            } else if (atEnd && executedLastAction && actionExecutor.doneExecuting()) {
+                Log.v("PP", "all done");
                 robot.drivetrain.setMovements(0, 0, 0);
                 return;
             }
 
             this.update();
         }
+
+//        robot.telemetryDump.removeTelemeter(this);
     }
 
     public void update() {
@@ -100,8 +104,14 @@ public class PurePursuit implements Telemeter {
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
-        double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - robotVelo.x)), -1, 1);
-        double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - robotVelo.y)), -1, 1);
+        double veloMag = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
+        double veloHeading = Math.atan2(robotVelo.x, robotVelo.y);
+        double alpha = veloHeading - robotPose.heading;
+        double currXVelo = veloMag * Math.sin(alpha);
+        double currYVelo = veloMag * Math.cos(alpha);
+
+        double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo)), -1, 1);
+        double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
         if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK && robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD) {
             angPow = 0;
@@ -115,7 +125,7 @@ public class PurePursuit implements Telemeter {
             targHeading = angleWrap(targHeading);
             double currHeading = angleWrap(robotPose.heading);
 
-            double sign = Math.abs(targHeading - currHeading) > Math.abs(currHeading - targHeading)
+            double sign = Math.abs(angleWrap(targHeading - currHeading)) > Math.abs(angleWrap(currHeading - targHeading))
                     ? -1 : 1;
             double error = sign * angleWrap(targHeading - currHeading);
 //            Log.v("PP", "diff: " + error);
@@ -250,6 +260,7 @@ public class PurePursuit implements Telemeter {
         ArrayList<String> data = new ArrayList<>();
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);
+        data.add("distToEnd: " + robot.drivetrain.distanceToPoint(path[path.length - 1]));
         return data;
     }
 
