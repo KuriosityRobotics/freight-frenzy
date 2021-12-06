@@ -22,7 +22,6 @@ public class DumpOuttakeAction extends Action {
             robot.outtakeModule.dump(dumpPosition);
         } else if (robot.outtakeModule.getOuttakeState() == OuttakeModule.OuttakeState.SLIDES_DOWN) {
             this.completed = true;
-            Log.v("dump outtake", "DONE!");
         }
 
         started = true;
