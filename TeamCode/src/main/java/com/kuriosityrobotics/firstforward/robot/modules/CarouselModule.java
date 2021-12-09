@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static java.lang.Math.PI;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -36,8 +37,8 @@ public class CarouselModule implements Module, Telemeter {
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    private static final double MAX_CAROUSEL_SPEED = Math.toRadians(25);
-    private static final double MAX_SPEED_MS = 700;
+    private static final double MAX_CAROUSEL_SPEED = Math.toRadians(250);
+    private static final double MAX_SPEED_MS = 1600;
 
     public void update() {
         if (spin) {
@@ -45,7 +46,7 @@ public class CarouselModule implements Module, Telemeter {
                 spinStartTimeMillis = SystemClock.elapsedRealtime();
             }
 
-            double speed = MAX_CAROUSEL_SPEED * ((SystemClock.elapsedRealtime() - spinStartTimeMillis) / MAX_SPEED_MS);
+            double speed = MAX_CAROUSEL_SPEED * Range.clip(((SystemClock.elapsedRealtime() - spinStartTimeMillis) / MAX_SPEED_MS), 0, 1);
             carouselMotor.setVelocity(-speed, AngleUnit.RADIANS);
         } else {
             spinStartTimeMillis = null;

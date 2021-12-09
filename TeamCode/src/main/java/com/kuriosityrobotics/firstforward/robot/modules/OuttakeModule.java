@@ -10,6 +10,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
+    //time constants
+    //TODO determine time
+    private static final long HOPPER_EXTEND_TIME = 500;
+    private static final long HOPPER_DUMP_TIME = 600;
+    private static final long SLIDE_RAISE_TIME = 0;
+
     //constants
     private static final double LINKAGE_EXTENDED = 0.9;
     private static final double LINKAGE_RETRACTED = 0.087;
@@ -40,30 +46,26 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
-    //ACTIONS
-    //time constants
-    //TODO determine time
-    private static final long HOPPER_EXTEND_TIME = 500;
-    private static final long HOPPER_ROTATE_TIME = 950;
-    private static final long HOPPER_DUMP_TIME = 600;
-    private static final long SLIDE_RAISE_TIME = 350;
-    private final boolean isOn = true;
-    private boolean isHopperOccupied = false;
-
     private final Robot robot;
+
+    // states
+    public static VerticalSlideLevel slideLevel = VerticalSlideLevel.DOWN;
+    private OuttakeState outtakeState = OuttakeState.IDLE;
 
     //servos
     private static Servo linkage;
     private static Servo pivot;
     private static Servo hopper;
+
     //motors
     private static DcMotor slide;
-    public static VerticalSlideLevel slideLevel = VerticalSlideLevel.DOWN;
-    public static HopperDumpPosition dumpMode = HopperDumpPosition.DUMP_OUTWARDS;
 
-    private OuttakeState outtakeState = OuttakeState.IDLE;
+    // helpers
+    private static HopperDumpPosition dumpMode = HopperDumpPosition.DUMP_OUTWARDS;
+    private final boolean isOn = true;
+    private boolean isHopperOccupied = false;
 
-    enum OuttakeState {
+    public enum OuttakeState {
         //        SLIDES_UP(SLIDE_RAISE_TIME, () -> {
 //            slide.setPower(1);
 //            slide.setTargetPosition(slideLevel.position);
@@ -132,6 +134,9 @@ public class OuttakeModule implements Module, Telemeter {
         hopper.setPosition(HOPPER_RESTING_POSITION);
         pivot.setPosition(HOPPER_PIVOT_IN);
         linkage.setPosition(LINKAGE_RETRACTED);
+
+        slideLevel = VerticalSlideLevel.DOWN;
+        outtakeState = OuttakeState.IDLE;
     }
 
     public void dump(HopperDumpPosition dumpMode) {
@@ -145,7 +150,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public boolean readyForIntake() {
-        return slide.getCurrentPosition() > -10
+        return slide.getCurrentPosition() > -50
                 && Math.abs(pivot.getPosition() - HOPPER_PIVOT_IN) < 0.1;
     }
 
@@ -183,11 +188,15 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setPower(1);
         }
 
-        if (robot.intakeModule.retractIntake) {
+        if (robot.intakeModule.isIntakeRetracting()) {
             slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
         } else {
             slide.setTargetPosition(slideLevel.position);
         }
+    }
+
+    public OuttakeState getOuttakeState() {
+        return this.outtakeState;
     }
 
     @Override

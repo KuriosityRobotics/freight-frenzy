@@ -14,6 +14,7 @@ import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
+import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
@@ -44,7 +45,11 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
 
         this.odometry = new Odometry(robot, pose);
-        this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtil.ZERO_MATRIX);
+        this.kalmanFilter = new LocalizeKalmanFilter(robot, MatrixUtils.createRealMatrix(new double[][]{
+                {pose.x},
+                {pose.y},
+                {pose.heading}
+        }));
     }
 
     @Override

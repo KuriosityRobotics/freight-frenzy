@@ -16,7 +16,7 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         try {
-            robot = new Robot(hardwareMap, telemetry, this);
+            robot = new Robot(hardwareMap, telemetry, this, Autonomous.PARK);
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
@@ -39,7 +39,13 @@ public class TeleOp extends LinearOpMode {
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
-        double turnMov = Math.signum(gamepad1.right_stick_x) * Math.pow(gamepad1.right_stick_x, 2);
+        double turnMov = gamepad1.right_stick_x;
+
+        if (gamepad1.right_bumper) {
+            yMov /= 2;
+            xMov /= 2;
+            turnMov /= 2;
+        }
 
         robot.drivetrain.setMovements(xMov, yMov, turnMov);
     }
@@ -57,12 +63,12 @@ public class TeleOp extends LinearOpMode {
     private OuttakeModule.VerticalSlideLevel level = OuttakeModule.VerticalSlideLevel.DOWN;
 
     private void updateOuttakeStates() {
-        if (gamepad2.dpad_left)
+        if (gamepad2.dpad_down)
             OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
         if (gamepad2.dpad_up)
-            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.MID;
-        if (gamepad2.dpad_right)
             OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+        if (gamepad2.dpad_right)
+            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.MID;
 
         if (gamepad2.left_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_INWARDS);

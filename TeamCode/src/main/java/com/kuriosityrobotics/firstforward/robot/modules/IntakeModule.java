@@ -49,6 +49,7 @@ public class IntakeModule implements Module, Telemeter {
 
     private Long intakerRetractionStartTime;
     private volatile boolean intakeOccupied = false;
+    private boolean started = false;
 
     private boolean hasOccupationStatusChanged() {
         if (intakePower < 0.1 || intakeRpmRingBuffer.isEmpty())
@@ -118,6 +119,13 @@ public class IntakeModule implements Module, Telemeter {
 
     public void update() {
         synchronized (intakeRpmRingBuffer) {
+            if (!robot.isOpModeActive()) {
+                setIntakePosition(IntakePosition.RETRACTED);
+            } else if (!started) {
+                setIntakePosition(IntakePosition.EXTENDED);
+                started = true;
+            }
+
             if (intakePower < 0 && intakerRetractionStartTime != null) {
                 startIntakeExtension();
             }
@@ -144,6 +152,8 @@ public class IntakeModule implements Module, Telemeter {
                 if (robot.outtakeModule.readyForIntake()) {
                     setIntakePosition(IntakePosition.RETRACTED);
                     intakerRetractionStartTime = SystemClock.elapsedRealtime();
+                } else {
+                    OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
                 }
             }
 
@@ -158,11 +168,16 @@ public class IntakeModule implements Module, Telemeter {
     private synchronized void startIntakeExtension() {
         if (robot != null) {
             robot.outtakeModule.hopperOccupied();
+            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.TOP;
         }
         intakeOccupied = false;
         intakerRetractionStartTime = null;
         setIntakePosition(IntakePosition.EXTENDED);
         retractIntake = false;
+    }
+
+    public boolean isIntakeRetracting() {
+        return intakerRetractionStartTime != null;
     }
 
     public boolean isOn() {

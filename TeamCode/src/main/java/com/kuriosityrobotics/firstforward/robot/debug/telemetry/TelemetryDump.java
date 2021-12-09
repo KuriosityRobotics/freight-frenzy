@@ -28,6 +28,10 @@ public class TelemetryDump implements PoseWatcher {
         telemeters.add(telemeter);
     }
 
+    public void removeTelemeter(Telemeter telemeter) {
+        telemeters.remove(telemeter);
+    }
+
     public TelemetryDump(Telemetry telemetry, boolean debug) {
         this.telemetry = telemetry;
         this.debug = debug;
