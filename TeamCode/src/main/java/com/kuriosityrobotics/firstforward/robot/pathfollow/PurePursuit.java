@@ -122,12 +122,12 @@ public class PurePursuit implements Telemeter {
             } else {
                 targHeading = targetAngleLock.getHeading();
             }
-            targHeading = angleWrap(targHeading);
-            double currHeading = angleWrap(robotPose.heading);
+            targHeading = angleWrap(targHeading, Math.PI);
+            double currHeading = angleWrap(robotPose.heading, Math.PI);
 
-            double sign = Math.abs(angleWrap(targHeading - currHeading)) > Math.abs(angleWrap(currHeading - targHeading))
-                    ? -1 : 1;
-            double error = sign * angleWrap(targHeading - currHeading);
+            double counterError = angleWrap(targHeading - currHeading, Math.PI);
+            double clockError = angleWrap(currHeading - targHeading, Math.PI);
+            double error = counterError > clockError ? clockError : -counterError;
 //            Log.v("PP", "diff: " + error);
 
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);

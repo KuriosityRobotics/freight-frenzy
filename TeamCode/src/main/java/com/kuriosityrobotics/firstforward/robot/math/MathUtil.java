@@ -29,7 +29,6 @@ public class MathUtil {
      * @return The wrapped angle, which will lie within pi of the centerOfWrap.
      */
     public static double angleWrap(double angle, double centerOfWrap) {
-
         angle -= centerOfWrap;
         int times = (int) (angle / (2 * Math.PI));
         angle -= times * 2 * Math.PI;
