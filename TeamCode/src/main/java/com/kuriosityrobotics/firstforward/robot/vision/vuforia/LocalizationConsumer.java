@@ -177,15 +177,15 @@ public class LocalizationConsumer implements VuforiaConsumer {
             double heading = 0;
             CameraName activeWebcamName = this.switchableCamera.getActiveCamera();
             if (activeWebcamName == cameraName1) {
-                heading = Math.toDegrees(angleWrap(Math.toRadians(wrongHeading - 180)));
+                heading = Math.toDegrees(angleWrap(Math.toRadians(180 - heading)));
             } else if (activeWebcamName == cameraName2) {
-                heading = Math.toDegrees(angleWrap(Math.toRadians(wrongHeading - 90)));
+                heading = Math.toDegrees(angleWrap(Math.toRadians(270 - heading)));
             } else {
                 heading = wrongHeading;
             }
 
-            // Convert from FTC coordinate system to Kuriosity's
-            double robotHeadingOurs = Math.toDegrees(angleWrap(Math.toRadians(180 - heading)));
+            // Convert from FTC coordinate system to ours
+            double robotHeadingOurs = heading;
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
@@ -203,7 +203,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},
                     {robotYOurs, 0},
-                    {Math.toRadians(robotHeadingOurs), 0}
+                    {Math.toRadians(heading), 0}
             });
         }
     }
