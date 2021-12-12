@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +16,6 @@ import java.util.List;
  */
 
 public class DashboardUtil {
-
     public static void drawPoseHistory(Canvas canvas, List<Pose> poseHistory) {
         canvas.setStrokeWidth(1);
         canvas.setStroke("#3F51B5");
@@ -40,13 +40,12 @@ public class DashboardUtil {
         canvas.strokeLine(x1, y1, x2, y2);
     }
 
-    public static Pose normalizePose(Pose pose) {
-        // convert pose to ftc's system so it can be graphed on the dashboard
-
-        double x =  -pose.y + HALF_FIELD / MM_PER_INCH;
-        double y = pose.x - HALF_FIELD / MM_PER_INCH;
-        double heading = angleWrap(Math.PI - pose.heading);
-
+    // sus naming but whatever
+    // convert pose to ftc's system so it can be graphed on the dashboard
+    public static Pose poseDashboardNormalization(Pose ourGoodCoordinateSystemPose) {
+        double x =  -ourGoodCoordinateSystemPose.y + HALF_FIELD / MM_PER_INCH;
+        double y = ourGoodCoordinateSystemPose.x - HALF_FIELD / MM_PER_INCH;
+        double heading = Math.toDegrees(angleWrap(Math.toRadians(ourGoodCoordinateSystemPose.heading - 180)));
         return new Pose(x, y, heading);
     }
 }

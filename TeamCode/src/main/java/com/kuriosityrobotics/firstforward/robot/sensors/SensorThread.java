@@ -10,6 +10,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
@@ -68,7 +69,7 @@ public class SensorThread implements Runnable, Telemeter {
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - lastPoseSendTime >= 250) {
-                robot.telemetryDump.sendPose(this.kalmanFilter.getPoseRadians());
+                robot.telemetryDump.sendPose(DashboardUtil.poseDashboardNormalization(this.kalmanFilter.getPoseRadians()));
                 lastPoseSendTime = currentTime;
             }
 
@@ -104,7 +105,6 @@ public class SensorThread implements Runnable, Telemeter {
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
         data.put("Sensor Thread Update time: ",  "" + updateTime);
-        data.put("Robot Pose Rad: ",  this.kalmanFilter.getPoseRadians());
         data.put("Robot Pose Deg: ",  this.kalmanFilter.getPoseDegrees());
 
         return data;
