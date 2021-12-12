@@ -4,6 +4,8 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -13,6 +15,7 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 
 /**
@@ -71,7 +74,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      */
     @Override
     public RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
-
         // set up
         double prevX = prev[0].getEntry(0, 0);
         double prevY = prev[0].getEntry(1, 0);
@@ -207,7 +209,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
@@ -238,4 +240,3 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return true;
     }
 }
-

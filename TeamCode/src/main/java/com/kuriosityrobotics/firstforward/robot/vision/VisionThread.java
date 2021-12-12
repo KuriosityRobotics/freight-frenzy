@@ -14,22 +14,21 @@ import java.util.HashMap;
 public class VisionThread implements Runnable, Telemeter {
     private LocalizationConsumer localizationConsumer;
 
-    public ManagedCamera managedCamera;
+    private ManagedCamera managedCamera;
     private final Robot robot;
-
-    private final String webcamName;
 
     private final OpenCVDumper openCVDumper;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public VisionThread(Robot robot, LocalizationConsumer localizationConsumer, String webcamName) {
+    public VisionThread(Robot robot, LocalizationConsumer localizationConsumer) {
         this.robot = robot;
-        this.webcamName = webcamName;
         robot.telemetryDump.registerTelemeter(this);
         this.localizationConsumer = localizationConsumer;
         openCVDumper = new OpenCVDumper(robot.isDebug());
+        this.managedCamera = new ManagedCamera(robot.cameraName1, robot.cameraName2, localizationConsumer, openCVDumper);
+        robot.telemetryDump.registerTelemeter(managedCamera);
     }
 
     @Override
@@ -42,7 +41,8 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
-        data.put("Vision Thread Update time: ", ""+updateTime);
+        data.put("Vision Thread Update time: ", updateTime);
+        data.put("Robot Location: ", this.localizationConsumer.getFormattedMatrix());
         return data;
     }
 
@@ -58,8 +58,6 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
-        this.managedCamera = new ManagedCamera(webcamName, robot.hardwareMap, localizationConsumer, openCVDumper);
-
         while (robot.running()) {
             try {
                 long currentTime = SystemClock.elapsedRealtime();
@@ -73,5 +71,9 @@ public class VisionThread implements Runnable, Telemeter {
         }
         this.localizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
+    }
+
+    public ManagedCamera getManagedCamera() {
+        return this.managedCamera;
     }
 }

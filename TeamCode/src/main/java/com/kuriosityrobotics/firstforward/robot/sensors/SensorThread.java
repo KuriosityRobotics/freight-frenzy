@@ -16,6 +16,7 @@ import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.descriptive.StorelessUnivariateStatistic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +37,13 @@ public class SensorThread implements Runnable, Telemeter {
     private long lastPoseSendTime = 0;
 
     private final LocalizationConsumer localizationConsumer;
+
+    public RobotState robotState = RobotState.DEPOSITING;
+
+    public enum RobotState {
+        DEPOSITING,
+        COLLECTING
+    }
 
     public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer, Pose pose) {
         this.robot = robot;
@@ -72,6 +80,14 @@ public class SensorThread implements Runnable, Telemeter {
                 robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
                 lastPoseSendTime = currentTime;
             }
+
+//            if (-90.0 <= this.kalmanFilter.getFormattedPose().heading && this.kalmanFilter.getFormattedPose().heading <= 90.0) {
+//                robotState = RobotState.COLLECTING;
+//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap, "Webcam 1");
+//            } else {
+//                robotState = RobotState.DEPOSITING;
+//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap,"Webcam 2");
+//            }
 
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;

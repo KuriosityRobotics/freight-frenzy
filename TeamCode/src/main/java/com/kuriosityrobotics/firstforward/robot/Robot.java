@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 
 public class Robot {
@@ -48,9 +49,15 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
+    public WebcamName cameraName1;
+    public WebcamName cameraName2;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
+
+        this.cameraName1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        this.cameraName2 = hardwareMap.get(WebcamName.class, "Webcam 2");
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
@@ -76,26 +83,26 @@ public class Robot {
                 carouselModule
         };
 
-        localizationConsumer = new LocalizationConsumer();
+        localizationConsumer = new LocalizationConsumer(cameraName1, cameraName2);
 
         // threads
         sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        visionThread = new VisionThread(this, localizationConsumer);
         debugThread = new DebugThread(this, DEBUG);
 
         this.start();
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
-        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0, 0.0, 0.0));
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
     public void start() {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-//                new Thread(visionThread),
+                new Thread(visionThread),
                 new Thread(debugThread)
         };
 
@@ -131,6 +138,11 @@ public class Robot {
     public boolean started() {
         return linearOpMode.isStarted();
     }
+
+    public SensorThread getSensorThread() {
+        return this.sensorThread;
+    }
+    public VisionThread getVisionThread() { return  this.visionThread; }
 
     public boolean isDebug() {
         return DEBUG;
