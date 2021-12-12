@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
@@ -80,6 +82,10 @@ public class TeleOp extends LinearOpMode {
         }else{
             OuttakeModule.pivotAngle = 180/Math.PI * (Math.atan2(gamepad2.right_stick_x, -gamepad2.right_stick_y) - Math.PI/2);
         }
+        Log.i("teleop", "pivot angle: " + 180/Math.PI * Math.atan2(gamepad2.right_stick_x, -gamepad2.right_stick_y));
+        //up is 0
+        //right is 90
+        //left is -90
         OuttakeModule.skipRotate = gamepad2.y;
     }
 
