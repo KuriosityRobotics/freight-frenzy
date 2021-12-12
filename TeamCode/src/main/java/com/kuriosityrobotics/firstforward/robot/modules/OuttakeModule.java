@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -22,6 +23,8 @@ public class OuttakeModule implements Module, Telemeter {
     private static final double HOPPER_PIVOT_IN = 0.906181;
     private static final double HOPPER_RESTING_POSITION = .692386;
     //TODO determine actual marking
+    public static double pivotAngle;
+    public static boolean skipRotate = false;
 
     public enum HopperDumpPosition {
         DUMP_OUTWARDS(.0),
@@ -47,6 +50,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     private final Robot robot;
+    private static double robotHeading;
 
     // states
     public static VerticalSlideLevel slideLevel = VerticalSlideLevel.DOWN;
@@ -80,8 +84,8 @@ public class OuttakeModule implements Module, Telemeter {
         SLIDES_DOWN(SLIDE_RAISE_TIME, () -> {
             slideLevel = VerticalSlideLevel.DOWN;
         }),
-        IDLE(0, () -> {
-        });
+        IDLE(0, () -> {}),
+        IDLE_ROTATE(0, () -> {});
 
         public final double completionTime;
         private final Runnable onStart;
@@ -155,13 +159,23 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public void update() {
+        robotHeading = robot.sensorThread.getPose().heading;
         if (this.outtakeState != OuttakeState.IDLE && this.outtakeState.shouldTransition()) {
             switch (this.outtakeState) {
-//                case SLIDES_UP:
-//                    this.outtakeState = OuttakeState.IDLE;
-//                    break;
                 case LINKAGE_OUT:
-                    this.outtakeState = OuttakeState.DUMP;
+                    this.outtakeState = OuttakeState.IDLE_ROTATE;
+                    break;
+                case IDLE_ROTATE:
+                    Log.i("outtake", "idle rotate");
+
+                    if (skipRotate){
+                        Log.i("outtake", "skip");
+                        this.outtakeState = OuttakeState.DUMP;
+                        break;
+                    }
+
+                    pivot.setPosition(angleToServoPos(pivotAngle - (180/Math.PI * robotHeading)));
+                    this.outtakeState = OuttakeState.IDLE_ROTATE;
                     break;
                 case DUMP:
                     this.outtakeState = OuttakeState.HOPPER_RESTING;
@@ -197,6 +211,13 @@ public class OuttakeModule implements Module, Telemeter {
 
     public OuttakeState getOuttakeState() {
         return this.outtakeState;
+    }
+
+    public double angleToServoPos(double angle){
+        //0 is .906181
+        //-90 is .5738778
+        //-180 is .23151
+        return .00374817222 * angle + 0.906181;
     }
 
     @Override
