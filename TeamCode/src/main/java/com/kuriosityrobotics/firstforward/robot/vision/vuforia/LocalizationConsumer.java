@@ -1,3 +1,4 @@
+
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
@@ -12,7 +13,6 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
@@ -40,22 +40,20 @@ public class LocalizationConsumer implements VuforiaConsumer {
     private volatile VuforiaTrackable detectedTrackable = null;
     private volatile OpenGLMatrix detectedLocation = null;
 
-    // Camera positions on robot (both front and back)
-    // current pos matches tuning, not supposed to match actual pos on the robot
+    // Camera positions on robot (both front and left)
     // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)
     private static final float CAMERA_LEFT_FORWARD_DISPLACEMENT = .125f * MM_PER_INCH;
     private static final float CAMERA_LEFT_VERTICAL_DISPLACEMENT = 7.25f * MM_PER_INCH;
     private static final float CAMERA_LEFT_LEFT_DISPLACEMENT = 5.5f * MM_PER_INCH;
 
-    private static final float CAMERA_FRONT_FORWARD_DISPLACEMENT = 8.075f * MM_PER_INCH;   // eg: Enter the forward distance from the center of the robot to the camera lens
-    private static final float CAMERA_FRONT_VERTICAL_DISPLACEMENT = 15.313f * MM_PER_INCH;   // eg: Camera is 6 Inches above ground
-    private static final float CAMERA_FRONT_LEFT_DISPLACEMENT = 0.185f * MM_PER_INCH;   // eg: Enter the left distance from the center of the robot to the camera lens
+    private static final float CAMERA_FRONT_FORWARD_DISPLACEMENT = 8.075f * MM_PER_INCH;
+    private static final float CAMERA_FRONT_VERTICAL_DISPLACEMENT = 15.313f * MM_PER_INCH;
+    private static final float CAMERA_FRONT_LEFT_DISPLACEMENT = 0.185f * MM_PER_INCH;
 
     // Constants for perimeter targets
     private static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
     private static final float HALF_FIELD = 70f * MM_PER_INCH;
     private static final float ONE_TILE = 23.5f * MM_PER_INCH;
-
     private static final float FULL_FIELD = HALF_FIELD * 2f;
     private static final float ONE_AND_HALF_TILE = ONE_TILE * 1.5f;
     private static final float HALF_TILE = ONE_TILE * 0.5f;
@@ -95,13 +93,6 @@ public class LocalizationConsumer implements VuforiaConsumer {
         identifyTarget(1, "Blue Alliance Wall",  HALF_TILE,   HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 0);
         identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
         identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
-
-        // Let all the trackable listeners know where the cameras are.
-        for (VuforiaTrackable trackable : freightFrenzyTargets) {
-            VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-            listener.setCameraLocationOnRobot(cameraName1, cameraLeftLocationOnRobot);
-            listener.setCameraLocationOnRobot(cameraName2, cameraFrontLocationOnRobot);
-        }
     }
 
     @Override
@@ -116,10 +107,19 @@ public class LocalizationConsumer implements VuforiaConsumer {
             }
 
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
-                if (((VuforiaTrackableDefaultListener) trackable.getListener()).isVisible()) {
+                VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
+                if (listener.isVisible()) {
                     detectedTrackable = trackable;
+                    // The listener does not understand that we have coordinates for the switchable cameras
+                    // It thinks we're at (0,0,0)
+                    // so we correct it here :sunglas:
+                    if (switchableCamera.getActiveCamera() == cameraName1) {
+                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), cameraLeftLocationOnRobot);
+                    } else if (switchableCamera.getActiveCamera() == cameraName2) {
+                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), cameraFrontLocationOnRobot);
+                    }
 
-                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener) trackable.getListener()).getRobotLocation();
+                    OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
                     if (robotLocationTransform != null) {
                         this.detectedLocation = robotLocationTransform;
                     } else {
@@ -172,33 +172,23 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
             VectorF translation = detectedLocation.getTranslation();
             Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-            double rawHeading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
-
-            // Vuforia reports wrong heading for switchable camera. Correct it here
-            double heading = 0;
-            if (switchableCamera.getActiveCamera() == cameraName1) {
-                heading = Math.toDegrees(angleWrap(Math.toRadians(rawHeading - 180)));
-            } else if (switchableCamera.getActiveCamera() == cameraName2) {
-                heading = Math.toDegrees(angleWrap(Math.toRadians(rawHeading - 90)));
-            } else {
-                heading = rawHeading;
-            }
+            double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
 
             // Convert from FTC coordinate system to ours
             double robotHeadingOurs = Math.toDegrees(angleWrap(Math.toRadians(180 - heading)));
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-//            Log.v("Vision", "FTC Coordinate System");
+            // Fancy formatting :sunglas
+//            Log.e("Vision", "FTC Coordinate System");
 //            Log.v("Vision", "FTC x: " + robotLocation.x);
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
-//            Log.v("Vision", "FTC wrong heading: " + rawHeading);
 //            Log.v("Vision", "FTC heading: " + heading);
 //
-//            Log.v("Vision", "Kuriosity Coordinate System");
-//            Log.v("Vision", "Kuriosity x: " + robotXOurs);
-//            Log.v("Vision", "Kuriosity y: " + robotYOurs);
-//            Log.v("Vision", "Kuriosity heading: " + robotHeadingOurs);
+//            Log.e("Vision", "Our Coordinate System");
+//            Log.v("Vision", "Our x: " + robotXOurs);
+//            Log.v("Vision", "Our y: " + robotYOurs);
+//            Log.v("Vision", "Our heading: " + robotHeadingOurs);
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},

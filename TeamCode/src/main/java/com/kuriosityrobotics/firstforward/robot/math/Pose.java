@@ -43,9 +43,10 @@ public class Pose extends Point {
 
     @NonNull
     @Override
+    // escape sequence formatting moment
     public String toString() {
-        return "x=" + x +
-                ", y=" + y +
-                ", heading=" + heading;
+        return "\nx: " + x +
+                ", \ny: " + y +
+                ", \nheading:" + heading;
     }
 }

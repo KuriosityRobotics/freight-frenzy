@@ -17,6 +17,11 @@ public class Point {
         this.y = y;
     }
 
+    public Point() {
+        this.x = 0.0;
+        this.y = 0.0;
+    }
+
     public double distance(Point other) {
         return Math.hypot(other.x - x, other.y - y);
     }
