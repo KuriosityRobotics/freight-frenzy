@@ -26,7 +26,7 @@ import java.util.List;
 import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
-public final class ManagedCamera implements Telemeter {
+public final class ManagedCamera {
     private static final String VUFORIA_LICENCE_KEY =
             "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
                     "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
@@ -129,16 +129,6 @@ public final class ManagedCamera implements Telemeter {
 
         this.switchableCamera.setActiveCamera(cameraName);
         this.activeCameraName = cameraName;
-    }
-
-    @Override
-    public String getName() {
-        return "ManagedCamera";
-    }
-
-    @Override
-    public boolean isOn() {
-        return true;
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {

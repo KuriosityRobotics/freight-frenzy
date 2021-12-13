@@ -84,8 +84,10 @@ public class TelemetryDump implements PoseWatcher {
 
             dashboard.sendTelemetryPacket(packet);
 
-            poseHistory.add(pose);
-            DashboardUtil.drawRobot(canvas, pose);
+            Pose dashboardPose = DashboardUtil.normalizePose(pose);
+
+            poseHistory.add(dashboardPose);
+            DashboardUtil.drawRobot(canvas, dashboardPose);
             DashboardUtil.drawPoseHistory(canvas, poseHistory);
         }
     }
