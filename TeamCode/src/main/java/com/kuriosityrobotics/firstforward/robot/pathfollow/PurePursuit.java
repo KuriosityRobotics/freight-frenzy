@@ -76,13 +76,14 @@ public class PurePursuit implements Telemeter {
                 executedLastAction = true;
             } else if (atEnd && executedLastAction && actionExecutor.doneExecuting()) {
                 robot.drivetrain.setMovements(0, 0, 0);
-                return;
+
+                robot.telemetryDump.removeTelemeter(this);
+
+                break;
             }
 
             this.update();
         }
-
-//        robot.telemetryDump.removeTelemeter(this);
     }
 
     public void update() {
