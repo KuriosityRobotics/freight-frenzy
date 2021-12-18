@@ -5,21 +5,25 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
-
-import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
-    private final List<Telemeter> telemeters = new CopyOnWriteArrayList<>();
+    // ~85 ms (fastest)
+    private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
+    // ~ 106 ms
+//    private final List<Telemeter> telemeters = new CopyOnWriteArrayList<>();
+    // ~95 ms
+//    private final Queue<Telemeter> telemeters = new ConcurrentLinkedDeque<>();
     public FtcDashboard dashboard;
 
     // TODO: Make an evictingblockingqueue?
