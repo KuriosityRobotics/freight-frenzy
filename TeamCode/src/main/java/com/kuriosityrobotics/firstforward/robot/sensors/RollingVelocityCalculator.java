@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 

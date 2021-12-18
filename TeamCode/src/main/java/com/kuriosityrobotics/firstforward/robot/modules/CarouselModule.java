@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static java.lang.Math.PI;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;

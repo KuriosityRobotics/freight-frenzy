@@ -4,8 +4,6 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -15,8 +13,8 @@ import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as

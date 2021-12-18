@@ -1,10 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
-import android.os.SystemClock;
-import android.util.Log;
-
-import com.qualcomm.robotcore.util.Range;
-
 /**
  * A PID controller that increments a scale using PID. This is different from a traditional PID
  * because the scale is incremented by a value determined using PID every cycle.

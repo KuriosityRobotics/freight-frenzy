@@ -5,7 +5,6 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 

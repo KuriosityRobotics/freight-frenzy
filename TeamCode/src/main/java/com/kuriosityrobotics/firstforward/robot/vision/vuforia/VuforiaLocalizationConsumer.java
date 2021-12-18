@@ -28,7 +28,7 @@ import java.util.ArrayList;
 /**
  * Defining a Vuforia localization consumer
  */
-public class LocalizationConsumer implements VuforiaConsumer {
+public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     // Accessible values
     private static final float MM_PER_INCH = 25.4f;
 
@@ -71,7 +71,7 @@ public class LocalizationConsumer implements VuforiaConsumer {
 
     private SwitchableCamera switchableCamera;
 
-    public LocalizationConsumer(WebcamName cameraName1, WebcamName cameraName2) {
+    public VuforiaLocalizationConsumer(WebcamName cameraName1, WebcamName cameraName2) {
         this.cameraName1 = cameraName1;
         this.cameraName2 = cameraName2;
     }

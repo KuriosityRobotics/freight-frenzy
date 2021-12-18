@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -11,6 +10,7 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
+    Button switchCameraButton = new Button();
 
     private boolean prevY = false;
 
@@ -18,7 +18,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         try {
             // TODO: change
-            robot = new Robot(hardwareMap, telemetry, this, new Pose(18, 63, Math.toRadians(0)));
+            robot = new Robot(hardwareMap, telemetry, this, Autonomous.PARK);
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);

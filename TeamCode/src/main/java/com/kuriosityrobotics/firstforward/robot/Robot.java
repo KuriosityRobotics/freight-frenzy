@@ -11,7 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -41,7 +41,7 @@ public class Robot {
 
     public TelemetryDump telemetryDump;
 
-    public LocalizationConsumer localizationConsumer;
+    public VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
@@ -83,12 +83,12 @@ public class Robot {
                 carouselModule
         };
 
-        localizationConsumer = new LocalizationConsumer(cameraName1, cameraName2);
+        vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(cameraName1, cameraName2);
 
         // threads
-        sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
+        sensorThread = new SensorThread(this, configLocation, vuforiaLocalizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, localizationConsumer);
+        visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         debugThread = new DebugThread(this, DEBUG);
 
         this.start();

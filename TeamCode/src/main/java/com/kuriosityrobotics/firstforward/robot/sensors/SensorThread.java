@@ -10,13 +10,11 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.stat.descriptive.StorelessUnivariateStatistic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,19 +34,12 @@ public class SensorThread implements Runnable, Telemeter {
     private long lastLoopTime = 0;
     private long lastPoseSendTime = 0;
 
-    private final LocalizationConsumer localizationConsumer;
+    private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
 
-    public RobotState robotState = RobotState.DEPOSITING;
-
-    public enum RobotState {
-        DEPOSITING,
-        COLLECTING
-    }
-
-    public SensorThread(Robot robot, String configLocation, LocalizationConsumer localizationConsumer, Pose pose) {
+    public SensorThread(Robot robot, String configLocation, VuforiaLocalizationConsumer vuforiaLocalizationConsumer, Pose pose) {
         this.robot = robot;
         this.configLocation = configLocation;
-        this.localizationConsumer = localizationConsumer;
+        this.vuforiaLocalizationConsumer = vuforiaLocalizationConsumer;
 
         robot.telemetryDump.registerTelemeter(this);
 
@@ -70,7 +61,7 @@ public class SensorThread implements Runnable, Telemeter {
             odometry.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
-            RealMatrix vuforia = this.localizationConsumer.getFormattedMatrix();
+            RealMatrix vuforia = this.vuforiaLocalizationConsumer.getFormattedMatrix();
 
             this.kalmanFilter.update(odometry, vuforia);
 
@@ -80,14 +71,6 @@ public class SensorThread implements Runnable, Telemeter {
                 robot.telemetryDump.sendPose(this.kalmanFilter.getFormattedPose());
                 lastPoseSendTime = currentTime;
             }
-
-//            if (-90.0 <= this.kalmanFilter.getFormattedPose().heading && this.kalmanFilter.getFormattedPose().heading <= 90.0) {
-//                robotState = RobotState.COLLECTING;
-//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap, "Webcam 1");
-//            } else {
-//                robotState = RobotState.DEPOSITING;
-//                robot.getVisionThread().getManagedCamera().setCamera(robot.hardwareMap,"Webcam 2");
-//            }
 
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
