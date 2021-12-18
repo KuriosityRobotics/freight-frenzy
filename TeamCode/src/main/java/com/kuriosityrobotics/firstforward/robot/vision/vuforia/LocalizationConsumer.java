@@ -4,6 +4,14 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGR
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FORWARD_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
@@ -25,24 +33,11 @@ import java.util.ArrayList;
  */
 public class LocalizationConsumer implements VuforiaConsumer {
     // Accessible values
-    private static final float MM_PER_INCH = 25.4f;
-
     private VuforiaTrackables freightFrenzyTargets;
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
     private CameraName cameraName;
-
-    // current pos matches tuning, not supposed to match actual pos on the robot
-    private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
-    private static final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
-    private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
-
-    // Constants for perimeter targets
-    private static final float MM_TARGET_HEIGHT = 6 * MM_PER_INCH;
-    private static final float HALF_FIELD = 72 * MM_PER_INCH;
-    private static final float HALF_TILE = 12 * MM_PER_INCH;
-    private static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
