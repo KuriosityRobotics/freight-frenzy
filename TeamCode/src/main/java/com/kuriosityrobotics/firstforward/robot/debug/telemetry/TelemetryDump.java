@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
+import android.util.Log;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -85,6 +87,7 @@ public class TelemetryDump implements PoseWatcher {
             dashboard.sendTelemetryPacket(packet);
 
             Pose dashboardPose = DashboardUtil.normalizePose(pose);
+            Log.v("Dashboard", dashboardPose.toString());
 
             poseHistory.add(dashboardPose);
             DashboardUtil.drawRobot(canvas, dashboardPose);
