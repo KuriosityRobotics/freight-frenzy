@@ -217,7 +217,6 @@ public class OuttakeModule implements Module, Telemeter {
         return this.outtakeState;
     }
 
-    //TODO fix this function
     public double radToServoPos(double rad){
         //0 is .906181;  -90 is .5738778;  -180 is .23151
         return .00374817222 * (rad * 180/Math.PI) + 0.906181;
