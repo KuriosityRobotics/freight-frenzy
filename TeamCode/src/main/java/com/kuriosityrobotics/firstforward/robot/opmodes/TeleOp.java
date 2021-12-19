@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -78,14 +80,11 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
 
         if (gamepad2.right_stick_x == 0 && gamepad2.right_stick_y == 0){
-            OuttakeModule.pivotAngle = 0;
+            OuttakeModule.pivotHeading = 0;
         }else{
-            OuttakeModule.pivotAngle = 180/Math.PI * (Math.atan2(gamepad2.right_stick_x, -gamepad2.right_stick_y) - Math.PI/2);
+            OuttakeModule.pivotHeading = angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI);
         }
-        Log.i("teleop", "pivot angle: " + 180/Math.PI * Math.atan2(gamepad2.right_stick_x, -gamepad2.right_stick_y));
-        //up is 0
-        //right is 90
-        //left is -90
+        Log.i("teleop", "gamepad angle: " + (180/Math.PI * angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI)));
         OuttakeModule.skipRotate = gamepad2.y;
     }
 

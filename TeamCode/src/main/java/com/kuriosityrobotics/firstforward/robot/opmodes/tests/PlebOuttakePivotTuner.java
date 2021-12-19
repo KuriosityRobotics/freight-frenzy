@@ -14,7 +14,7 @@ public class PlebOuttakePivotTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        pivot = hardwareMap.get(Servo.class, "pivot_servo");
+        pivot = hardwareMap.get(Servo.class, "pivot");
 
         waitForStart();
 
