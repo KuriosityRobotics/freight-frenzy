@@ -2,6 +2,9 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
+import de.esoco.coroutine.*;
+
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
@@ -10,16 +13,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+
 import org.opencv.core.Mat;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvPipeline;
+import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderer.GPU_ACCELERATED;
+import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW;
+import org.openftc.easyopencv.*;
+import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
 
 import java.util.Arrays;
 import java.util.List;
-
-import de.esoco.coroutine.Coroutine;
-import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera {
     private static final String VUFORIA_LICENCE_KEY = "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
@@ -56,7 +58,7 @@ public final class ManagedCamera {
 
                 vuforiaInitialisedYet = true;
             } else {
-                // control hub does not like multiple vuforias, so don't try spawning more than 1
+                // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Camera
                 throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
             }
         } else {
@@ -64,12 +66,20 @@ public final class ManagedCamera {
         }
 
         // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(() -> {
-            openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
-            openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+        openCvCamera.openCameraDeviceAsync(new AsyncCameraOpenListener() {
+            @Override
+            public void onOpened() {
+                openCvCamera.setViewportRenderer(GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OPTIMIZE_VIEW);
 
-            openCvCamera.setPipeline(new CameraConsumerProcessor());
-            openCvCamera.startStreaming(1920, 1080);
+                openCvCamera.setPipeline(new CameraConsumerProcessor());
+                openCvCamera.startStreaming(1920, 1080);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                Log.d("ManagedCamera", "error: " + errorCode);
+            }
         });
 
     }
@@ -81,11 +91,8 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
-            //Log.e("ManagedCamera", String.format("processFrame() called at %d", SystemClock.elapsedRealtime()));
-
             Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
-            //!!
-            // c++ moment
+            // !!
             Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
                 Mat matCopy = input.clone();
                 consumer.processFrame(matCopy);

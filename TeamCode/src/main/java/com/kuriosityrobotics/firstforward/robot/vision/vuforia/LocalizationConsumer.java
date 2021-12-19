@@ -1,30 +1,16 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FORWARD_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.*;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.matrices.*;
+import org.firstinspires.ftc.robotcore.external.navigation.*;
 
 import java.util.ArrayList;
 
