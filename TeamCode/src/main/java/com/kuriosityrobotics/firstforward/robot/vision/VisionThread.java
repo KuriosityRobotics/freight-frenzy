@@ -28,7 +28,6 @@ public class VisionThread implements Runnable, Telemeter {
         this.localizationConsumer = localizationConsumer;
         openCVDumper = new OpenCVDumper(robot.isDebug());
         this.managedCamera = new ManagedCamera(robot.cameraName1, robot.cameraName2, localizationConsumer, openCVDumper);
-        robot.telemetryDump.registerTelemeter(managedCamera);
     }
 
     @Override
@@ -64,6 +63,12 @@ public class VisionThread implements Runnable, Telemeter {
                 updateTime = currentTime - lastLoopTime;
                 lastLoopTime = currentTime;
 
+                if (robot.sensorThread.getPose().heading < 3 * Math.PI / 4 && robot.sensorThread.getPose().heading > -Math.PI / 2) {
+                    managedCamera.activateCamera(robot.cameraName1);
+                } else {
+                    managedCamera.activateCamera(robot.cameraName2);
+                }
+
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 Log.e("VisionThread", "Thread Interupted: ", e);
@@ -71,9 +76,5 @@ public class VisionThread implements Runnable, Telemeter {
         }
         this.localizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
-    }
-
-    public ManagedCamera getManagedCamera() {
-        return this.managedCamera;
     }
 }

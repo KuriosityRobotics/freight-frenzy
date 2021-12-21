@@ -33,12 +33,6 @@ public class TeleOp extends LinearOpMode {
             updateOuttakeStates();
             updateCarouselStates();
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
-
-            if (gamepad1.a) {
-                robot.getVisionThread().getManagedCamera().activateCamera(robot.cameraName1);
-            } else if (gamepad1.b) {
-                robot.getVisionThread().getManagedCamera().activateCamera(robot.cameraName2);
-            }
         }
     }
 
