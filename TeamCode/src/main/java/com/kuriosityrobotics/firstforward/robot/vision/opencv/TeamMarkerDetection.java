@@ -37,11 +37,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
     }
 
     private static double rgbaToRgb(double value[])[] {
-        return new double[]{
-                value[0],
-                value[1],
-                value[2]
-        };
+        return new double[]{ value[0], value[1], value[2] };
     }
 
     @Override
@@ -49,24 +45,25 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
 
         // width is 1920 height is 1080
-        final Rect boundingBox1 = new Rect(new Point((int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(2 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
-        final Rect boundingBox2 = new Rect(new Point(2 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(3 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
-        final Rect boundingBox3 = new Rect(new Point(3 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(4 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
+        // these are tuned, both accurate AND consistent
+        final Rect boundingBox1 = new Rect(new Point(284,482), new Point(475,765));
+        final Rect boundingBox2 = new Rect(new Point(684,482), new Point(950,765));
+        final Rect boundingBox3 = new Rect(new Point(1184, 482), new Point(1425,765));
 
-        var submat1 = frame.submat(boundingBox1);
-        var submat2 = frame.submat(boundingBox2);
-        var submat3 = frame.submat(boundingBox3);
-        var sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
-        var sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
-        var sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
+        Mat submat1 = frame.submat(boundingBox1);
+        Mat submat2 = frame.submat(boundingBox2);
+        Mat submat3 = frame.submat(boundingBox3);
+        Vector3D sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
+        Vector3D sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
+        Vector3D sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
 
         submat1.release();
         submat2.release();
         submat3.release();
 
-        var area1 = sectionOne.crossProduct(RED).getNorm();
-        var area2 = sectionTwo.crossProduct(RED).getNorm();
-        var area3 = sectionThree.crossProduct(RED).getNorm();
+        double area1 = sectionOne.crossProduct(RED).getNorm();
+        double area2 = sectionTwo.crossProduct(RED).getNorm();
+        double area3 = sectionThree.crossProduct(RED).getNorm();
 
         double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
         if (closestToRed == area1) {
@@ -84,6 +81,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
         if (millis - lastCaptureTime > 500) {
             File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-" + new Date().getTime() + ".jpg");
             MatOfByte mob = new MatOfByte();
+            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGB2BGR);
             Imgcodecs.imencode(".jpg", frame, mob);
             try (FileOutputStream stream = new FileOutputStream(file)) {
                 stream.write(mob.toArray());
