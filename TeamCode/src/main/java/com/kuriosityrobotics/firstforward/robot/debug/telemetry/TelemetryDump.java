@@ -18,27 +18,16 @@ public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
-    // ~85 ms (fastest)
     private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
-    // ~ 106 ms
-//    private final List<Telemeter> telemeters = new CopyOnWriteArrayList<>();
-    // ~95 ms
-//    private final Queue<Telemeter> telemeters = new ConcurrentLinkedDeque<>();
     public FtcDashboard dashboard;
 
     // TODO: Make an evictingblockingqueue?
 //    private EvictingBlockingQueue<Pose> poseHistory = new EvictingBlockingQueue<>();
     private List<Pose> poseHistory = new ArrayList<>();
 
-    public void registerTelemeter(Telemeter telemeter) {
-        telemeters.add(telemeter);
-    }
+    public void registerTelemeter(Telemeter telemeter) { telemeters.add(telemeter); }
 
-    public void removeTelemeter(Telemeter telemeter) {
-        synchronized (this) {
-            telemeters.remove(telemeter);
-        }
-    }
+    public void removeTelemeter(Telemeter telemeter) { telemeters.remove(telemeter); }
 
     public TelemetryDump(Telemetry telemetry, boolean debug) {
         this.telemetry = telemetry;
