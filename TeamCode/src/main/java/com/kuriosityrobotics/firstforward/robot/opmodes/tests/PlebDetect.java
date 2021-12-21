@@ -1,9 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import static de.esoco.coroutine.Coroutine.first;
-import static de.esoco.coroutine.CoroutineScope.launch;
-import static de.esoco.coroutine.step.CodeExecution.consume;
-
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetection;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
