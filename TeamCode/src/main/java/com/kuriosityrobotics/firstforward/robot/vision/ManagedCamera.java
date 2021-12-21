@@ -51,7 +51,8 @@ public final class ManagedCamera {
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
                 // setup vuforia
-                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+                int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 parameters.cameraName = cameraName;

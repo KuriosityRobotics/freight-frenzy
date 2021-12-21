@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
@@ -50,6 +48,7 @@ public class TeamMarkerDetection implements OpenCvConsumer {
     public void processFrame(Mat frame) {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
 
+        // width is 1920 height is 1080
         final Rect boundingBox1 = new Rect(new Point((int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(2 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
         final Rect boundingBox2 = new Rect(new Point(2 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(3 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
         final Rect boundingBox3 = new Rect(new Point(3 * (int) (frame.width() / 5), (int) (frame.height() / 3)), new Point(4 * (int) (frame.width() / 5), (int) (2 * frame.height() / 3)));
