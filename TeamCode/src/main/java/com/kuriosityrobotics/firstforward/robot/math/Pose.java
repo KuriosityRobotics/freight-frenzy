@@ -44,8 +44,6 @@ public class Pose extends Point {
     @NonNull
     @Override
     public String toString() {
-        return "x=" + x +
-                ", y=" + y +
-                ", heading=" + heading;
+        return "(" + x + ", " + y + ", " + heading + ")";
     }
 }
