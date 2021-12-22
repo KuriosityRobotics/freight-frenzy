@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
-import android.util.Log;
-
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.opencv.core.Core;
@@ -11,8 +10,38 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-public class TeamMarkerDetection implements OpenCvConsumer {
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
     private static final Vector3D RED = new Vector3D(255, 0, 0);
+    boolean isAuto;
+
+    public TeamMarkerDetection(boolean isAuto) {
+        this.isAuto = isAuto;
+    }
+
+    public TeamMarkerDetection() {
+        this(true);
+    }
+
+    @Override
+    public Iterable<String> getTelemetryData() {
+        ArrayList<String> data = new ArrayList<>();
+        data.add("Location: " + location.toString());
+
+        return data;
+    }
+
+    @Override
+    public String getName() {
+        return "TeamMarkerDetection";
+    }
+
+    @Override
+    public boolean isOn() {
+        return isAuto;
+    }
 
     public enum TeamMarkerLocation {
         LOCATION_1,
