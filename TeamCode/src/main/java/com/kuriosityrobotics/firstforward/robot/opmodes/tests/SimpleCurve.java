@@ -13,7 +13,7 @@ public class SimpleCurve extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this);
+            robot = new Robot(hardwareMap, telemetry, this, true);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();

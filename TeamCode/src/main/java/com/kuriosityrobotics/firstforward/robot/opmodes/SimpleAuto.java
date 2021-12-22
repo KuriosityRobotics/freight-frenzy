@@ -19,7 +19,7 @@ public class SimpleAuto extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START);
+            robot = new Robot(hardwareMap, telemetry, this, START, true);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();

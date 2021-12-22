@@ -13,7 +13,7 @@ public class SideWays extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this);
+            robot = new Robot(hardwareMap, telemetry, this, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
