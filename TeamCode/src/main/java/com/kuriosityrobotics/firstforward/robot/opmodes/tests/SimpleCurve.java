@@ -7,7 +7,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@Disabled
+//@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleCurve extends LinearOpMode {
     public void runOpMode() {
@@ -20,7 +20,7 @@ public class SimpleCurve extends LinearOpMode {
         }
 
         PurePursuit pp = new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(0, 0, new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0)),
+                new WayPoint(0, 0, new AngleLock(AngleLock.AngleLockType.LOCK, 0)),
                 new WayPoint(0, 20),
                 new WayPoint(-30, 40),
                 new WayPoint(-30, 60, 0)

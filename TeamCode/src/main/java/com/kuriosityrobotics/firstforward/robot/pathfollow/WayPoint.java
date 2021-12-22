@@ -95,4 +95,16 @@ public class WayPoint extends Point {
     public ArrayList<Action> getActions() {
         return this.actions;
     }
+
+    @Override
+    public String toString() {
+        return "WayPoint{" +
+                "x=" + x +
+                ", y=" + y +
+                ", angleLock=" + angleLock +
+                ", targetVelocity=" + targetVelocity +
+                ", velocity=" + velocity +
+                ", actions=" + actions +
+                '}';
+    }
 }

@@ -1,11 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MotionProfile {
     public static final double ROBOT_MAX_VEL = 35;
