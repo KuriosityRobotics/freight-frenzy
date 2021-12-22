@@ -35,7 +35,7 @@ public final class ManagedCamera {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private boolean vuforiaInitialisedYet;
+    private static boolean vuforiaInitialisedYet;
 
     private List<OpenCvConsumer> openCvConsumers;
 
@@ -110,5 +110,9 @@ public final class ManagedCamera {
 
             return input;
         }
+    }
+
+    public void onClose() {
+        this.vuforiaInitialisedYet = false;
     }
 }

@@ -23,7 +23,7 @@ Motors:
 - Motor Port 3(NeveRest 20 Gearmotor): fLeft 
 
 Servos:
-- Servo Port 0(Servo): linkage
+- Servo Port 0(Servo): outtakeLinkage
 - Servo Port 1(Servo): pivot
 - Servo Port 2(Servo): hopper
 
@@ -33,14 +33,14 @@ I2C Bus 0:
 Expansion Hub 2:
 
 Motors:
-- Motor Port 0(GoBILDA 5202/3/4 series): linearSlide
+- Motor Port 0(GoBILDA 5202/3/4 series): lift
 - Motor Port 1(BROKEN): 
 - Motor Port 2(GoBILDA 5202/3/4 series): intake
 - Motor Port 3(GoBILDA 5202/3/4 series): carousel
 
 Servos:
-- Servo Port 0(Servo): extenderLeft
-- Servo Port 1(Servo): extenderRight
+- Servo Port 0(Servo): intakeExtenderLeft
+- Servo Port 1(Servo): intakeExtenderRight
 
 --OpenCV(Vision)--
 Notes:

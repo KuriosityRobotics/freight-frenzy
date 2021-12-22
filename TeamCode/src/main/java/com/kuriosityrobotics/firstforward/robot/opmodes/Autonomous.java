@@ -67,5 +67,7 @@ public class Autonomous extends LinearOpMode {
 //        toWobble.follow();
 
         toPark.follow();
+
+        robot.visionThread.managedCamera.onClose();
     }
 }
