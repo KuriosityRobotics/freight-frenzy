@@ -39,6 +39,8 @@ public class SimpleAuto extends LinearOpMode {
 //            robot.drivetrain.setMovements(0, 0.5, 0);
 //        }
 
-        robot.visionThread.managedCamera.onClose();
+        if (this.isStopRequested()) {
+            robot.visionThread.managedCamera.onClose();
+        }
     }
 }
