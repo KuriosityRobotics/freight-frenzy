@@ -18,14 +18,14 @@ Control Hub:
 
 Motors:
 - Motor Port 0(NeveRest 20 Gearmotor): fLeft
-- Motor Port 1(NeveRest 20 Gearmotor): fLeft
-- Motor Port 2(NeveRest 20 Gearmotor): fLeft
-- Motor Port 3(NeveRest 20 Gearmotor): fLeft 
+- Motor Port 1(NeveRest 20 Gearmotor): fRight
+- Motor Port 2(NeveRest 20 Gearmotor): bLeft
+- Motor Port 3(NeveRest 20 Gearmotor): bRight 
 
 Servos:
 - Servo Port 0(Servo): outtakeLinkage
 - Servo Port 1(Servo): pivot
-- Servo Port 2(Servo): hopperPivot
+- Servo Port 2(Servo): hopper
 
 I2C Bus 0:
 - Port 0(Rev Expansion Hub IMU): imu
@@ -36,7 +36,7 @@ Motors:
 - Motor Port 0(GoBILDA 5202/3/4 series): lift
 - Motor Port 1(BROKEN): 
 - Motor Port 2(GoBILDA 5202/3/4 series): intake
-- Motor Port 3(GoBILDA 5202/3/4 series): carouselTurner
+- Motor Port 3(GoBILDA 5202/3/4 series): carousel
 
 Servos:
 - Servo Port 0(Servo): intakeExtenderLeft
