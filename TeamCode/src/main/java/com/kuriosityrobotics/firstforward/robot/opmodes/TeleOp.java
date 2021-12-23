@@ -32,8 +32,6 @@ public class TeleOp extends LinearOpMode {
             updateCarouselStates();
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
         }
-
-        this.robot.visionThread.managedCamera.onClose();
     }
 
     private final double EPSILON = 0.1;

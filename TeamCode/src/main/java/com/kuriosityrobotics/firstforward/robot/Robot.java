@@ -95,7 +95,7 @@ public class Robot {
         threads = new Thread[]{
                 new Thread(sensorThread),
                 new Thread(moduleThread),
-//                new Thread(visionThread),
+                new Thread(visionThread),
                 new Thread(debugThread)
         };
 

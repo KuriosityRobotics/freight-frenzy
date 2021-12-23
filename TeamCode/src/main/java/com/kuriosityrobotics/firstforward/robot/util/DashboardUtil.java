@@ -4,8 +4,6 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
