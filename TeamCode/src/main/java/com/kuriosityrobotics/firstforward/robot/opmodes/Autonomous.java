@@ -68,8 +68,6 @@ public class Autonomous extends LinearOpMode {
 
         toPark.follow();
 
-        if (this.isStopRequested()) {
-            robot.visionThread.managedCamera.onClose();
-        }
+        robot.visionThread.managedCamera.onClose();
     }
 }
