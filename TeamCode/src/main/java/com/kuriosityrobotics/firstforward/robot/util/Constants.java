@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.util;
 
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 
-// A place where constants are stored for readability
 public class Constants {
     public static class Webcam {
         public static final float MM_PER_INCH = 25.4f;
@@ -18,4 +17,6 @@ public class Constants {
         public static final float HALF_TILE = 12 * MM_PER_INCH;
         public static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
     }
+
+    // TODO: Add static locations later
 }

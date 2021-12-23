@@ -25,7 +25,7 @@ Motors:
 Servos:
 - Servo Port 0(Servo): outtakeLinkage
 - Servo Port 1(Servo): pivot
-- Servo Port 2(Servo): hopper
+- Servo Port 2(Servo): hopperPivot
 
 I2C Bus 0:
 - Port 0(Rev Expansion Hub IMU): imu
@@ -36,7 +36,7 @@ Motors:
 - Motor Port 0(GoBILDA 5202/3/4 series): lift
 - Motor Port 1(BROKEN): 
 - Motor Port 2(GoBILDA 5202/3/4 series): intake
-- Motor Port 3(GoBILDA 5202/3/4 series): carousel
+- Motor Port 3(GoBILDA 5202/3/4 series): carouselTurner
 
 Servos:
 - Servo Port 0(Servo): intakeExtenderLeft
@@ -74,12 +74,3 @@ Notes:
 --Opmode Tests--
 After you're done with a pleb test, please add @Disabled before the @TeleOp or @Autonomous lines. 
 This won't clutter up the driver station.
-
---TelemetryDump--
-We have different ways of removing telemeters(and making sure that no Concurrent Modification Exceptions are thrown)
-1. private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
-   ~ 85 ms (fastest and what currently used)
-2. private final List<Telemeter> telemeters = new CopyOnWriteArrayList<>();
-   ~ 106 ms
-3. private final Queue<Telemeter> telemeters = new ConcurrentLinkedDeque<>();
-   ~ 95 ms
