@@ -139,11 +139,6 @@ public class Robot {
         return linearOpMode.isStarted();
     }
 
-    public SensorThread getSensorThread() {
-        return this.sensorThread;
-    }
-    public VisionThread getVisionThread() { return  this.visionThread; }
-
     public boolean isDebug() {
         return DEBUG;
     }

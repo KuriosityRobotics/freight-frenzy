@@ -14,7 +14,7 @@ import java.util.HashMap;
 public class VisionThread implements Runnable, Telemeter {
     private VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
 
-    private ManagedCamera managedCamera;
+    public ManagedCamera managedCamera;
     private final Robot robot;
 
     private final OpenCVDumper openCVDumper;
@@ -47,7 +47,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public String getName() {
-        return "WebcamLocalization";
+        return "VisionThread";
     }
 
     @Override
@@ -62,12 +62,6 @@ public class VisionThread implements Runnable, Telemeter {
                 long currentTime = SystemClock.elapsedRealtime();
                 updateTime = currentTime - lastLoopTime;
                 lastLoopTime = currentTime;
-
-                if (robot.sensorThread.getPose().heading < 3 * Math.PI / 4 && robot.sensorThread.getPose().heading > -Math.PI / 2) {
-                    managedCamera.activateCamera(robot.cameraName1);
-                } else {
-                    managedCamera.activateCamera(robot.cameraName2);
-                }
 
                 Thread.sleep(100);
             } catch (InterruptedException e) {
