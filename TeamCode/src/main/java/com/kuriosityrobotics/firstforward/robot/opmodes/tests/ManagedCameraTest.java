@@ -1,5 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
+import android.os.SystemClock;
+
+import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
@@ -11,6 +14,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class ManagedCameraTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
+        long updateTime = 0;
+        long lastLoopTime = 0;
+
         OpenCVDumper dumper = new OpenCVDumper(true);
         TelemetryDump dump = new TelemetryDump(telemetry, false);
         LocalizationConsumer vufConsumer = new LocalizationConsumer();
@@ -20,8 +26,12 @@ public class ManagedCameraTest extends LinearOpMode {
 
         while (opModeIsActive()) {
             // yeet
-            dump.update();
+            long currentTime = SystemClock.elapsedRealtime();
+            updateTime = currentTime - lastLoopTime;
+            lastLoopTime = currentTime;
+
             telemetry.addData("Status: ", "Still running");
+            telemetry.addData("Update Time: ", "hella " + updateTime);
             telemetry.update();
         }
     }
