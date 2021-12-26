@@ -11,6 +11,8 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 public class Pose extends Point {
     public double heading;
 
+    public static Pose DEFAULT_POSE = new Pose(0,0,0);
+
     public Pose(double x, double y, double heading) {
         super(x, y);
         this.heading = heading;
@@ -45,5 +47,9 @@ public class Pose extends Point {
     @Override
     public String toString() {
         return "(" + x + ", " + y + ", " + heading + ")";
+    }
+
+    public static Pose fuse(Pose p1, Pose p2) {
+        return new Pose((p1.x + p2.x) / 2, (p1.x + p2.y) / 2, (p1.heading + p2.heading) / 2);
     }
 }
