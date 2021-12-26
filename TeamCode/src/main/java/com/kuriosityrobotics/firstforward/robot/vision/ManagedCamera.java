@@ -5,7 +5,7 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 import de.esoco.coroutine.*;
 
 import android.util.Log;
-
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -15,10 +15,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
 import org.opencv.core.Mat;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderer.GPU_ACCELERATED;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW;
 import org.openftc.easyopencv.*;
-import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,15 +44,15 @@ public final class ManagedCamera {
         if (vuforiaConsumer != null) {
             if(!vuforiaInitialisedYet) {
                 // setup vuforia
-                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+                int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
                 parameters.cameraName = cameraName;
-
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
-
+                TelemetryDump.startStreaming(vuforia);
                 vuforiaInitialisedYet = true;
             } else {
                 // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Camera
@@ -66,11 +63,11 @@ public final class ManagedCamera {
         }
 
         // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(new AsyncCameraOpenListener() {
+        openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                openCvCamera.setViewportRenderer(GPU_ACCELERATED);
-                openCvCamera.setViewportRenderingPolicy(OPTIMIZE_VIEW);
+                openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
                 openCvCamera.startStreaming(1920, 1080);
@@ -78,7 +75,7 @@ public final class ManagedCamera {
 
             @Override
             public void onError(int errorCode) {
-                Log.d("ManagedCamera", "error: " + errorCode);
+                Log.e("ManagedCamera", "errorcode: " + errorCode);
             }
         });
 

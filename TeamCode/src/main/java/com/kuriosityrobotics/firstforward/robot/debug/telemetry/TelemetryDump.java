@@ -6,20 +6,18 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
     private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
-    public FtcDashboard dashboard;
+    public static FtcDashboard dashboard;
 
     private List<Pose> poseHistory = new ArrayList<>();
 
@@ -63,23 +61,26 @@ public class TelemetryDump implements PoseWatcher {
 
     @Override
     public void sendPose(Pose pose) {
-        if (debug) {
-            TelemetryPacket packet = new TelemetryPacket();
-            Canvas canvas = packet.fieldOverlay();
-            for (Telemeter telemeter : telemeters) {
-                if (telemeter.getDashboardData() != null) {
-                    for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
-                        packet.put(entry.getKey(), entry.getValue());
-                    }
+        TelemetryPacket packet = new TelemetryPacket();
+        Canvas canvas = packet.fieldOverlay();
+        for (Telemeter telemeter : telemeters) {
+            if (telemeter.getDashboardData() != null) {
+                for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
+                    packet.put(entry.getKey(), entry.getValue());
                 }
             }
-
-            dashboard.sendTelemetryPacket(packet);
-
-            poseHistory.add(pose);
-            DashboardUtil.drawRobot(canvas, pose);
-            DashboardUtil.drawPoseHistory(canvas, poseHistory);
         }
+
+        dashboard.sendTelemetryPacket(packet);
+
+        poseHistory.add(pose);
+        DashboardUtil.drawRobot(canvas, pose);
+        DashboardUtil.drawPoseHistory(canvas, poseHistory);
+    }
+
+    public static void startStreaming(VuforiaLocalizer vuforia) {
+        // 0 indicates max fps sry for any confusion
+        dashboard.startCameraStream(vuforia, 0);
     }
 
 //    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {
