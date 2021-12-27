@@ -15,6 +15,4 @@ public class Constants {
         public static final float HALF_TILE = 12 * MM_PER_INCH;
         public static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
     }
-
-    // TODO: Add static locations later??
 }

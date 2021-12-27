@@ -21,8 +21,6 @@ public class TelemetryDump implements PoseWatcher {
     private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
     public FtcDashboard dashboard;
 
-    // TODO: Make an evictingblockingqueue?
-//    private EvictingBlockingQueue<Pose> poseHistory = new EvictingBlockingQueue<>();
     private List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
