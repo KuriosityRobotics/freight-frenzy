@@ -33,7 +33,7 @@ public class CarouselModule implements Module, Telemeter {
 
     public CarouselModule(Robot robot) {
         this.robot = robot;
-        carouselMotor = (DcMotorEx) robot.getDcMotor("carouselTurner");
+        carouselMotor = (DcMotorEx) robot.getDcMotor("carouselTurner"); //carousel
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 

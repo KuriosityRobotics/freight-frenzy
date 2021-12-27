@@ -84,7 +84,6 @@ public class TeleOp extends LinearOpMode {
         }else{
             OuttakeModule.pivotHeading = angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI);
         }
-        Log.i("teleop", "gamepad angle: " + (180/Math.PI * angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI)));
         OuttakeModule.skipRotate = gamepad2.y;
     }
 

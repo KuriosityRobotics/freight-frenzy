@@ -126,7 +126,7 @@ public class OuttakeModule implements Module, Telemeter {
 
         robot.telemetryDump.registerTelemeter(this);
 
-        linkage = robot.getServo("outtakeLinkage");
+        linkage = robot.getServo("linkage"); //outtakeLinkage
         pivot = robot.getServo("pivot");
         hopper = robot.getServo("hopper");
         slide = robot.getDcMotor("lift");
