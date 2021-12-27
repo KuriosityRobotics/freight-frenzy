@@ -4,13 +4,9 @@ package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.math.Point;
-
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
@@ -22,16 +18,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 import java.util.ArrayList;
 
 /**
  * Defining a Vuforia localization consumer
  */
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
-    // Accessible values
-    private static final float MM_PER_INCH = 25.4f;
-
     private WebcamName cameraName1;
     private WebcamName cameraName2;
 
@@ -39,35 +32,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private volatile VuforiaTrackable detectedTrackable = null;
     private volatile OpenGLMatrix detectedLocation = null;
-
-    // Camera positions on robot (both front and left)
-    // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)
-    private static final float CAMERA_LEFT_FORWARD_DISPLACEMENT = .125f * MM_PER_INCH;
-    private static final float CAMERA_LEFT_VERTICAL_DISPLACEMENT = 7.25f * MM_PER_INCH;
-    private static final float CAMERA_LEFT_LEFT_DISPLACEMENT = 5.5f * MM_PER_INCH;
-
-    private static final float CAMERA_FRONT_FORWARD_DISPLACEMENT = 8.075f * MM_PER_INCH;
-    private static final float CAMERA_FRONT_VERTICAL_DISPLACEMENT = 15.313f * MM_PER_INCH;
-    private static final float CAMERA_FRONT_LEFT_DISPLACEMENT = 0.185f * MM_PER_INCH;
-
-    // Constants for perimeter targets
-    private static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
-    private static final float HALF_FIELD = 70f * MM_PER_INCH;
-    private static final float ONE_TILE = 23.5f * MM_PER_INCH;
-    private static final float FULL_FIELD = HALF_FIELD * 2f;
-    private static final float ONE_AND_HALF_TILE = ONE_TILE * 1.5f;
-    private static final float HALF_TILE = ONE_TILE * 0.5f;
-
-    private static final double HALF_ROBOT_WIDTH = 11.75 / 2;
-    private static final double HALF_ROBOT_LENGTH = 12.75 / 2;
-
-    private static final OpenGLMatrix cameraLeftLocationOnRobot = OpenGLMatrix
-            .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
-
-    private static final OpenGLMatrix cameraFrontLocationOnRobot = OpenGLMatrix
-            .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
-            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
 
     private SwitchableCamera switchableCamera;
 
@@ -114,9 +78,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     // It thinks we're at (0,0,0)
                     // so we correct it here :sunglas:
                     if (switchableCamera.getActiveCamera() == cameraName1) {
-                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), cameraLeftLocationOnRobot);
+                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), CAMERA_LEFT_LOCATION_ON_ROBOT);
                     } else if (switchableCamera.getActiveCamera() == cameraName2) {
-                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), cameraFrontLocationOnRobot);
+                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), CAMERA_FRONT_LOCATION_ON_ROBOT);
                     }
 
                     OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
@@ -157,7 +121,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-    public void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
+    private void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
         VuforiaTrackable aTarget = this.freightFrenzyTargets.get(targetIndex);
         aTarget.setName(targetName);
         aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)

@@ -31,7 +31,6 @@ public class AngleLock {
 
     @Override
     public String toString() {
-        return "type=" + type +
-                ", heading=" + heading;
+        return "type: " + type + ", heading: " + heading;
     }
 }

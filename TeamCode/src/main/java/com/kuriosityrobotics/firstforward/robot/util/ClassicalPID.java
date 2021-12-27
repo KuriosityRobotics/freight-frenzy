@@ -1,9 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
-/**
- * A PID controller that increments a scale using PID. This is different from a traditional PID
- * because the scale is incremented by a value determined using PID every cycle.
- */
 public class ClassicalPID {
     private final double P_FACTOR;
     private final double I_FACTOR;
@@ -73,5 +69,5 @@ public class ClassicalPID {
         errorSum = 0;
     }
 
-    public double getD(){ return errorChange; }
+    public double getD() { return errorChange; }
 }
