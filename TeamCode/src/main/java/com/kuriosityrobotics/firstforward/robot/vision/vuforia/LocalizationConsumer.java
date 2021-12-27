@@ -1,22 +1,16 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.*;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.*;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.firstinspires.ftc.robotcore.external.matrices.*;
+import org.firstinspires.ftc.robotcore.external.navigation.*;
 
 import java.util.ArrayList;
 
@@ -25,24 +19,11 @@ import java.util.ArrayList;
  */
 public class LocalizationConsumer implements VuforiaConsumer {
     // Accessible values
-    private static final float MM_PER_INCH = 25.4f;
-
     private VuforiaTrackables freightFrenzyTargets;
 
     private VuforiaTrackable detectedTrackable;
     private OpenGLMatrix detectedLocation = null;
     private CameraName cameraName;
-
-    // current pos matches tuning, not supposed to match actual pos on the robot
-    private static final float CAMERA_FORWARD_DISPLACEMENT = 5.375f * MM_PER_INCH;
-    private static final float CAMERA_VERTICAL_DISPLACEMENT = 2.5f * MM_PER_INCH;
-    private static final float CAMERA_LEFT_DISPLACEMENT = 3.0f * MM_PER_INCH;
-
-    // Constants for perimeter targets
-    private static final float MM_TARGET_HEIGHT = 6 * MM_PER_INCH;
-    private static final float HALF_FIELD = 72 * MM_PER_INCH;
-    private static final float HALF_TILE = 12 * MM_PER_INCH;
-    private static final float ONE_AND_HALF_TILE = 36 * MM_PER_INCH;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {

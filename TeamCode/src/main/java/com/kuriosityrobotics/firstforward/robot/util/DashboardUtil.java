@@ -4,8 +4,6 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +13,7 @@ import java.util.List;
 public class DashboardUtil {
     private static final double ROBOT_RADIUS = 6; // in
 
-    public static void drawPoseHistory(Canvas canvas, ArrayList<Pose> poseHistory) {
+    public static void drawPoseHistory(Canvas canvas, List<Pose> poseHistory) {
         canvas.setStrokeWidth(1);
         canvas.setStroke("#3F51B5");
         double[] xPoints = new double[poseHistory.size()];

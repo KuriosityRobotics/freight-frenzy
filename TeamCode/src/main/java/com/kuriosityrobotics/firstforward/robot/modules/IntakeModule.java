@@ -87,8 +87,8 @@ public class IntakeModule implements Module, Telemeter {
     public IntakeModule(HardwareMap map, boolean isOn) {
         this.isOn = isOn;
 
-        this.extenderLeft = map.tryGet(Servo.class, "extenderLeft");
-        this.extenderRight = map.tryGet(Servo.class, "extenderRight");
+        this.extenderLeft = map.tryGet(Servo.class, "intakeExtenderLeft");
+        this.extenderRight = map.tryGet(Servo.class, "intakeExtenderRight");
         this.intakeMotor = (DcMotorEx) map.get(DcMotor.class, "intake");
         intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
     }

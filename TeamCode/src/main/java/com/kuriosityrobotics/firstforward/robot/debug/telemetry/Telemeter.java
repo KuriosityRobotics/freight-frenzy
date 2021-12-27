@@ -17,4 +17,3 @@ public interface Telemeter {
         return new HashMap<>();
     }
 }
-

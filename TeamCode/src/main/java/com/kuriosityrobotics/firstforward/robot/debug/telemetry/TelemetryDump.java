@@ -5,24 +5,23 @@ import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
-
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
-    private final ArrayList<Telemeter> telemeters = new ArrayList<>();
+    private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
     public FtcDashboard dashboard;
 
-    // TODO: Make an evictingblockingqueue?
-//    private EvictingBlockingQueue<Pose> poseHistory = new EvictingBlockingQueue<>();
-    private ArrayList<Pose> poseHistory = new ArrayList<>();
+    private List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
@@ -48,17 +47,10 @@ public class TelemetryDump implements PoseWatcher {
                 // ---Name---\n
                 msg.append("---").append(telemeter.getName()).append("---\n");
 
-//                if (debug) {
-//                    for (Map.Entry<String, Object> pair : getAllFields(telemeter)) {
-//                        // Key: Value \n
-//                        msg.append(pair.getKey()).append(": ").append(pair.getValue()).append("\n");
-//                    }
-//                } else {
                 for (String line : telemeter.getTelemetryData()) {
                     // telemetry_line\n
                     msg.append(line).append("\n");
                 }
-//                }
 
                 // newline for every section
                 msg.append("\n");
