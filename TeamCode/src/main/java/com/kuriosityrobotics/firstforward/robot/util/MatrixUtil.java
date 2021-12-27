@@ -13,10 +13,10 @@ public class MatrixUtil {
         appendPoseValue(m, "x", "inches",0, 0, sb);
         appendPoseValue(m, "y", "inches",1,0, sb);
         if (m != null){
-            sb.append("dHeading").append(": ").append(Math.toDegrees(m.getEntry(2, 0))).append(" ").append("degrees").append("\n");
+            sb.append("heading").append(": ").append(Math.toDegrees(m.getEntry(2, 0))).append(" ").append("degrees").append("\n");
         }
         else {
-            sb.append("dHeading").append(": ").append("null").append(" ").append("degrees").append("\n");
+            sb.append("heading").append(": ").append("null").append(" ").append("degrees").append("\n");
         }
 
         return sb.toString();

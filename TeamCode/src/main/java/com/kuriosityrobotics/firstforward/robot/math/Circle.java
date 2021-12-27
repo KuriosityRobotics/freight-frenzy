@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
-import android.util.Log;
-
 import java.util.ArrayList;
 
 public class Circle {

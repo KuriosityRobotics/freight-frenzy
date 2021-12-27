@@ -14,6 +14,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
@@ -71,7 +72,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      */
     @Override
     public RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
-
         // set up
         double prevX = prev[0].getEntry(0, 0);
         double prevY = prev[0].getEntry(1, 0);
@@ -207,7 +207,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
@@ -238,4 +238,3 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return true;
     }
 }
-

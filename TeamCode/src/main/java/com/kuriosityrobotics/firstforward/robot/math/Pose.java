@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
+import java.util.Locale;
+
 public class Pose extends Point {
     public double heading;
 
@@ -44,8 +46,6 @@ public class Pose extends Point {
     @NonNull
     @Override
     public String toString() {
-        return "x=" + x +
-                ", y=" + y +
-                ", heading=" + heading;
+        return String.format(Locale.US,"x = %.3f, y = %.3f, heading = %.3f", x, y, heading);
     }
 }

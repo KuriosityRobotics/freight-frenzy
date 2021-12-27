@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
@@ -76,8 +73,10 @@ public class TelemetryDump implements PoseWatcher {
 
             dashboard.sendTelemetryPacket(packet);
 
-            poseHistory.add(pose);
-            DashboardUtil.drawRobot(canvas, pose);
+            Pose dashboardPose = DashboardUtil.normalizePose(pose);
+
+            poseHistory.add(dashboardPose);
+            DashboardUtil.drawRobot(canvas, dashboardPose);
             DashboardUtil.drawPoseHistory(canvas, poseHistory);
         }
     }

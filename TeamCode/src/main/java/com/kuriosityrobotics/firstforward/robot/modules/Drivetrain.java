@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
     Robot robot;
@@ -19,7 +20,7 @@ public class Drivetrain implements Module, Telemeter {
     public double xMov;
     public double yMov;
     public double turnMov = 0;
-    public boolean zeroPowerBrake = true;
+    public boolean zeroPowerBrake = false;
 
     //braking states
     private boolean brake = false; // whether or not to actively brake
@@ -203,7 +204,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));

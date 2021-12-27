@@ -5,32 +5,34 @@ import static de.esoco.coroutine.step.CodeExecution.consume;
 import de.esoco.coroutine.*;
 
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 
+import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.opencv.core.Mat;
 import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderer.GPU_ACCELERATED;
 import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW;
 import org.openftc.easyopencv.*;
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
 public final class ManagedCamera {
-    private static final String VUFORIA_LICENCE_KEY = "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
-            "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
-            "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
-            "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
-            "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
-            "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
-            "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
+    private static final String VUFORIA_LICENCE_KEY =
+            "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
+                    "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
+                    "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
+                    "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
+                    "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
+                    "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
+                    "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
 
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
@@ -39,38 +41,70 @@ public final class ManagedCamera {
 
     private List<OpenCvConsumer> openCvConsumers;
 
-    public ManagedCamera(String cameraNameString, HardwareMap hardwareMap, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    private WebcamName cameraName1;
+    private WebcamName cameraName2;
+
+    private SwitchableCamera switchableCamera;
+    private WebcamName activeCameraName;
+    private VuforiaLocalizer vuforia;
+
+    public ManagedCamera(WebcamName cameraName1, WebcamName cameraName2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
-        WebcamName cameraName = hardwareMap.get(WebcamName.class, cameraNameString);
+
+        this.cameraName1 = cameraName1;
+        this.cameraName2 = cameraName2;
+        SwitchableCameraName switchableCameraName = ClassFactory.getInstance()
+                .getCameraManager()
+                .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
+        initializeVulforia(switchableCameraName);
+
+        activateCamera(this.cameraName2);
+    }
+
+    private void initializeVulforia(SwitchableCameraName switchableCameraName) {
+        if (vuforia != null) {
+            vuforia.close();
+            vuforia = null;
+        }
+        if (openCvCamera != null) {
+            openCvCamera.closeCameraDevice();
+            openCvCamera = null;
+        }
 
         if (vuforiaConsumer != null) {
-            if(!vuforiaInitialisedYet) {
-                // setup vuforia
-                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-                parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-                parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = cameraName;
+            // setup vuforia
+            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
+            parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
+            parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
+            parameters.cameraName = switchableCameraName;
+            vuforia = ClassFactory.getInstance().createVuforia(parameters);
+            switchableCamera = (SwitchableCamera) vuforia.getCamera();
 
-                VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-                vuforiaConsumer.setup(vuforia);
-                openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
+            vuforiaConsumer.setup(vuforia);
+            openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
-                vuforiaInitialisedYet = true;
-            } else {
-                // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Camera
-                throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
+            try {
+                // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
+                // anyways enough of this rant
+                Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
+                Field isWebcamField = aClass.getDeclaredField("isWebcam");
+                isWebcamField.setAccessible(true);
+                isWebcamField.set(openCvCamera, true);
+            } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
+                Log.e("Switchable Cameras: ", "cannot set isWebcam ", e);
             }
+
         } else {
-            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName);
+            openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName2);
         }
 
         // set stuff up so opencv can also run
-        openCvCamera.openCameraDeviceAsync(new AsyncCameraOpenListener() {
+        openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
-                openCvCamera.setViewportRenderer(GPU_ACCELERATED);
-                openCvCamera.setViewportRenderingPolicy(OPTIMIZE_VIEW);
+                openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
+                openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
                 openCvCamera.startStreaming(1920, 1080);
@@ -78,14 +112,23 @@ public final class ManagedCamera {
 
             @Override
             public void onError(int errorCode) {
-                Log.d("ManagedCamera", "error: " + errorCode);
+                Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
-
     }
 
-    public ManagedCamera(String cameraName, HardwareMap hardwareMap, OpenCvConsumer... openCvConsumers) {
-        this(cameraName, hardwareMap, null, openCvConsumers);
+    public void activateCamera(WebcamName cameraName) {
+        if (this.activeCameraName == cameraName) {
+            return;
+        }
+
+        if (switchableCamera == null) {
+            Log.e("ManagedCamera", "Not a switchable camera");
+            return;
+        }
+
+        this.switchableCamera.setActiveCamera(cameraName);
+        this.activeCameraName = cameraName;
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {
