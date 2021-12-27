@@ -74,3 +74,13 @@ Notes:
 --Opmode Tests--
 After you're done with a pleb test, please add @Disabled before the @TeleOp or @Autonomous lines. 
 This won't clutter up the driver station.
+
+--Removing Telemeters--
+~ 85 ms (fastest)
+private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
+~ 106 ms
+private final List<Telemeter> telemeters = new CopyOnWriteArrayList<>();
+~ 95 ms
+private final Queue<Telemeter> telemeters = new ConcurrentLinkedDeque<>();
+
+This is why we are currently using SynchronizedList
