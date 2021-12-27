@@ -4,6 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -20,6 +22,7 @@ public class TelemetryDump implements PoseWatcher {
     public static FtcDashboard dashboard;
 
     private List<Pose> poseHistory = new ArrayList<>();
+    private WayPoint[] path;
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
@@ -71,11 +74,21 @@ public class TelemetryDump implements PoseWatcher {
             }
         }
 
-        dashboard.sendTelemetryPacket(packet);
-
         poseHistory.add(pose);
         DashboardUtil.drawRobot(canvas, pose);
         DashboardUtil.drawPoseHistory(canvas, poseHistory);
+
+        dashboard.sendTelemetryPacket(packet);
+    }
+
+    public void sendPath(WayPoint[] peth) {
+        TelemetryPacket pocket = new TelemetryPacket();
+        Canvas canvos = pocket.fieldOverlay();
+
+        path = peth;
+        DashboardUtil.drawSampledPath(canvos, path);
+
+        dashboard.sendTelemetryPacket(pocket);
     }
 
     public static void startStreaming(VuforiaLocalizer vuforia) {

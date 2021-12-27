@@ -24,9 +24,5 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.3.1'
 
-    implementation 'com.acmerobotics.roadrunner:core:0.5.4' // NOTE: roadrunner import IS NOT for pathfollowing. It is so the correct data types can be obtained for the
-                                                            // FTCDashboard
-
     implementation 'com.acmerobotics.dashboard:dashboard:0.4.3' // ftc dashboard very kewl
 }
-

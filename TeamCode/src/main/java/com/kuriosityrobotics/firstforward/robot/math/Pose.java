@@ -5,9 +5,6 @@ import static java.lang.Math.sin;
 
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
-
 public class Pose extends Point {
     public double heading;
 
@@ -27,8 +24,8 @@ public class Pose extends Point {
         this(pose.x, pose.y, pose.heading);
     }
 
-    public Vector2d getHeadingVector() {
-        return new Vector2d(cos(heading), sin(heading));
+    public DashboardVector getHeadingVector() {
+        return new DashboardVector(cos(heading), sin(heading));
     }
 
     public Pose difference(Pose lastPose) {

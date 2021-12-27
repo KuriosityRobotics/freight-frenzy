@@ -5,14 +5,17 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
+import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import com.kuriosityrobotics.firstforward.robot.util.FeedForwardPID;
 import com.qualcomm.robotcore.util.Range;
 
@@ -71,6 +74,8 @@ public class PurePursuit implements Telemeter {
     }
 
     public void follow() {
+        robot.telemetryDump.sendPath(path);
+
         while (robot.isOpModeActive()) {
             boolean atEnd = atEnd();
             if (atEnd && !executedLastAction) {
