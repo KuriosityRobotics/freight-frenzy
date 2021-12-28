@@ -20,8 +20,7 @@ import java.util.HashMap;
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
-    public RealMatrix[] matrixPose; // pose, cov
-    private static Pose pose;
+    public static RealMatrix[] matrixPose; // pose, cov
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -204,8 +203,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         double x = matrixPose[0].getEntry(0, 0);
         double y = matrixPose[0].getEntry(1, 0);
         double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
-        pose = new Pose(x, y, heading);
-        return pose;
+        return new Pose(x, y, heading);
     }
 
     @Override

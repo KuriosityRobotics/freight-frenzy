@@ -22,7 +22,6 @@ public class TelemetryDump implements PoseWatcher {
     public FtcDashboard dashboard;
 
     private List<Pose> poseHistory = new ArrayList<>();
-    private WayPoint[] path;
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);
