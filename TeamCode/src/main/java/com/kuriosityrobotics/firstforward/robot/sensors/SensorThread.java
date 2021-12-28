@@ -120,5 +120,7 @@ public class SensorThread implements Runnable, Telemeter {
         return true;
     }
 
-    public Odometry getOdometry() { return this.odometry; }
+    public LocalizeKalmanFilter getLKF() {
+        return this.kalmanFilter;
+    }
 }

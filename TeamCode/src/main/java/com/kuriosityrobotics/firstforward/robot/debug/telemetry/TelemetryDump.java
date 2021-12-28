@@ -19,7 +19,7 @@ public class TelemetryDump implements PoseWatcher {
     private final boolean debug;
 
     private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
-    public static FtcDashboard dashboard;
+    public FtcDashboard dashboard;
 
     private List<Pose> poseHistory = new ArrayList<>();
     private WayPoint[] path;
@@ -64,36 +64,23 @@ public class TelemetryDump implements PoseWatcher {
 
     @Override
     public void sendPose(Pose pose) {
-        TelemetryPacket packet = new TelemetryPacket();
-        Canvas canvas = packet.fieldOverlay();
-        for (Telemeter telemeter : telemeters) {
-            if (telemeter.getDashboardData() != null) {
-                for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
-                    packet.put(entry.getKey(), entry.getValue());
+        if (debug) {
+            TelemetryPacket packet = new TelemetryPacket();
+            Canvas canvas = packet.fieldOverlay();
+            for (Telemeter telemeter : telemeters) {
+                if (telemeter.getDashboardData() != null) {
+                    for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
+                        packet.put(entry.getKey(), entry.getValue());
+                    }
                 }
             }
+
+            poseHistory.add(pose);
+            DashboardUtil.drawRobot(canvas, pose);
+            DashboardUtil.drawPoseHistory(canvas, poseHistory);
+
+            dashboard.sendTelemetryPacket(packet);
         }
-
-        poseHistory.add(pose);
-        DashboardUtil.drawRobot(canvas, pose);
-        DashboardUtil.drawPoseHistory(canvas, poseHistory);
-
-        dashboard.sendTelemetryPacket(packet);
-    }
-
-    public void sendPath(WayPoint[] peth) {
-        TelemetryPacket pocket = new TelemetryPacket();
-        Canvas canvos = pocket.fieldOverlay();
-
-        path = peth;
-        DashboardUtil.drawSampledPath(canvos, path);
-
-        dashboard.sendTelemetryPacket(pocket);
-    }
-
-    public static void startStreaming(VuforiaLocalizer vuforia) {
-        // 0 indicates max fps sry for any confusion
-        dashboard.startCameraStream(vuforia, 0);
     }
 
 //    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {

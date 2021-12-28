@@ -24,8 +24,8 @@ public class Pose extends Point {
         this(pose.x, pose.y, pose.heading);
     }
 
-    public DashboardVector getHeadingVector() {
-        return new DashboardVector(cos(heading), sin(heading));
+    public Point getHeadingVector() {
+        return new Point(cos(heading), sin(heading));
     }
 
     public Pose difference(Pose lastPose) {
@@ -46,7 +46,7 @@ public class Pose extends Point {
         return "(" + x + ", " + y + ", " + heading + ")";
     }
 
-    public static Pose fuse(Pose p1, Pose p2) {
+    public static Pose midPose(Pose p1, Pose p2) {
         return new Pose((p1.x + p2.x) / 2, (p1.x + p2.y) / 2, (p1.heading + p2.heading) / 2);
     }
 }

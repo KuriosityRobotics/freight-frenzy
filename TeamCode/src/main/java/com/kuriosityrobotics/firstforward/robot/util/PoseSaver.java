@@ -5,6 +5,7 @@ import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import java.io.*;
 import java.util.StringTokenizer;
 
+// Stuff here is irrelevant now
 public class PoseSaver {
     private static Pose savedPoseFromOpMode;
     private static SavedLocationMethod saveMethod;
@@ -52,7 +53,7 @@ public class PoseSaver {
         Pose retPose;
 
         if (savedPoseFromOpMode != null && parkLoc != null) {
-            retPose = Pose.fuse(savedPoseFromOpMode, parkLoc);
+            retPose = Pose.midPose(savedPoseFromOpMode, parkLoc);
             saveMethod = SavedLocationMethod.FUSE;
         } else if (savedPoseFromOpMode != null && parkLoc == null) {
             retPose = savedPoseFromOpMode;

@@ -21,6 +21,7 @@ import java.util.HashMap;
  */
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
     public RealMatrix[] matrixPose; // pose, cov
+    private static Pose pose;
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -203,7 +204,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         double x = matrixPose[0].getEntry(0, 0);
         double y = matrixPose[0].getEntry(1, 0);
         double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
-        return new Pose(x, y, heading);
+        pose = new Pose(x, y, heading);
+        return pose;
     }
 
     @Override

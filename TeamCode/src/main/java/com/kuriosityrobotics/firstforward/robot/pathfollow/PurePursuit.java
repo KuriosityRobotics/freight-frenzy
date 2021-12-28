@@ -74,8 +74,6 @@ public class PurePursuit implements Telemeter {
     }
 
     public void follow() {
-        robot.telemetryDump.sendPath(path);
-
         while (robot.isOpModeActive()) {
             boolean atEnd = atEnd();
             if (atEnd && !executedLastAction) {

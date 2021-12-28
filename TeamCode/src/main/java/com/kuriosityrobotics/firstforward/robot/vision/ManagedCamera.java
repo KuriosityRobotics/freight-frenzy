@@ -52,7 +52,6 @@ public final class ManagedCamera {
                 VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
-                TelemetryDump.startStreaming(vuforia);
                 vuforiaInitialisedYet = true;
             } else {
                 // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Camera
