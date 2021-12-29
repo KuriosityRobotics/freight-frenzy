@@ -126,7 +126,7 @@ public class OuttakeModule implements Module, Telemeter {
 
         robot.telemetryDump.registerTelemeter(this);
 
-        linkage = robot.getServo("linkage"); //outtakeLinkage
+        linkage = robot.getServo("outtakeLinkage");
         pivot = robot.getServo("pivot");
         hopper = robot.getServo("hopper");
         slide = robot.getDcMotor("lift");
@@ -167,10 +167,7 @@ public class OuttakeModule implements Module, Telemeter {
                     this.outtakeState = OuttakeState.IDLE_ROTATE;
                     break;
                 case IDLE_ROTATE:
-                    //Log.i("outtake", "idle rotate");
-
                     if (skipRotate){
-                        Log.i("outtake", "skip");
                         this.outtakeState = OuttakeState.DUMP;
                         break;
                     }
