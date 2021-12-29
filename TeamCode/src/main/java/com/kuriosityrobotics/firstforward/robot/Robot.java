@@ -121,6 +121,11 @@ public class Robot {
         visionThread.onClose();
         debugThread.onClose();
         telemetryDump.onClose();
+
+        for (Thread t : threads) {
+            t.interrupt();
+            t.stop();
+        }
     }
 
     public DcMotor getDcMotor(String name) {
