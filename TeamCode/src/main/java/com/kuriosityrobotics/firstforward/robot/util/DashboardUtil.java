@@ -1,6 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Dashboard.ROBOT_RADIUS;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
+
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -12,9 +15,6 @@ import java.util.List;
  */
 
 public class DashboardUtil {
-    private static final double ROBOT_RADIUS = 6; // in
-    private static final float MM_PER_INCH = 25.4f;
-    private static final float HALF_FIELD = 70f * MM_PER_INCH;
 
     public static void drawPoseHistory(Canvas canvas, List<Pose> poseHistory) {
         canvas.setStrokeWidth(1);

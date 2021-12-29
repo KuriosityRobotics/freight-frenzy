@@ -10,9 +10,6 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
-    Button switchCameraButton = new Button();
-
-    private boolean prevY = false;
 
     @Override
     public void runOpMode() {

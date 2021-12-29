@@ -20,10 +20,10 @@ public class Drivetrain implements Module, Telemeter {
     public double xMov;
     public double yMov;
     public double turnMov = 0;
-    public boolean zeroPowerBrake = false;
+    public boolean zeroPowerBrake = true;
 
     //braking states
-    private boolean brake = false; // whether or not to actively brake
+    private boolean brake = true; // whether or not to actively brake
     public Pose brakePose;
     private boolean opmodeStarted = false;
 

@@ -7,6 +7,10 @@ import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Constants {
+    public static class Dashboard {
+        public static final double ROBOT_RADIUS = 6; // in
+    }
+
     public static class Webcam {
         public static final float MM_PER_INCH = 25.4f;
 
