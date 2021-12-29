@@ -199,7 +199,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         }
     }
 
-    public Pose getFormattedPose() {
+    public Pose getKuroCoordinateSystemPose() {
         double x = matrixPose[0].getEntry(0, 0);
         double y = matrixPose[0].getEntry(1, 0);
         double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));

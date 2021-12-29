@@ -40,12 +40,12 @@ public class DashboardUtil {
         canvas.strokeLine(x1, y1, x2, y2);
     }
 
-    public static Pose normalizePose(Pose pose) {
+    public static Pose toDashboardPose(Pose kuroCoordinateSystemPose) {
         // normalize pose for dashboard
 
-        double x =  -pose.y + HALF_FIELD / MM_PER_INCH;
-        double y = pose.x - HALF_FIELD / MM_PER_INCH;
-        double heading = Math.toDegrees(angleWrap(Math.toRadians(180 - pose.heading)));
+        double x =  -kuroCoordinateSystemPose.y + HALF_FIELD / MM_PER_INCH;
+        double y = kuroCoordinateSystemPose.x - HALF_FIELD / MM_PER_INCH;
+        double heading = Math.toDegrees(angleWrap(Math.toRadians(180 - kuroCoordinateSystemPose.heading)));
 
         return new Pose(x, y, heading);
     }
