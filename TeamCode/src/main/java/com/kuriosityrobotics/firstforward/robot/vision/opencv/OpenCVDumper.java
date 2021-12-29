@@ -44,6 +44,11 @@ public class OpenCVDumper implements OpenCvConsumer {
         }
     }
 
+    @Override
+    public void deactivate() {
+        isOn = false;
+    }
+
     public void toggleDumper() {
         isOn = !isOn;
     }

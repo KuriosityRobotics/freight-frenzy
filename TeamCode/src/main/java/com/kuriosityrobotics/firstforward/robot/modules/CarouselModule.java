@@ -69,4 +69,9 @@ public class CarouselModule implements Module, Telemeter {
 
         return data;
     }
+
+    @Override
+    public void onClose() {
+        spin = false;
+    }
 }

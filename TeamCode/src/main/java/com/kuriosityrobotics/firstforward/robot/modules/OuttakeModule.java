@@ -241,4 +241,15 @@ public class OuttakeModule implements Module, Telemeter {
         }};
         return data;
     }
+
+    @Override
+    public void onClose() {
+        outtakeState = OuttakeState.IDLE;
+        isHopperOccupied = false;
+        hopper.setPosition(HOPPER_RESTING_POSITION);
+        pivot.setPosition(HOPPER_PIVOT_IN);
+        linkage.setPosition(LINKAGE_RETRACTED);
+        slideLevel = VerticalSlideLevel.DOWN;
+        slide.setTargetPosition(0);
+    }
 }

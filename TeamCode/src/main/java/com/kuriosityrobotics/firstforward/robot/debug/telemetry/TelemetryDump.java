@@ -92,4 +92,15 @@ public class TelemetryDump implements PoseWatcher {
 //                    }
 //                })).entrySet();
 //    }
+    public void onClose() {
+        if (debug) {
+            TelemetryPacket packet = new TelemetryPacket();
+            Canvas canvas = packet.fieldOverlay();
+            canvas.clear();
+            dashboard.sendTelemetryPacket(packet);
+        }
+        poseHistory.clear();
+        telemeters.clear();
+        dashboard.stopCameraStream();
+    }
 }

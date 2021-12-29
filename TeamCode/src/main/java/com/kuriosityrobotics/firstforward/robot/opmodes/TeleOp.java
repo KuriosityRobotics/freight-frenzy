@@ -38,6 +38,10 @@ public class TeleOp extends LinearOpMode {
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
             updateCameraStates();
         }
+
+        if (!opModeIsActive()) {
+            robot.close();
+        }
     }
 
     private void updateDrivetrainStates() {

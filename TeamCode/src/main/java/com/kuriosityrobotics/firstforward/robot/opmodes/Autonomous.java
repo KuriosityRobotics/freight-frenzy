@@ -67,5 +67,9 @@ public class Autonomous extends LinearOpMode {
 //        toWobble.follow();
 
         toPark.follow();
+
+        if (!opModeIsActive()) {
+            robot.close();
+        }
     }
 }

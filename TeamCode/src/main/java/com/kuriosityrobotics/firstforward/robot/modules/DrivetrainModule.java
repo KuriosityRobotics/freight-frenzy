@@ -112,4 +112,11 @@ public class DrivetrainModule implements Module, Telemeter {
 
         return data;
     }
+
+    @Override
+    public void onClose() {
+        xMov = 0;
+        yMov = 0;
+        turnMov = 0;
+    }
 }

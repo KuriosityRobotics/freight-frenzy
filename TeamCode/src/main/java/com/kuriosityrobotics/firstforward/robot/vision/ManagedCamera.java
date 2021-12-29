@@ -28,6 +28,7 @@ public final class ManagedCamera {
     private OpenCvCamera openCvCamera;
 
     public static boolean vuforiaActive = true;
+    private static boolean vuforiaInitialisedYet = false;
 
     private final List<OpenCvConsumer> openCvConsumers;
 
@@ -52,10 +53,15 @@ public final class ManagedCamera {
     }
 
     private void initializeVuforia(SwitchableCameraName switchableCameraName) {
+        if (vuforiaInitialisedYet) {
+            throw new RuntimeException("You cannot initialize multiple vuforias at once!");
+        }
+
         if (vuforia != null) {
             vuforia.close();
             vuforia = null;
         }
+
         if (openCvCamera != null) {
             openCvCamera.closeCameraDevice();
             openCvCamera = null;
@@ -107,6 +113,8 @@ public final class ManagedCamera {
                 Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
+
+        vuforiaInitialisedYet = true;
     }
 
     public ManagedCamera(WebcamName webcamName1, WebcamName webcamName2, OpenCvConsumer... openCvConsumers) {
@@ -155,5 +163,13 @@ public final class ManagedCamera {
 
             return input;
         }
+    }
+
+    public void onClose() {
+        vuforiaInitialisedYet = false;
+        for (OpenCvConsumer o : openCvConsumers) {
+            o.deactivate();
+        }
+        openCvCamera.stopStreaming();
     }
 }

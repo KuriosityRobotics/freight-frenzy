@@ -184,7 +184,6 @@ public class IntakeModule implements Module, Telemeter {
         return isOn;
     }
 
-    @SuppressLint("DefaultLocale") // please java shut the Gell Up
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
@@ -201,5 +200,15 @@ public class IntakeModule implements Module, Telemeter {
 
     public String getName() {
         return "IntakeModule";
+    }
+
+    @Override
+    public void onClose() {
+        fill(intakeRpmRingBuffer, getRPM());
+        lastSd = 0;
+        retractIntake = true;
+        intakeOccupied = false;
+        intakePower = 0;
+        intakePosition = IntakePosition.RETRACTED;
     }
 }

@@ -119,4 +119,8 @@ public class SensorThread implements Runnable, Telemeter {
     public boolean isOn() {
         return true;
     }
+
+    public void onClose() {
+        vuforiaLocalizationConsumer.deactivate();
+    }
 }

@@ -17,4 +17,6 @@ public interface VuforiaConsumer {
      * Update position
      */
     void update();
+
+    void deactivate();
 }

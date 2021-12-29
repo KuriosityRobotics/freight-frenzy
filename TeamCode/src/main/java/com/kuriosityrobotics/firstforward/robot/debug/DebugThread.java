@@ -30,8 +30,6 @@ public class DebugThread implements Runnable, Telemeter {
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
-
-        FileDump.close();
     }
 
     @Override
@@ -51,5 +49,9 @@ public class DebugThread implements Runnable, Telemeter {
     @Override
     public boolean isOn() {
         return isOn;
+    }
+
+    public void onClose() {
+        FileDump.close();
     }
 }

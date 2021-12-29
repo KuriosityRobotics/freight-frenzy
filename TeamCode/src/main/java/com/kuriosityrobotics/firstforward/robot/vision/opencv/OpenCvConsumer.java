@@ -4,4 +4,6 @@ import org.opencv.core.Mat;
 
 public interface OpenCvConsumer {
     void processFrame(Mat frame);
+
+    void deactivate();
 }

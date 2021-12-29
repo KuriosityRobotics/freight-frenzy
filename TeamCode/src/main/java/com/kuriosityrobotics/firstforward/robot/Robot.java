@@ -115,6 +115,14 @@ public class Robot {
         }
     }
 
+    public void close() {
+        sensorThread.onClose();
+        moduleThread.onClose();
+        visionThread.onClose();
+        debugThread.onClose();
+        telemetryDump.onClose();
+    }
+
     public DcMotor getDcMotor(String name) {
         try {
             return hardwareMap.dcMotor.get(name);

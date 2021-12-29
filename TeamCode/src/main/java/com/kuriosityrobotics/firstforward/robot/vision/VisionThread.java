@@ -68,4 +68,8 @@ public class VisionThread implements Runnable, Telemeter {
         this.vuforiaLocalizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
     }
+
+    public void onClose() {
+        this.managedCamera.onClose();
+    }
 }
