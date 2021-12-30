@@ -58,7 +58,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
         }
 
-        calculateRollingVelocity(new PoseInstant(getKuroCoordinateSystemPose(), SystemClock.elapsedRealtime() / 1000.0));
+        calculateRollingVelocity(new PoseInstant(getPoseRadians(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
     /**
@@ -189,11 +189,24 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return correction;
     }
 
-    public Pose getKuroCoordinateSystemPose() {
-        double x = matrixPose[0].getEntry(0, 0);
-        double y = matrixPose[0].getEntry(1, 0);
-        double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
-        return new Pose(x, y, heading);
+    public Pose getPoseRadians() {
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = matrixPose[0].getEntry(2, 0);
+
+            return new Pose(x, y, heading);
+        }
+    }
+
+    // just for degree formatting
+    public Pose getPoseDegrees() {
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
+            return new Pose(x, y, heading);
+        }
     }
 
     @Override

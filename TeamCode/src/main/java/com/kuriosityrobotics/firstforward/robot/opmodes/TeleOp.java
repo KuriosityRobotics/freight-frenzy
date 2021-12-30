@@ -77,7 +77,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateWebcamStates() {
-        if (robot.sensorThread.getPose().heading < 135.0 && robot.sensorThread.getPose().heading > -45.0) {
+        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
             robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
         } else {
             robot.visionThread.managedCamera.activateCamera(robot.cameraName2);

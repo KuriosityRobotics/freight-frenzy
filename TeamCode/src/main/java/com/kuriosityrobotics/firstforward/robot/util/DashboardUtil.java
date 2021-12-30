@@ -40,12 +40,12 @@ public class DashboardUtil {
         canvas.strokeLine(x1, y1, x2, y2);
     }
 
-    public static Pose toDashboardPose(Pose kuroCoordinateSystemPose) {
-        // normalize pose for dashboard
+    public static Pose normalizePose(Pose pose) {
+        // convert pose to ftc's system so it can be graphed on the dashboard
 
-        double x =  -kuroCoordinateSystemPose.y + HALF_FIELD / MM_PER_INCH;
-        double y = kuroCoordinateSystemPose.x - HALF_FIELD / MM_PER_INCH;
-        double heading = Math.toDegrees(angleWrap(Math.toRadians(180 - kuroCoordinateSystemPose.heading)));
+        double x =  -pose.y + HALF_FIELD / MM_PER_INCH;
+        double y = pose.x - HALF_FIELD / MM_PER_INCH;
+        double heading = Math.toDegrees(angleWrap(180 - pose.heading));
 
         return new Pose(x, y, heading);
     }

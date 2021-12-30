@@ -71,8 +71,7 @@ public class TelemetryDump implements PoseWatcher {
                 }
             }
 
-            // gotta format since Dashboard uses the FTC coordinate system and we're using our coordinate system(which is the format the poses are sent in)
-            Pose dashboardPose = DashboardUtil.toDashboardPose(pose);
+            Pose dashboardPose = DashboardUtil.normalizePose(pose);
 
             poseHistory.add(dashboardPose);
             DashboardUtil.drawRobot(canvas, dashboardPose);
