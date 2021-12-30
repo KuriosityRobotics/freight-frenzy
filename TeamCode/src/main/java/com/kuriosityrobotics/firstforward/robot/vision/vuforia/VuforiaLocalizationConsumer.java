@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import android.util.Log;
@@ -136,10 +137,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
             VectorF translation = detectedLocation.getTranslation();
             Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
-            double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, DEGREES).thirdAngle;
+            double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle;
 
             // Convert from FTC coordinate system to ours
-            double robotHeadingOurs = Math.toDegrees(angleWrap(Math.toRadians(180 - heading)));
+            double robotHeadingOurs = angleWrap(180 - heading);
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
@@ -152,7 +153,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            Log.e("Vision", "Our Coordinate System");
 //            Log.v("Vision", "Our x: " + robotXOurs);
 //            Log.v("Vision", "Our y: " + robotYOurs);
-//            Log.v("Vision", "Our heading: " + robotHeadingOurs);
+//            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},
