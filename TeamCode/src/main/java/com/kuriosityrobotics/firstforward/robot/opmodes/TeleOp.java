@@ -4,6 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.*;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -33,8 +34,6 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
-    private final double EPSILON = 0.1;
-
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
@@ -59,8 +58,6 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
-    private OuttakeModule.VerticalSlideLevel level = OuttakeModule.VerticalSlideLevel.DOWN;
-
     private void updateOuttakeStates() {
         if (gamepad2.dpad_down)
             OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
@@ -80,7 +77,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateWebcamStates() {
-        if (robot.sensorThread.getPose().heading < 3 * Math.PI / 4 && robot.sensorThread.getPose().heading > -Math.PI / 2) {
+        if (robot.sensorThread.getPose().heading < 135.0 && robot.sensorThread.getPose().heading > -45.0) {
             robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
         } else {
             robot.visionThread.managedCamera.activateCamera(robot.cameraName2);

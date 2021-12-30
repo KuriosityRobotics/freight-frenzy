@@ -79,7 +79,7 @@ public class SensorThread implements Runnable, Telemeter {
     }
 
     public Pose getPose() {
-        return kalmanFilter.getPose();
+        return kalmanFilter.getKuroCoordinateSystemPose();
     }
 
     public Pose getVelocity() {
@@ -118,6 +118,4 @@ public class SensorThread implements Runnable, Telemeter {
     public boolean isOn() {
         return true;
     }
-
-    public Odometry getOdometry() { return this.odometry; }
 }
