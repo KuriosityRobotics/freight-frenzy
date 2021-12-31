@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -23,7 +25,7 @@ public class Drivetrain implements Module, Telemeter {
     public boolean zeroPowerBrake = true;
 
     //braking states
-    private boolean brake = true; // whether or not to actively brake
+    private boolean brake = false; // whether or not to actively brake
     public Pose brakePose;
     private boolean opmodeStarted = false;
 
@@ -93,6 +95,7 @@ public class Drivetrain implements Module, Telemeter {
         if (xMov == 0 && yMov == 0 && turnMov == 0 && zeroPowerBrake && opmodeStarted) {
             if (!brake) {
                 this.brake = true;
+                this.brakePose = robot.sensorThread.getPose();
             } else {
                 //stops robot when it's at low vel
                 if (distanceBrakeController.getD() > 0) {
@@ -103,6 +106,7 @@ public class Drivetrain implements Module, Telemeter {
             this.brake = false;
         }
 
+//        Log.v("Drivetrain", "Iteration called");
         if (drivetrainModule.isOn()) {
             if (brake) {
                 setMovementTowardsBrake();

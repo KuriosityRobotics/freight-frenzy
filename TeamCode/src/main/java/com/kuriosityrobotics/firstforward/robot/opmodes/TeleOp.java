@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -78,9 +79,9 @@ public class TeleOp extends LinearOpMode {
 
     private void updateWebcamStates() {
         if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
-            robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
-        } else {
             robot.visionThread.managedCamera.activateCamera(robot.cameraName2);
+        } else {
+            robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
         }
     }
 }

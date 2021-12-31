@@ -19,6 +19,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+import org.opencv.core.Mat;
+
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 import java.util.ArrayList;
 
@@ -140,7 +142,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle;
 
             // Convert from FTC coordinate system to ours
-            double robotHeadingOurs = angleWrap(180 - heading);
+            double robotHeadingOurs = angleWrap(Math.PI - heading);
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
@@ -148,7 +150,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            Log.e("Vision", "FTC Coordinate System");
 //            Log.v("Vision", "FTC x: " + robotLocation.x);
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
-//            Log.v("Vision", "FTC heading: " + heading);
+//            Log.v("Vision", "FTC heading: " + Math.toDegrees(heading));
 //
 //            Log.e("Vision", "Our Coordinate System");
 //            Log.v("Vision", "Our x: " + robotXOurs);
@@ -158,7 +160,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},
                     {robotYOurs, 0},
-                    {Math.toRadians(robotHeadingOurs), 0}
+                    {robotHeadingOurs, 0}
             });
         }
     }

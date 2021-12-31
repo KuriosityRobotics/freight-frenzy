@@ -58,8 +58,8 @@ public final class ManagedCamera {
                 .getCameraManager()
                 .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
         initializeVulforia(switchableCameraName);
-
-        activateCamera(this.cameraName2);
+        switchableCamera.setActiveCamera(this.cameraName1);
+        activateCamera(this.cameraName1);
     }
 
     private void initializeVulforia(SwitchableCameraName switchableCameraName) {
