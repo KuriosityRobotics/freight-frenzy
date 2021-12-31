@@ -95,7 +95,6 @@ public class Drivetrain implements Module, Telemeter {
         if (xMov == 0 && yMov == 0 && turnMov == 0 && zeroPowerBrake && opmodeStarted) {
             if (!brake) {
                 this.brake = true;
-                this.brakePose = robot.sensorThread.getPose();
             } else {
                 //stops robot when it's at low vel
                 if (distanceBrakeController.getD() > 0) {
@@ -125,6 +124,10 @@ public class Drivetrain implements Module, Telemeter {
     // used for braking
     private void setMovementTowardsBrake() {
         Pose currentPosition = getCurrentPose();
+        if (brakePose == null) {
+            brakePose = currentPosition;
+            return;
+        }
 
         double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)) * 0.55; // to use for PID
         double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading) * 0.65;
