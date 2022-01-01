@@ -95,8 +95,7 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
-        data.add("Robot Pose Rad: " + this.kalmanFilter.getPoseRadians());
-        data.add("Robot PoseDeg : " + this.kalmanFilter.getPoseDegrees());
+        data.add("Robot Pose: " + this.kalmanFilter.getPoseDegrees());
 
         return data;
     }

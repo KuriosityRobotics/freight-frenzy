@@ -36,12 +36,11 @@ public class Drivetrain implements Module, Telemeter {
     ClassicalPID angularBrakeController = new ClassicalPID(0.5, 0, 1);
     ClassicalPID distanceBrakeController = new ClassicalPID(0.03, 0, 0.7);
 
-    public Drivetrain(Robot robot) {
+    public Drivetrain(Robot robot, Pose brakePose) {
         this.robot = robot;
-
         drivetrainModule = new DrivetrainModule(robot);
-
         robot.telemetryDump.registerTelemeter(this);
+        this.brakePose = brakePose;
     }
 
     public void setMovements(double xMov, double yMov, double turnMov) {
@@ -124,10 +123,6 @@ public class Drivetrain implements Module, Telemeter {
     // used for braking
     private void setMovementTowardsBrake() {
         Pose currentPosition = getCurrentPose();
-        if (brakePose == null) {
-            brakePose = currentPosition;
-            return;
-        }
 
         double moveSpeed = distanceBrakeController.calculateSpeed(currentPosition.distance(brakePose)) * 0.55; // to use for PID
         double turnSpeed = angularBrakeController.calculateSpeed(brakePose.heading - currentPosition.heading) * 0.65;

@@ -6,6 +6,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -50,7 +51,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateIntakeStates() {
-        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > EPSILON
+        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0;
 

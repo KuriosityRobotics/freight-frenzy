@@ -71,7 +71,7 @@ public class Robot {
         }
 
         // modules
-        drivetrain = new Drivetrain(this);
+        drivetrain = new Drivetrain(this, pose);
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
         carouselModule = new CarouselModule(this);
