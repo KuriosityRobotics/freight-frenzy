@@ -16,8 +16,8 @@ public class VisionThread implements Runnable, Telemeter {
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final TeamMarkerDetection teamMarkerDetector;
     private final OpenCVDumper openCVDumper;
-
     public ManagedCamera managedCamera;
+
     private final Robot robot;
     private long updateTime = 0;
     private long lastLoopTime = 0;
