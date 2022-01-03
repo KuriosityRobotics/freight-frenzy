@@ -23,7 +23,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Robot {
     private static final boolean DEBUG = false;
-    private boolean isAuto;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     private Thread[] threads;
@@ -49,8 +48,7 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose, boolean isAuto) throws RuntimeException {
-        this.isAuto = isAuto;
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -89,8 +87,8 @@ public class Robot {
         this.start();
     }
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isAuto) throws Exception {
-        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0, 0.0, 0.0), isAuto);
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0, 0.0, 0.0));
     }
 
     public void start() {
@@ -137,6 +135,4 @@ public class Robot {
     public boolean isDebug() {
         return DEBUG;
     }
-
-    public boolean isAuto() { return isAuto; }
 }

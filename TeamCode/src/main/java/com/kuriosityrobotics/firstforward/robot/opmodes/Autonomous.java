@@ -28,7 +28,7 @@ public class Autonomous extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START, true);
+            robot = new Robot(hardwareMap, telemetry, this, START);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();

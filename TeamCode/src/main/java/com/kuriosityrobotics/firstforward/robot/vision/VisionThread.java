@@ -30,7 +30,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.webcamName = webcamName;
         robot.telemetryDump.registerTelemeter(this);
         this.localizationConsumer = localizationConsumer;
-        this.teamMarkerDetector = new TeamMarkerDetection(robot.isAuto());
+        this.teamMarkerDetector = new TeamMarkerDetection();
         this.openCVDumper = new OpenCVDumper(robot.isDebug());
     }
 
