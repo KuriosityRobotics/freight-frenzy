@@ -45,7 +45,7 @@ public class DashboardUtil {
 
         double x =  -pose.y + HALF_FIELD / MM_PER_INCH;
         double y = pose.x - HALF_FIELD / MM_PER_INCH;
-        double heading = angleWrap(180 - pose.heading);
+        double heading = angleWrap(Math.PI - pose.heading);
 
         return new Pose(x, y, heading);
     }
