@@ -1,5 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Dashboard.ROBOT_RADIUS;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
+
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -7,11 +11,10 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import java.util.List;
 
 /**
- * Set of helper functions for drawing Road Runner paths and trajectories on dashboard canvases.
+ * Set of helper functions for drawing Kuriosity robot and location history on dashboard canvases.
  */
 
 public class DashboardUtil {
-    private static final double ROBOT_RADIUS = 6; // in
 
     public static void drawPoseHistory(Canvas canvas, List<Pose> poseHistory) {
         canvas.setStrokeWidth(1);
@@ -35,5 +38,15 @@ public class DashboardUtil {
         double x1 = pose.getX() + v.getX() / 2, y1 = pose.getY() + v.getY() / 2;
         double x2 = pose.getX() + v.getX(), y2 = pose.getY() + v.getY();
         canvas.strokeLine(x1, y1, x2, y2);
+    }
+
+    public static Pose normalizePose(Pose pose) {
+        // convert pose to ftc's system so it can be graphed on the dashboard
+
+        double x =  -pose.y + HALF_FIELD / MM_PER_INCH;
+        double y = pose.x - HALF_FIELD / MM_PER_INCH;
+        double heading = angleWrap(Math.PI - pose.heading);
+
+        return new Pose(x, y, heading);
     }
 }

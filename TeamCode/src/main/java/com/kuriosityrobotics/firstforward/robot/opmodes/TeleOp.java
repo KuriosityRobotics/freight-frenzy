@@ -1,17 +1,18 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
-
-    private boolean prevY = false;
 
     @Override
     public void runOpMode() {
@@ -24,6 +25,7 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            updateWebcamStates();
             // yeet
             updateDrivetrainStates();
             //robot.drivetrain.setBrakePose(new Pose(0,24,0));
@@ -33,8 +35,6 @@ public class TeleOp extends LinearOpMode {
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
         }
     }
-
-    private final double EPSILON = 0.1;
 
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
@@ -51,7 +51,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateIntakeStates() {
-        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > EPSILON
+        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0;
 
@@ -59,8 +59,6 @@ public class TeleOp extends LinearOpMode {
             robot.intakeModule.retractIntake = true;
         }
     }
-
-    private OuttakeModule.VerticalSlideLevel level = OuttakeModule.VerticalSlideLevel.DOWN;
 
     private void updateOuttakeStates() {
         if (gamepad2.dpad_down)
@@ -78,5 +76,13 @@ public class TeleOp extends LinearOpMode {
 
     private void updateCarouselStates() {
         robot.carouselModule.spin = gamepad2.x;
+    }
+
+    private void updateWebcamStates() {
+        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
+            robot.visionThread.managedCamera.activateCamera(robot.cameraName2);
+        } else {
+            robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
+        }
     }
 }

@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
-import android.os.SystemClock;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;

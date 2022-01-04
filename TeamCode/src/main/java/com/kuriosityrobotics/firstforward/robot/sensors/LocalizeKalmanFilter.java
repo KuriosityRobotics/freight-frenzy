@@ -14,6 +14,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
@@ -57,7 +58,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
         }
 
-        calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+        calculateRollingVelocity(new PoseInstant(getPoseRadians(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
     /**
@@ -71,7 +72,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      */
     @Override
     public RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
-
         // set up
         double prevX = prev[0].getEntry(0, 0);
         double prevY = prev[0].getEntry(1, 0);
@@ -189,7 +189,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return correction;
     }
 
-    public Pose getPose() {
+    public Pose getPoseRadians() {
         synchronized (this) {
             double x = matrixPose[0].getEntry(0, 0);
             double y = matrixPose[0].getEntry(1, 0);
@@ -199,15 +199,18 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         }
     }
 
-    public Pose getFormattedPose() {
-        double x = matrixPose[0].getEntry(0, 0);
-        double y = matrixPose[0].getEntry(1, 0);
-        double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
-        return new Pose(x, y, heading);
+    // just for degree formatting
+    public Pose getPoseDegrees() {
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
+            return new Pose(x, y, heading);
+        }
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
@@ -238,4 +241,3 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return true;
     }
 }
-

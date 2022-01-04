@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
@@ -9,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
     Robot robot;
@@ -33,12 +36,11 @@ public class Drivetrain implements Module, Telemeter {
     ClassicalPID angularBrakeController = new ClassicalPID(0.5, 0, 1);
     ClassicalPID distanceBrakeController = new ClassicalPID(0.03, 0, 0.7);
 
-    public Drivetrain(Robot robot) {
+    public Drivetrain(Robot robot, Pose brakePose) {
         this.robot = robot;
-
         drivetrainModule = new DrivetrainModule(robot);
-
         robot.telemetryDump.registerTelemeter(this);
+        this.brakePose = brakePose;
     }
 
     public void setMovements(double xMov, double yMov, double turnMov) {
@@ -203,7 +205,7 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));

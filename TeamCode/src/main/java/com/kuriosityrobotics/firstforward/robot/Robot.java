@@ -11,7 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.LocalizationConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 
 public class Robot {
@@ -40,7 +41,7 @@ public class Robot {
 
     public TelemetryDump telemetryDump;
 
-    public LocalizationConsumer localizationConsumer;
+    public VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
@@ -48,9 +49,15 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
+    public WebcamName cameraName1;
+    public WebcamName cameraName2;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
+
+        this.cameraName1 = hardwareMap.get(WebcamName.class, "Webcam 1");
+        this.cameraName2 = hardwareMap.get(WebcamName.class, "Webcam 2");
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
@@ -64,7 +71,7 @@ public class Robot {
         }
 
         // modules
-        drivetrain = new Drivetrain(this);
+        drivetrain = new Drivetrain(this, pose);
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
         carouselModule = new CarouselModule(this);
@@ -76,19 +83,19 @@ public class Robot {
                 carouselModule
         };
 
-        localizationConsumer = new LocalizationConsumer();
+        vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(cameraName1, cameraName2);
 
         // threads
-        sensorThread = new SensorThread(this, configLocation, localizationConsumer, pose);
+        sensorThread = new SensorThread(this, configLocation, vuforiaLocalizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, localizationConsumer, "Webcam 1");
+        visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         debugThread = new DebugThread(this, DEBUG);
 
         this.start();
     }
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
-        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0, 0.0, 0.0));
+        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
     public void start() {
