@@ -104,7 +104,6 @@ public class Drivetrain implements Module, Telemeter {
             this.brake = false;
         }
 
-//        Log.v("Drivetrain", "Iteration called");
         if (drivetrainModule.isOn()) {
             if (brake) {
                 setMovementTowardsBrake();
