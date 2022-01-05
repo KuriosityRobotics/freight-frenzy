@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -22,6 +23,8 @@ public class Autonomous extends LinearOpMode {
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
 
     public static final Pose WOBBLE = new Pose(36, 93, Math.toRadians(-30));
+    public static final Pose WAREHOUSE = new Pose(8, 15, Math.toRadians(180));
+    public static final Pose WALL_WH = new Pose(5, 93, Math.toRadians(90));
 
     public static final Pose WALL_ENT = new Pose(9, 100, Math.toRadians(180));
     public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
@@ -48,14 +51,28 @@ public class Autonomous extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
-        PurePursuit toWobble = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit carouselToWobble = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(CAROUSEL, new RaiseOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
+        ArrayList<Action> intakeActions = new ArrayList<>();
+        intakeActions.add(new IntakeAction());
+        PurePursuit toWarehouse = new PurePursuit(robot, new WayPoint[]{
+                new WayPoint(WOBBLE),
+                new WayPoint(WALL_WH,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WAREHOUSE, 0, intakeActions)
+        }, 4);
+
+        PurePursuit warehouseToWobble = new PurePursuit(robot, new WayPoint[]{
+                new WayPoint(WAREHOUSE),
+                new WayPoint(WALL_WH,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WOBBLE, 0, wobbleActions)
+        }, 4);
+
         PurePursuit toPark = new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(CAROUSEL),
-                new WayPoint(WALL_ENT, 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WOBBLE),
+                new WayPoint(WALL_WH, 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 4);
 
@@ -66,8 +83,14 @@ public class Autonomous extends LinearOpMode {
         // go to carousel
         toCarousel.follow();
 
-        // to wobble
-//        toWobble.follow();
+        // go from carousel to wobble
+        carouselToWobble.follow();
+
+        //place 3 more freight on wobble
+        for (int i = 0; i < 3; i++){
+            toWarehouse.follow();
+            warehouseToWobble.follow();
+        }
 
         toPark.follow();
     }
