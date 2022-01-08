@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class MaxVelo extends LinearOpMode {
     public void runOpMode() {
-        Robot robot = new Robot(hardwareMap, telemetry, this, new Pose(0, 0, 0), true);
+        Robot robot = new Robot(hardwareMap, telemetry, this, new Pose(0, 0, 0));
 
         waitForStart();
 
