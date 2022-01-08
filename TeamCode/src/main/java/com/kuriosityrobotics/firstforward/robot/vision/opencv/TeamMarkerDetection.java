@@ -13,7 +13,6 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
     private static final Vector3D RED = new Vector3D(255, 0, 0);
@@ -42,9 +41,10 @@ public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
     }
 
     public enum TeamMarkerLocation {
-        LOCATION_1,
-        LOCATION_2,
-        LOCATION_3
+        // yeah i'm decently sure these are correct(corresponding shipping hub levels)
+        LEVEL_1,
+        LEVEL_2,
+        LEVEL_3
     }
 
     private volatile TeamMarkerLocation location;
@@ -86,13 +86,13 @@ public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
             double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
             if (closestToRed == area1) {
                 Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
-                this.location = TeamMarkerLocation.LOCATION_1;
+                this.location = TeamMarkerLocation.LEVEL_1;
             } else if (closestToRed == area2) {
                 Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 0), 5);
-                this.location = TeamMarkerLocation.LOCATION_2;
+                this.location = TeamMarkerLocation.LEVEL_2;
             } else if (closestToRed == area3) {
                 Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
-                this.location = TeamMarkerLocation.LOCATION_3;
+                this.location = TeamMarkerLocation.LEVEL_3;
             }
         }
 

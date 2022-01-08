@@ -12,7 +12,7 @@ public class Straight extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, true);
+            robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
