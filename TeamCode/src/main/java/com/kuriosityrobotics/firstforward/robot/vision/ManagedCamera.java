@@ -131,6 +131,10 @@ public final class ManagedCamera {
         });
     }
 
+    public ManagedCamera(WebcamName webcamName1, WebcamName webcamName2, OpenCvConsumer... openCvConsumers) {
+        this(webcamName1, webcamName2, null, openCvConsumers);
+    }
+
     public void activateCamera(WebcamName cameraName) {
         if (this.activeCameraName == cameraName) {
             return;
