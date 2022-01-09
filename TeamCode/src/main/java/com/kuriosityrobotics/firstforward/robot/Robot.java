@@ -83,13 +83,16 @@ public class Robot {
                 carouselModule
         };
 
-        vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(cameraName1, cameraName2);
-
-        // threads
         sensorThread = new SensorThread(this, configLocation, vuforiaLocalizationConsumer, pose);
         moduleThread = new ModuleThread(this, this.modules);
-        visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         debugThread = new DebugThread(this, DEBUG);
+
+        telemetry.addData("> ", "Please wait for vuforia to init");
+        telemetry.update();
+        vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(cameraName1, cameraName2);
+        visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
+        telemetry.addData("> ", "Vuforia has been initalized");
+        telemetry.update();
 
         this.start();
     }
