@@ -113,6 +113,10 @@ public final class ManagedCamera {
         this(webcamName1, webcamName2, null, openCvConsumers);
     }
 
+    public WebcamName getActiveCameraName() {
+        return activeCameraName;
+    }
+
     public void activateCamera(WebcamName cameraName) {
         if (this.activeCameraName == cameraName) {
             return;
@@ -123,12 +127,8 @@ public final class ManagedCamera {
             return;
         }
 
-        activateCamera(cameraName);
+        this.switchableCamera.setActiveCamera(cameraName);
         this.activeCameraName = cameraName;
-    }
-
-    public CameraName getActiveCameraName() {
-        return activeCameraName;
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {

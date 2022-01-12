@@ -8,6 +8,9 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import java.util.ArrayList;
 
@@ -55,17 +58,25 @@ public class VisionThread implements Runnable, Telemeter {
         return true;
     }
 
+    private WebcamName getIdealVuforiaCamera() {
+        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (-Math.PI / 4))
+            return robot.leftCamera;
+        else
+            return robot.frontCamera;
+    }
+
     @Override
     public void run() {
         while (robot.running()) {
-            if (!activeCamera.equals(managedCamera.getActiveCameraName()))
-                managedCamera.activateCamera(activeCamera);
+//            var idealCamera = getIdealVuforiaCamera();
+//            if (!idealCamera.equals(managedCamera.getActiveCameraName()))
+//                managedCamera.activateCamera(idealCamera);
 
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
         this.vuforiaLocalizationConsumer.deactivate();
-        Log.v("VisionThread", "Exited due to opMode no longer being active.");
+        Log.v("VisionThread", "Stopped;  robot no longer running.");
     }
 }

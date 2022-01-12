@@ -77,7 +77,7 @@ public class TeleOp extends LinearOpMode {
         else if (gamepad2.right_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
 
-        if (gamepad2.right_stick_x == 0 && gamepad2.right_stick_y == 0){
+        if (gamepad2.right_stick_x == 0 && gamepad2.right_stick_y == 0) {
             OuttakeModule.pivotHeading = 0;
         } else{
             OuttakeModule.pivotHeading = angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI);

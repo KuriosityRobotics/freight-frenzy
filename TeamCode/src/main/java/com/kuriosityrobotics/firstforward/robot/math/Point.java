@@ -81,5 +81,9 @@ public class Point {
     public double getY() {
         return this.y;
     }
+
+    public double hypot() {
+        return Math.hypot(x, y);
+    }
 }
 
