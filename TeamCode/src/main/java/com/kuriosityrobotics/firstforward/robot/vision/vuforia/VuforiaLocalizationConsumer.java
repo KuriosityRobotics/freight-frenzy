@@ -8,6 +8,8 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
+
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
@@ -111,7 +113,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      * Data for the Vuforia Localization and Telemetry Dump
      */
     public ArrayList<String> logPositionandDetection() {
-        synchronized (this) {
+        synchronized (detectedTrackable) {
             ArrayList<String> data = new ArrayList<>();
 
             if (detectedTrackable == null) {
@@ -133,6 +135,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getFormattedMatrix() {
         synchronized (this) {
+            if (!ManagedCamera.vuforiaActive) {
+                return null;
+            }
+
             if (detectedLocation == null) {
                 return null;
             }
