@@ -1,10 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.VUFORIA_LICENCE_KEY;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
-import de.esoco.coroutine.*;
 
 import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
@@ -12,32 +13,25 @@ import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.opencv.core.Mat;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderer.GPU_ACCELERATED;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW;
-import org.openftc.easyopencv.*;
-import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
-public final class ManagedCamera {
-    private static final String VUFORIA_LICENCE_KEY =
-            "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
-                    "/zSSyaSoqeWdTFVB5eDsZZOP/N/ISBYhlSM4zrkb4q1YLVLce0aYvIrso" +
-                    "GnQ4Iw/KT12StcpQsraoLewErwZwf3IZENT6aWUwODR7vnE4JhHU4+2Iy" +
-                    "ftSR0meDfUO6DAb4VDVmXCYbxT//lPixaJK/rXiI4o8NQt59EIN/W0RqT" +
-                    "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
-                    "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
-                    "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
+import de.esoco.coroutine.Coroutine;
+import de.esoco.coroutine.CoroutineScope;
 
+public final class ManagedCamera {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
     private boolean vuforiaInitialisedYet;
+    public static boolean vuforiaActive = true;
 
     private List<OpenCvConsumer> openCvConsumers;
 
@@ -134,22 +128,24 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
-            Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
-            // !!
-            Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
-                Mat matCopy = input.clone();
-                consumer.processFrame(matCopy);
-                matCopy.release(); // c++ moment
-            }));
+            if (vuforiaActive) {
+                Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
+                // !!
+                Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
+                    Mat matCopy = input.clone();
+                    consumer.processFrame(matCopy);
+                    matCopy.release(); // c++ moment
+                }));
 
-            // distribute the data
-            CoroutineScope.launch(scope ->
-            {
-                if (vuforiaConsumer != null) {
-                    vuforiaCoro.runAsync(scope, vuforiaConsumer);
-                }
-                openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
-            });
+                // distribute the data
+                CoroutineScope.launch(scope ->
+                {
+                    if (vuforiaConsumer != null) {
+                        vuforiaCoro.runAsync(scope, vuforiaConsumer);
+                    }
+                    openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));
+                });
+            }
 
             return input;
         }
