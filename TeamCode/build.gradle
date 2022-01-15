@@ -25,13 +25,10 @@ dependencies {
     // Queue types for intake module
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
-    // Queue types for intake module
-    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-
     // vision
     implementation 'org.openftc:easyopencv:1.5.1'
 
-    // fancy stuff for FileDump
+    // fancy stuff for FileDump and ManagedCamera
     // https://mvnrepository.com/artifact/org.reflections/reflections
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.12'
 
