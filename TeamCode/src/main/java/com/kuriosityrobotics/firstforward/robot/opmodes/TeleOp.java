@@ -1,14 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import android.util.Log;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
+import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
-
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -40,6 +40,8 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
+    ClassicalPID angularWallrideController = new ClassicalPID(0.5, 0, 1);
+    ClassicalPID distanceWallrideController = new ClassicalPID(0.03, 0, 0.7);
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
@@ -49,6 +51,34 @@ public class TeleOp extends LinearOpMode {
             yMov /= 2;
             xMov /= 2;
             turnMov /= 2;
+        }
+
+        robot.drivetrain.setMovements(xMov, yMov, turnMov);
+
+        Pose robotPose = robot.sensorThread.getPose();
+        //if it's in the area for wall riding
+        if (robotPose.isInRange(0, 28, 15, 68)){
+            Log.i("TeleOp", "NEAR GsdadsAP");
+            //angle reference: 0 is down, 90 is left 180/-180 is up
+            //angle should be 0 or 180 or -180, finds closest one
+            double targetHeading = closestNum(robot.sensorThread.getPose().heading, new double[]{-Math.PI, 0, Math.PI});
+            double targetX = 6.5;
+
+            //Log.i("TeleOp", "distance from x = 6.5: "  + (targetX - robotPose.getX()));
+
+            double angleFactor = angularWallrideController.calculateSpeed(targetHeading - robotPose.heading);
+            double distanceFactor = distanceWallrideController.calculateSpeed(targetX - robotPose.getX());
+
+            //Log.i("TeleOp", "distanceFactor: "  + distanceFactor);
+
+            turnMov += angleFactor;
+            xMov += 1/0.9 * distanceFactor * Math.sin(robotPose.heading);
+            yMov += distanceFactor * Math.cos(robotPose.heading);
+            Log.i("TeleOp", "xMov add: " + xMov);
+            Log.i("TeleOp", "yMov add: " + yMov);
+        }else{
+            angularWallrideController.reset();
+            distanceWallrideController.reset();
         }
 
         robot.drivetrain.setMovements(xMov, yMov, turnMov);
