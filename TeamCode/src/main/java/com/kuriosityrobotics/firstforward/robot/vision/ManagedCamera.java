@@ -31,7 +31,7 @@ public final class ManagedCamera {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private boolean vuforiaInitialisedYet;
+    private boolean vuforiaInitialisedYet = false;
     public static boolean vuforiaActive = true;
 
     private List<OpenCvConsumer> openCvConsumers;
@@ -68,47 +68,33 @@ public final class ManagedCamera {
         }
 
         if (vuforiaConsumer != null) {
-<<<<<<< HEAD
-            // setup vuforia
-            VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
-            parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
-            parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-            parameters.cameraName = switchableCameraName;
-            vuforia = ClassFactory.getInstance().createVuforia(parameters);
-            switchableCamera = (SwitchableCamera) vuforia.getCamera();
-
-            vuforiaConsumer.setup(vuforia);
-            openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
-
-            try {
-                // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
-                // anyways enough of this rant
-                Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
-                Field isWebcamField = aClass.getDeclaredField("isWebcam");
-                isWebcamField.setAccessible(true);
-                isWebcamField.set(openCvCamera, true);
-            } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
-                Log.e("Switchable Cameras: ", "cannot set isWebcam ", e);
-=======
-            if(!vuforiaInitialisedYet) {
+            if (!vuforiaInitialisedYet) {
                 // setup vuforia
-                int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+                VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
                 parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
                 parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
-                parameters.cameraName = cameraName;
+                parameters.cameraName = switchableCameraName;
+                vuforia = ClassFactory.getInstance().createVuforia(parameters);
+                switchableCamera = (SwitchableCamera) vuforia.getCamera();
 
-                VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
                 vuforiaConsumer.setup(vuforia);
                 openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
+                try {
+                    // hack moment(we're passing in a SwitchableCamera(not a Camera), which causes OpenCV to mald even though it shouldn't because of polymorphism)
+                    // anyways enough of this rant
+                    Class<?> aClass = Class.forName("org.openftc.easyopencv.OpenCvVuforiaPassthroughImpl");
+                    Field isWebcamField = aClass.getDeclaredField("isWebcam");
+                    isWebcamField.setAccessible(true);
+                    isWebcamField.set(openCvCamera, true);
+                } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
+                    Log.e("Switchable Cameras: ", "cannot set isWebcam to true ", e);
+                }
+
                 vuforiaInitialisedYet = true;
             } else {
-                // control hub does not like multiple vuforias, so don't try spawning more than 1 Managed Camera
-                throw new RuntimeException("ManagedCamera(String, HardwareMap, VuforiaConsumer, ...) constructor called multiple times.  Running more than one instance of Vuforia isn't supported and will lead to a crash.");
->>>>>>> 9b4a14a (small changes)
+                throw new RuntimeException("You cannot instantiate two Managed Cameras with Vuforia at once!");
             }
-
         } else {
             openCvCamera = OpenCvCameraFactory.getInstance().createWebcam(cameraName2);
         }
@@ -144,7 +130,6 @@ public final class ManagedCamera {
             Log.e("ManagedCamera", "Not a switchable camera");
             return;
         }
-
         this.switchableCamera.setActiveCamera(cameraName);
         this.activeCameraName = cameraName;
     }
