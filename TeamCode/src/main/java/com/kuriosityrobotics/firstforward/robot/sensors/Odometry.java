@@ -7,6 +7,7 @@ import android.os.SystemClock;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.MathUtil;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
@@ -255,6 +256,10 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
      */
     public Pose getPose() {
         return new Pose(worldX, worldY, worldHeadingRad);
+    }
+
+    public Pose getPoseDegrees(){
+        return new Pose(worldX, worldY, MathUtil.angleWrap(worldHeadingRad) * 180/Math.PI);
     }
 
     public Pose getInstantaneousVelocity() {

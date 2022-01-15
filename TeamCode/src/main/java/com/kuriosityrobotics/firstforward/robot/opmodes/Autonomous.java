@@ -16,6 +16,7 @@ import java.util.ArrayList;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class Autonomous extends LinearOpMode {
+    public static final Pose ORIGIN = new Pose(0, 0, Math.toRadians(90));
     public static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));

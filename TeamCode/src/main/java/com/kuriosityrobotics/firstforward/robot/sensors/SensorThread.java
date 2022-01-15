@@ -96,6 +96,7 @@ public class SensorThread implements Runnable, Telemeter {
 
         data.add("Update time: " + updateTime);
         data.add("Robot Pose: " + this.kalmanFilter.getPose().toDegrees());
+        data.add("Odometry Pose: " + this.odometry.getPose().toDegrees());
 
         return data;
     }

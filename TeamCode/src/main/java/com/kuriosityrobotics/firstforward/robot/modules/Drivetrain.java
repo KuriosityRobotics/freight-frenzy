@@ -44,9 +44,10 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     private boolean brakingRequested() {
-        return xMov == 0
-                && yMov == 0
-                && turnMov == 0;
+        //return xMov == 0
+        //        && yMov == 0
+        //        && turnMov == 0;
+        return false;
     }
 
     // updates drivetrainModule and odometry
