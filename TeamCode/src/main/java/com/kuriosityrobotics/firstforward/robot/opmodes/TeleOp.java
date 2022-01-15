@@ -29,7 +29,6 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            updateWebcamStates();
             // yeet
             updateDrivetrainStates();
             //robot.drivetrain.setBrakePose(new Pose(0,24,0));
@@ -87,13 +86,5 @@ public class TeleOp extends LinearOpMode {
 
     private void updateCarouselStates() {
         robot.carouselModule.spin = gamepad2.x;
-    }
-
-    private void updateWebcamStates() {
-        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
-            robot.visionThread.getManagedCamera().activateCamera(robot.cameraName2);
-        } else {
-            robot.visionThread.getManagedCamera().activateCamera(robot.cameraName1);
-        }
     }
 }

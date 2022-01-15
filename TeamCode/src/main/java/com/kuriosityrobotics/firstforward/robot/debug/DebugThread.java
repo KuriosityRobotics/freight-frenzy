@@ -29,6 +29,8 @@ public class DebugThread implements Runnable, Telemeter {
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
+
+            Thread.yield();
         }
 
         FileDump.close();

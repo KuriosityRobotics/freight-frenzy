@@ -60,15 +60,17 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public void run() {
         while (robot.running()) {
-            try {
-                long currentTime = SystemClock.elapsedRealtime();
-                updateTime = currentTime - lastLoopTime;
-                lastLoopTime = currentTime;
+            long currentTime = SystemClock.elapsedRealtime();
+            updateTime = currentTime - lastLoopTime;
+            lastLoopTime = currentTime;
 
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                Log.e("VisionThread", "Thread Interupted: ", e);
+            if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
+                managedCamera.activateCamera(robot.cameraName2);
+            } else {
+                managedCamera.activateCamera(robot.cameraName1);
             }
+
+            Thread.yield();
         }
         this.vuforiaLocalizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
