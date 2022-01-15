@@ -1,8 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.*;
+
 import android.annotation.SuppressLint;
 import android.os.SystemClock;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.MathUtil;
@@ -11,29 +12,15 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-
 import org.apache.commons.collections4.BoundedCollection;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
-
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class IntakeModule implements Module, Telemeter {
-    private static final double RPM_EPSILON = 60;
+    public volatile double lastSd = 0;
 
-    // PPR = Ticks per Revolution(abrv different but doesn't matter)
-    private static final double GOBILDA_1620_PPR = 103.8;
-    private static final double INTAKE_OCCUPIED_SD = 50;
-    private volatile double lastSd = 0;
-
-    // TODO: Tune
-    public static final double INTAKE_EXTEND_TIME = 1500;
-
-    public static final double INTAKE_RIGHT_EXTENDED_POS = 0.512;
-    public static final double INTAKE_RIGHT_RETRACTED_POS = 0.87614;
-    public static final double INTAKE_LEFT_EXTENDED_POS = 0.8691;
-    public static final double INTAKE_LEFT_RETRACTED_POS = 0.5;
-
-    private static final int RING_BUFFER_CAPACITY = 300;
     private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
 
     private final DcMotorEx intakeMotor;
@@ -54,9 +41,21 @@ public class IntakeModule implements Module, Telemeter {
     private boolean hasOccupationStatusChanged() {
         if (intakePower < 0.1 || intakeRpmRingBuffer.isEmpty())
             return false;
-        var sd = MathUtil.sd(intakeRpmRingBuffer);
+        List<Double> avgRPMs = new ArrayList<>();
+        double last = 0;
+        for (int i = 0; i < RING_BUFFER_CAPACITY; i++) {
+            if (i % 10 == 0 || i == RING_BUFFER_CAPACITY - 1) {
+                avgRPMs.add(last / 10);
+                last = 0;
+            } else {
+                last += intakeRpmRingBuffer.get(i);
+            }
+        }
+
+        double sd = MathUtil.sd(avgRPMs);
+//        var sd = MathUtil.sd(intakeRpmRingBuffer);
         lastSd = sd;
-        return INTAKE_OCCUPIED_SD < sd && sd < 300;
+        return INTAKE_OCCUPIED_SD < sd && sd < INTAKE_DEACCEL_SD;
     }
 
     private boolean hasDecelerated() {
@@ -74,7 +73,8 @@ public class IntakeModule implements Module, Telemeter {
     private boolean isOn;
 
     public enum IntakePosition {
-        EXTENDED, RETRACTED
+        EXTENDED,
+        RETRACTED
     }
 
     public IntakeModule(Robot robot, boolean isOn) {
@@ -184,17 +184,16 @@ public class IntakeModule implements Module, Telemeter {
         return isOn;
     }
 
-    @SuppressLint("DefaultLocale") // please java shut the Gell Up
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-//        data.add(String.format("Intake speed (RPM): %f", getRPM()));
+        data.add(String.format(Locale.US, "Intake speed (RPM): %f", getRPM()));
         data.add("retract: " + retractIntake);
-        data.add(String.format("Intake position:  %s", intakePosition));
-        data.add(String.format("Intake occupied:  %b", intakeOccupied));
-//        data.add(String.format("sd:  %f", lastSd));
-//        data.add(String.format("buf len:  %d", intakeRpmRingBuffer.size()));
+        data.add(String.format(Locale.US, "Intake position:  %s", intakePosition));
+        data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));
+        data.add(String.format(Locale.US, "sd:  %f", lastSd));
+        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
 
         return data;
     }

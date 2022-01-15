@@ -9,6 +9,24 @@ import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Constants {
+    public static class Intake {
+        public static final double RPM_EPSILON = 60;
+
+        // PPR = Ticks per Revolution(abrv different but doesn't matter)
+        public static final double GOBILDA_1620_PPR = 103.8;
+        public static final double INTAKE_OCCUPIED_SD = 50;
+        public static final double INTAKE_DEACCEL_SD = 100;
+
+        public static final double INTAKE_EXTEND_TIME = 1500;
+
+        public static final double INTAKE_RIGHT_EXTENDED_POS = 0.512;
+        public static final double INTAKE_RIGHT_RETRACTED_POS = 0.87614;
+        public static final double INTAKE_LEFT_EXTENDED_POS = 0.8691;
+        public static final double INTAKE_LEFT_RETRACTED_POS = 0.5;
+
+        public static final int RING_BUFFER_CAPACITY = 100;
+    }
+
     public static class OpModes {
         public static final double JOYSTICK_EPSILON = 0.1;
     }
