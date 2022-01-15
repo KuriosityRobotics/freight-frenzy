@@ -3,6 +3,9 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.VUFORIA_LICENCE_KEY;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
+import de.esoco.coroutine.*;
+
+import android.util.Log;
 
 import android.util.Log;
 
@@ -20,11 +23,9 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import de.esoco.coroutine.Coroutine;
-import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera {
     private VuforiaConsumer vuforiaConsumer;

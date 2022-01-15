@@ -27,9 +27,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double worldHeadingRad;
 
     // velocity of the robot
-    private double xVel = 0;
-    private double yVel = 0;
-    private double angleVel = 0;
+    public double xVel = 0;
+    public double yVel = 0;
+    public double angleVel = 0;
 
     // old vel for acceleration calculations
     public double oldxVel = 0;
@@ -47,9 +47,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double dHeading = 0;
 
     // For position calculation
-    private double lastLeftPosition = 0;
-    private double lastRightPosition = 0;
-    private double lastMecanumPosition = 0;
+    public double lastLeftPosition = 0;
+    public double lastRightPosition = 0;
+    public double lastMecanumPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;

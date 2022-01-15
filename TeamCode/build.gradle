@@ -21,7 +21,11 @@ dependencies {
     // Matrix creation and operation for Kf
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    // vision (DO NOT UPGRADE, it will destroy vision)
+
+    // Queue types for intake module
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+
+    // vision
     implementation 'org.openftc:easyopencv:1.5.1'
     // fancy stuff
     // https://mvnrepository.com/artifact/org.reflections/reflections
