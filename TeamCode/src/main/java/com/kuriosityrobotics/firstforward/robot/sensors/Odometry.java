@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
@@ -60,8 +61,11 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double lastUpdateTime = 0;
 
     // Constants
-    private final static double INCHES_PER_ENCODER_TICK = 0.0007284406721 * 100.0 / 101.9889;
-    private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775 / 90); // 5.125
+    private final static double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
+    private final static double LR_ENCODER_DIST_FROM_CENTER = ((4.75 / 2) / 1.005555) * 0.99805556;
+    //private final static double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (92.071689158775 / 90);
+    // * 0.994
+    // 1.005555
     private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
@@ -91,6 +95,10 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     }
 
     public void update() {
+        Log.i("odo", "left: " + lastLeftPosition);
+        Log.i("odo", "right: " + lastRightPosition);
+        Log.i("odo", "mecanum: " + lastMecanumPosition);
+
         calculatePosition();
 
         calculateInstantaneousVelocity();
@@ -232,6 +240,11 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+        data.add("left encoder: " + lastLeftPosition);
+        data.add("right encoder: " + lastRightPosition);
+        data.add("mecanum encoder: " + lastMecanumPosition);
+
+        data.add("--");
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
@@ -259,7 +272,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     }
 
     public Pose getPoseDegrees(){
-        return new Pose(worldX, worldY, MathUtil.angleWrap(worldHeadingRad) * 180/Math.PI);
+        return new Pose(worldX, worldY, Math.toDegrees(worldHeadingRad));
     }
 
     public Pose getInstantaneousVelocity() {
