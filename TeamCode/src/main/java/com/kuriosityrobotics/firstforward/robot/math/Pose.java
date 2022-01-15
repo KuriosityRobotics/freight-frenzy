@@ -1,5 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
@@ -10,6 +13,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
 import java.util.Locale;
 
+// Kuro coordinate system pose :tm:
 public class Pose extends Point {
     public double heading;
 
@@ -47,5 +51,14 @@ public class Pose extends Point {
     @Override
     public String toString() {
         return String.format(Locale.US,"x = %.3f, y = %.3f, heading = %.3f", x, y, heading);
+    }
+
+    // sus naming but whatever
+    // convert pose to ftc's system so it can be graphed on the dashboard
+    public Pose poseDashboardNormalization() {
+        double x =  -this.y + HALF_FIELD / MM_PER_INCH;
+        double y = this.x - HALF_FIELD / MM_PER_INCH;
+        double heading = angleWrap(Math.toRadians(this.heading - Math.PI));
+        return new Pose(x, y, heading);
     }
 }

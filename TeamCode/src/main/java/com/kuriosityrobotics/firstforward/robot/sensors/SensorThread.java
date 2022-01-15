@@ -69,7 +69,7 @@ public class SensorThread implements Runnable, Telemeter {
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - lastPoseSendTime >= 250) {
-                robot.telemetryDump.sendPose(DashboardUtil.poseDashboardNormalization(this.kalmanFilter.getPoseRadians()));
+                robot.telemetryDump.sendPose(this.kalmanFilter.getPoseRadians().poseDashboardNormalization());
                 lastPoseSendTime = currentTime;
             }
 

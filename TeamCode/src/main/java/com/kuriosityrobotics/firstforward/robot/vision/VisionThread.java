@@ -16,7 +16,7 @@ public class VisionThread implements Runnable, Telemeter {
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final TeamMarkerDetection teamMarkerDetector;
     private final OpenCVDumper openCVDumper;
-    public ManagedCamera managedCamera;
+    private final ManagedCamera managedCamera;
 
     private final Robot robot;
     private long updateTime = 0;
@@ -72,5 +72,9 @@ public class VisionThread implements Runnable, Telemeter {
         }
         this.vuforiaLocalizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
+    }
+
+    public ManagedCamera getManagedCamera() {
+        return this.managedCamera;
     }
 }

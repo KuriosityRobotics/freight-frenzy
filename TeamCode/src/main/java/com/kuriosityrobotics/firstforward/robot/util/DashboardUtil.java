@@ -39,13 +39,4 @@ public class DashboardUtil {
         double x2 = pose.getX() + v.getX(), y2 = pose.getY() + v.getY();
         canvas.strokeLine(x1, y1, x2, y2);
     }
-
-    // sus naming but whatever
-    // convert pose to ftc's system so it can be graphed on the dashboard
-    public static Pose poseDashboardNormalization(Pose ourGoodCoordinateSystemPose) {
-        double x =  -ourGoodCoordinateSystemPose.y + HALF_FIELD / MM_PER_INCH;
-        double y = ourGoodCoordinateSystemPose.x - HALF_FIELD / MM_PER_INCH;
-        double heading = Math.toDegrees(angleWrap(Math.toRadians(ourGoodCoordinateSystemPose.heading - 180)));
-        return new Pose(x, y, heading);
-    }
 }

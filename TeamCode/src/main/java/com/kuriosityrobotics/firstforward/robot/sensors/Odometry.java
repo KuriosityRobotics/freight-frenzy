@@ -47,9 +47,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double dHeading = 0;
 
     // For position calculation
-    public double lastLeftPosition = 0;
-    public double lastRightPosition = 0;
-    public double lastMecanumPosition = 0;
+    private double lastLeftPosition = 0;
+    private double lastRightPosition = 0;
+    private double lastMecanumPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;
