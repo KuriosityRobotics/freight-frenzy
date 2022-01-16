@@ -10,6 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
@@ -30,7 +31,6 @@ public final class ManagedCamera {
     private VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
-    private boolean vuforiaInitialisedYet;
     public static boolean vuforiaActive = true;
 
     private List<OpenCvConsumer> openCvConsumers;
@@ -51,12 +51,12 @@ public final class ManagedCamera {
         SwitchableCameraName switchableCameraName = ClassFactory.getInstance()
                 .getCameraManager()
                 .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
-        initializeVulforia(switchableCameraName);
+        initializeVuforia(switchableCameraName);
         switchableCamera.setActiveCamera(this.cameraName1);
         activateCamera(this.cameraName1);
     }
 
-    private void initializeVulforia(SwitchableCameraName switchableCameraName) {
+    private void initializeVuforia(SwitchableCameraName switchableCameraName) {
         if (vuforia != null) {
             vuforia.close();
             vuforia = null;
@@ -72,6 +72,8 @@ public final class ManagedCamera {
             parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
             parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
             parameters.cameraName = switchableCameraName;
+            parameters.useExtendedTracking = false;
+
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
             switchableCamera = (SwitchableCamera) vuforia.getCamera();
 
@@ -123,6 +125,10 @@ public final class ManagedCamera {
 
         this.switchableCamera.setActiveCamera(cameraName);
         this.activeCameraName = cameraName;
+    }
+
+    public CameraName getActiveCameraName() {
+        return activeCameraName;
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {
