@@ -160,10 +160,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
 //            Log.v("Vision", "FTC heading: " + Math.toDegrees(heading));
 //
-            Log.e("Vision", "Our Coordinate System");
-            Log.v("Vision", "Our x: " + robotXOurs);
-            Log.v("Vision", "Our y: " + robotYOurs);
-            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));
+//            Log.v("Vision", "Our Coordinate System");
+//            Log.v("Vision", "Our x: " + robotXOurs);
+//            Log.v("Vision", "Our y: " + robotYOurs);
+//            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs, 0},
