@@ -25,9 +25,9 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
-            {Math.pow(0.125, 2), 0, 0},
-            {0, Math.pow(0.125, 2), 0},
-            {0, 0, Math.pow(Math.toRadians(2), 2)}
+            {Math.pow(4, 2), 0, 0},
+            {0, Math.pow(4, 2), 0},
+            {0, 0, Math.pow(Math.toRadians(4), 2)}
     });
 
     public LocalizeKalmanFilter(Robot robot, RealMatrix matrixPose) {
@@ -58,7 +58,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
         }
 
-        calculateRollingVelocity(new PoseInstant(getPoseRadians(), SystemClock.elapsedRealtime() / 1000.0));
+        calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
     /**
@@ -189,7 +189,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return correction;
     }
 
-    public Pose getPoseRadians() {
+    public Pose getPose() {
         synchronized (this) {
             double x = matrixPose[0].getEntry(0, 0);
             double y = matrixPose[0].getEntry(1, 0);
@@ -199,21 +199,12 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         }
     }
 
-    // just for degree formatting
-    public Pose getPoseDegrees() {
-        synchronized (this) {
-            double x = matrixPose[0].getEntry(0, 0);
-            double y = matrixPose[0].getEntry(1, 0);
-            double heading = Math.toDegrees(matrixPose[0].getEntry(2, 0));
-            return new Pose(x, y, heading);
-        }
-    }
-
     @Override
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
+        data.add("covar: " + MatrixUtil.toCovarianceString(matrixPose[1]));
         data.add("velo: " + getRollingVelocity().toString());
         data.add("STD: " + MatrixUtil.toSTDString(matrixPose[1]));
 

@@ -6,7 +6,6 @@ import static java.lang.Math.sin;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
 import java.util.Locale;
 
@@ -43,9 +42,17 @@ public class Pose extends Point {
         return new Pose(this.x / a, this.y / a, this.heading / a);
     }
 
+    public boolean isInRange(double xMin, double yMin, double xMax, double yMax) {
+        return (this.x >= xMin) && (this.x <= xMax) && (this.y >= yMin) && (this.y <= yMax);
+    }
+
+    public Pose toDegrees() {
+        return new Pose(this.x, this.y, Math.toDegrees(this.heading));
+    }
+
     @NonNull
     @Override
     public String toString() {
-        return String.format(Locale.US,"x = %.3f, y = %.3f, heading = %.3f", x, y, heading);
+        return String.format(Locale.US, "x = %.3f, y = %.3f, heading = %.3f", x, y, heading);
     }
 }

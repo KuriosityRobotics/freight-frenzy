@@ -8,6 +8,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -94,6 +95,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     } else {
                         Log.d("Vision", "Cannot detect robot location although trackable is visible");
                     }
+
                     break;
                 }
             }
@@ -113,7 +115,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      * Data for the Vuforia Localization and Telemetry Dump
      */
     public ArrayList<String> logPositionandDetection() {
-        synchronized (detectedTrackable) {
+        synchronized (this) {
             ArrayList<String> data = new ArrayList<>();
 
             if (detectedTrackable == null) {
@@ -144,7 +146,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             }
 
             VectorF translation = detectedLocation.getTranslation();
-            Point robotLocation = new Point(Math.round(translation.get(0) / MM_PER_INCH), Math.round(translation.get(1) / MM_PER_INCH));
+            Point robotLocation = new Point(translation.get(0) / MM_PER_INCH, translation.get(1) / MM_PER_INCH);
             double heading = Orientation.getOrientation(detectedLocation, EXTRINSIC, XYZ, RADIANS).thirdAngle;
 
             // Convert from FTC coordinate system to ours
@@ -158,7 +160,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            Log.v("Vision", "FTC y: " + robotLocation.y);
 //            Log.v("Vision", "FTC heading: " + Math.toDegrees(heading));
 //
-//            Log.e("Vision", "Our Coordinate System");
+//            Log.v("Vision", "Our Coordinate System");
 //            Log.v("Vision", "Our x: " + robotXOurs);
 //            Log.v("Vision", "Our y: " + robotYOurs);
 //            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));

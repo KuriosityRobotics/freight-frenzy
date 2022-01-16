@@ -22,6 +22,20 @@ public class MatrixUtil {
         return sb.toString();
     }
 
+    public static String toCovarianceString(RealMatrix m){
+        StringBuilder sb = new StringBuilder();
+
+        if (m == null) {
+            return "";
+        }
+
+        sb.append('x').append(m.getEntry(0, 0));
+        sb.append('y').append(m.getEntry(1, 1));
+        sb.append('t').append(m.getEntry(2, 2));
+
+        return sb.toString();
+    }
+
     public static String toSTDString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
         appendCovarianceValue(m, "dx", "inches",0, 0, sb);

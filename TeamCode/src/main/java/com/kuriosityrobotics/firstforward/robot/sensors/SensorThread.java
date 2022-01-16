@@ -68,7 +68,7 @@ public class SensorThread implements Runnable, Telemeter {
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - lastPoseSendTime >= 250) {
-                robot.telemetryDump.sendPose(this.kalmanFilter.getPoseRadians());
+                robot.telemetryDump.sendPose(this.kalmanFilter.getPose());
                 lastPoseSendTime = currentTime;
             }
 
@@ -79,7 +79,7 @@ public class SensorThread implements Runnable, Telemeter {
     }
 
     public Pose getPose() {
-        return kalmanFilter.getPoseRadians();
+        return kalmanFilter.getPose();
     }
 
     public Pose getVelocity() {
@@ -95,7 +95,7 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
-        data.add("Robot Pose: " + this.kalmanFilter.getPoseDegrees());
+        data.add("Robot Pose: " + this.kalmanFilter.getPose().toDegrees());
 
         return data;
     }
@@ -104,8 +104,8 @@ public class SensorThread implements Runnable, Telemeter {
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
         data.put("Sensor Thread Update time: ",  "" + updateTime);
-        data.put("Robot Pose Rad: ",  this.kalmanFilter.getPoseRadians());
-        data.put("Robot Pose Deg: ",  this.kalmanFilter.getPoseDegrees());
+        data.put("Robot Pose Rad: ",  this.kalmanFilter.getPose());
+        data.put("Robot Pose Deg: ",  this.kalmanFilter.getPose().toDegrees());
 
         return data;
     }

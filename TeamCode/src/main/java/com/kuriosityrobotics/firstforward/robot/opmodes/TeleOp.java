@@ -2,15 +2,14 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.*;
+
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -29,7 +28,6 @@ public class TeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            updateWebcamStates();
             // yeet
             updateDrivetrainStates();
             //robot.drivetrain.setBrakePose(new Pose(0,24,0));
@@ -37,6 +35,7 @@ public class TeleOp extends LinearOpMode {
             updateOuttakeStates();
             updateCarouselStates();
             //robot.drivetrain.setBrakePose(new Pose(10,0,0));
+            updateCameraStates();
         }
     }
 
@@ -89,11 +88,13 @@ public class TeleOp extends LinearOpMode {
         robot.carouselModule.spin = gamepad2.x;
     }
 
-    private void updateWebcamStates() {
-        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (- Math.PI / 4)) {
-            robot.visionThread.managedCamera.activateCamera(robot.cameraName2);
-        } else {
-            robot.visionThread.managedCamera.activateCamera(robot.cameraName1);
-        }
+    private void updateCameraStates() {
+        WebcamName targetCam = robot.frontCamera;
+//        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (-Math.PI / 4))
+//            targetCam = robot.leftCamera;
+//        else
+//            targetCam = robot.frontCamera;
+
+        robot.visionThread.activeCamera = targetCam;
     }
 }
