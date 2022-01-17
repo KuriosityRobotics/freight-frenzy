@@ -71,7 +71,7 @@ public class TelemetryDump implements PoseWatcher {
                 }
             }
 
-            Pose dashboardPose = DashboardUtil.normalizePose(pose);
+            Pose dashboardPose = pose.toFTCSystem();
 
             poseHistory.add(dashboardPose);
             DashboardUtil.drawRobot(canvas, dashboardPose);
