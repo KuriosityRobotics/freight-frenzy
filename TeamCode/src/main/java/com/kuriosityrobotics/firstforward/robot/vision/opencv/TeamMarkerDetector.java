@@ -1,7 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Detect.*;
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
@@ -11,14 +11,12 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
-
 import java.util.ArrayList;
 
-public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
-    private static final Vector3D RED = new Vector3D(255, 0, 0);
+public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
     private boolean isOn;
 
-    public TeamMarkerDetection() {
+    public TeamMarkerDetector() {
         this.isOn = true;
     }
 
@@ -54,7 +52,7 @@ public class TeamMarkerDetection implements OpenCvConsumer, Telemeter {
     }
 
     private static double[] rgbaToRgb(double[] value) {
-        return new double[] { value[0], value[1], value[2] };
+        return new double[] {value[0], value[1], value[2]};
     }
 
     @Override

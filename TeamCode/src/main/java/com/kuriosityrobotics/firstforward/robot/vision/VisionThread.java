@@ -6,21 +6,17 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetection;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
-
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class VisionThread implements Runnable, Telemeter {
-    public WebcamName activeCamera;
-
-    private VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
-    private TeamMarkerDetection teamMarkerDetector;
+    private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
+    private final TeamMarkerDetector teamMarkerDetector;
     private final OpenCVDumper openCVDumper;
 
+    public WebcamName activeCamera;
     public ManagedCamera managedCamera;
     private final Robot robot;
 
@@ -31,8 +27,9 @@ public class VisionThread implements Runnable, Telemeter {
         this.robot = robot;
 
         this.vuforiaLocalizationConsumer = vuforiaLocalizationConsumer;
-        openCVDumper = new OpenCVDumper(robot.isDebug());
+        this.openCVDumper = new OpenCVDumper(robot.isDebug());
         this.managedCamera = new ManagedCamera(robot.leftCamera, robot.frontCamera, vuforiaLocalizationConsumer, openCVDumper);
+        this.teamMarkerDetector = new TeamMarkerDetector();
 
         this.activeCamera = robot.leftCamera;
 
@@ -44,16 +41,9 @@ public class VisionThread implements Runnable, Telemeter {
         ArrayList<String> telemetryData = new ArrayList<>();
         telemetryData.addAll(vuforiaLocalizationConsumer.logPositionandDetection());
         telemetryData.add("Team marker location: " + teamMarkerDetector.getLocation());
+        telemetryData.add("Update time: " + updateTime);
         return telemetryData;
     }
-
-//    @Override
-//    public HashMap<String, Object> getDashboardData() {
-//        HashMap<String, Object> data = new HashMap<>();
-//        data.put("Vision Thread Update time: ", updateTime);
-//        data.put("Robot Location: ", this.vuforiaLocalizationConsumer.getFormattedMatrix());
-//        return data;
-//    }
 
     @Override
     public String getName() {

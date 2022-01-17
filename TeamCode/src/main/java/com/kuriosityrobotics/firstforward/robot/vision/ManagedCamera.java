@@ -3,10 +3,9 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.VUFORIA_LICENCE_KEY;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
-import de.esoco.coroutine.*;
-
+import de.esoco.coroutine.Coroutine;
+import de.esoco.coroutine.CoroutineScope;
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -16,32 +15,23 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.opencv.core.Mat;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderer.GPU_ACCELERATED;
-import static org.openftc.easyopencv.OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW;
-import org.openftc.easyopencv.*;
-import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
-
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import de.esoco.coroutine.Coroutine;
-import de.esoco.coroutine.CoroutineScope;
-
 public final class ManagedCamera {
-    private VuforiaConsumer vuforiaConsumer;
+    private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
     public static boolean vuforiaActive = true;
 
-    private List<OpenCvConsumer> openCvConsumers;
+    private final List<OpenCvConsumer> openCvConsumers;
 
-    private WebcamName cameraName1;
-    private WebcamName cameraName2;
+    private final WebcamName cameraName1;
+    private final WebcamName cameraName2;
 
     private SwitchableCamera switchableCamera;
     private WebcamName activeCameraName;
@@ -77,6 +67,7 @@ public final class ManagedCamera {
             parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
             parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
             parameters.cameraName = switchableCameraName;
+            // Vuforia ViSLAM kind of inaccurate sometimes
             parameters.useExtendedTracking = false;
 
             vuforia = ClassFactory.getInstance().createVuforia(parameters);

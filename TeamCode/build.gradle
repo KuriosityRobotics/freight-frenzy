@@ -25,9 +25,6 @@ dependencies {
     // Queue types for intake module
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
-    // Queue types for intake module
-    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-
     // vision
     implementation 'org.openftc:easyopencv:1.5.1'
 

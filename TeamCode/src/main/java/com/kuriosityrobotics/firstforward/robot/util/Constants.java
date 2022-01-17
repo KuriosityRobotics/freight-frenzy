@@ -3,6 +3,8 @@ package com.kuriosityrobotics.firstforward.robot.util;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
@@ -55,5 +57,9 @@ public class Constants {
                         "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
                         "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
                         "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
+    }
+
+    public static class Detect {
+        public static final Vector3D RED = new Vector3D(255, 0, 0);
     }
 }

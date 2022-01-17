@@ -12,6 +12,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2d;
 
 import java.util.Locale;
 
+// Kuro coordinate system pose :tm:
 public class Pose extends Point {
     public double heading;
 
