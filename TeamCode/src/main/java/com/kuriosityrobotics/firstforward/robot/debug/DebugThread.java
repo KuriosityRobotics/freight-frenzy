@@ -24,8 +24,6 @@ public class DebugThread implements Runnable, Telemeter {
     @Override
     public void run() {
         while (robot.running() && isOn) {
-            // Debug thread low key unimportant so we lower its priority so it doesn't take away too much computing power
-            Thread.yield();
             FileDump.update();
 
             long currentTime = SystemClock.elapsedRealtime();
