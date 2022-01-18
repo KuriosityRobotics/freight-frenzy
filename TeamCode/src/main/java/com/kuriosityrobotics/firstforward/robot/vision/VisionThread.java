@@ -28,9 +28,9 @@ public class VisionThread implements Runnable, Telemeter {
 
         this.vuforiaLocalizationConsumer = vuforiaLocalizationConsumer;
         this.openCVDumper = new OpenCVDumper(robot.isDebug());
-        this.managedCamera = new ManagedCamera(robot.leftCamera, robot.frontCamera, vuforiaLocalizationConsumer, openCVDumper);
         this.teamMarkerDetector = new TeamMarkerDetector();
-
+        this.managedCamera = new ManagedCamera(robot.leftCamera, robot.frontCamera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
+        this.managedCamera.activateCamera(robot.frontCamera);
         this.activeCamera = robot.leftCamera;
 
         robot.telemetryDump.registerTelemeter(this);

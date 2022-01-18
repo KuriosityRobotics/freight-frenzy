@@ -5,13 +5,21 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
     private boolean isOn;
@@ -39,7 +47,7 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
     }
 
     public enum TeamMarkerLocation {
-        // yeah i'm decently sure these are correct(corresponding shipping hub levels)
+        // yeah i'm sure these are correct(corresponding shipping hub levels)
         LEVEL_1,
         LEVEL_2,
         LEVEL_3
@@ -57,18 +65,27 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
 
     @Override
     public void processFrame(Mat frame) {
-        for (int i = 0; i < 10; i++) {
-            Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
+        if (isOn) {
+            location = null;
 
+            // TODO: Find out why PlebDetect streams at 1920x1080 but TeleOp streams at 640x480 with the exact same parameters???
             // width is 1920 height is 1080
             // these are tuned, both accurate AND consistent
-            final Rect boundingBox1 = new Rect(new Point(284, 482), new Point(475, 765));
-            final Rect boundingBox2 = new Rect(new Point(684, 482), new Point(950, 765));
-            final Rect boundingBox3 = new Rect(new Point(1184, 482), new Point(1425, 765));
+
+            // for 1920x1080, DO NOT USE
+//            final Rect boundingBox1 = new Rect(new Point(482, 284), new Point(765, 475));
+//            final Rect boundingBox2 = new Rect(new Point(482, 684), new Point(765, 950));
+//            final Rect boundingBox3 = new Rect(new Point(482, 1184), new Point(765, 1425));
+
+            // for 640x480
+            final Rect boundingBox1 = new Rect(new Point(100, 215), new Point(200, 315));
+            final Rect boundingBox2 = new Rect(new Point(300, 215), new Point(400, 315));
+            final Rect boundingBox3 = new Rect(new Point(500, 215), new Point(600, 315));
 
             Mat submat1 = frame.submat(boundingBox1);
             Mat submat2 = frame.submat(boundingBox2);
             Mat submat3 = frame.submat(boundingBox3);
+
             Vector3D sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
             Vector3D sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
             Vector3D sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
@@ -83,18 +100,19 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
 
             double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
             if (closestToRed == area1) {
-                Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
+                Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 255), 5);
                 this.location = TeamMarkerLocation.LEVEL_1;
             } else if (closestToRed == area2) {
-                Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 0), 5);
+                Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 255), 5);
                 this.location = TeamMarkerLocation.LEVEL_2;
             } else if (closestToRed == area3) {
-                Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
+                Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 255), 5);
                 this.location = TeamMarkerLocation.LEVEL_3;
             }
+
+            Log.v("Detect", "Detection finished. Location detected: " + location);
         }
 
         isOn = false;
-        Log.v("Detect", "Detection finished. Location detected: " + location);
     }
 }

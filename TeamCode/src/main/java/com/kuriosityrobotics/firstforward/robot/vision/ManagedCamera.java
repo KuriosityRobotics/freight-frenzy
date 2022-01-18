@@ -47,7 +47,6 @@ public final class ManagedCamera {
                 .getCameraManager()
                 .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
         initializeVuforia(switchableCameraName);
-        switchableCamera.setActiveCamera(this.cameraName1);
         activateCamera(this.cameraName1);
     }
 
