@@ -98,7 +98,7 @@ public final class ManagedCamera {
                 openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
-                openCvCamera.startStreaming(1920, 1080);
+                openCvCamera.startStreaming(640, 480);
             }
 
             @Override
