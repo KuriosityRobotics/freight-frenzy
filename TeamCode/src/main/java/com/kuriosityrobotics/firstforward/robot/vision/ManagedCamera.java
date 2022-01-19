@@ -3,12 +3,11 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.VUFORIA_LICENCE_KEY;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
-
+import de.esoco.coroutine.Coroutine;
+import de.esoco.coroutine.CoroutineScope;
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
-
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
@@ -19,24 +18,20 @@ import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
-import de.esoco.coroutine.Coroutine;
-import de.esoco.coroutine.CoroutineScope;
-
 public final class ManagedCamera {
-    private VuforiaConsumer vuforiaConsumer;
+    private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
     public static boolean vuforiaActive = true;
 
-    private List<OpenCvConsumer> openCvConsumers;
+    private final List<OpenCvConsumer> openCvConsumers;
 
-    private WebcamName cameraName1;
-    private WebcamName cameraName2;
+    private final WebcamName cameraName1;
+    private final WebcamName cameraName2;
 
     private SwitchableCamera switchableCamera;
     private WebcamName activeCameraName;
@@ -52,7 +47,6 @@ public final class ManagedCamera {
                 .getCameraManager()
                 .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
         initializeVuforia(switchableCameraName);
-        switchableCamera.setActiveCamera(this.cameraName1);
         activateCamera(this.cameraName1);
     }
 
@@ -72,6 +66,7 @@ public final class ManagedCamera {
             parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
             parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
             parameters.cameraName = switchableCameraName;
+            // Vuforia ViSLAM kind of inaccurate sometimes
             parameters.useExtendedTracking = false;
 
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -103,7 +98,7 @@ public final class ManagedCamera {
                 openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
-                openCvCamera.startStreaming(1920, 1080);
+                openCvCamera.startStreaming(640, 480);
             }
 
             @Override
@@ -111,6 +106,10 @@ public final class ManagedCamera {
                 Log.d("Managed Camera", "Error: " + errorCode);
             }
         });
+    }
+
+    public ManagedCamera(WebcamName webcamName1, WebcamName webcamName2, OpenCvConsumer... openCvConsumers) {
+        this(webcamName1, webcamName2, null, openCvConsumers);
     }
 
     public void activateCamera(WebcamName cameraName) {

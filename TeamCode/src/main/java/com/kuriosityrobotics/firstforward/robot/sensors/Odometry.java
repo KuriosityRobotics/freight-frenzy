@@ -32,14 +32,14 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double angleVel = 0;
 
     // old vel for acceleration calculations
-    public double oldxVel = 0;
-    public double oldyVel = 0;
-    public double oldangleVel = 0;
+    private double oldxVel = 0;
+    private double oldyVel = 0;
+    private double oldangleVel = 0;
 
     // acceleration calculations
-    public double xAccel = 0;
-    public double yAccel = 0;
-    public double angleAccel = 0;
+    private double xAccel = 0;
+    private double yAccel = 0;
+    private double angleAccel = 0;
 
     // change in position of the robot
     private double dx = 0;

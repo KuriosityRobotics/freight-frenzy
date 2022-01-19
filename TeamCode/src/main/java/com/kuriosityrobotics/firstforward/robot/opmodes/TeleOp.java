@@ -78,7 +78,7 @@ public class TeleOp extends LinearOpMode {
 
         if (gamepad2.right_stick_x == 0 && gamepad2.right_stick_y == 0){
             OuttakeModule.pivotHeading = 0;
-        }else{
+        } else{
             OuttakeModule.pivotHeading = angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI);
         }
         OuttakeModule.skipRotate = gamepad2.y;
@@ -89,12 +89,10 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCameraStates() {
-        WebcamName targetCam = robot.frontCamera;
+        robot.visionThread.activeCamera = robot.frontCamera;
 //        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (-Math.PI / 4))
 //            targetCam = robot.leftCamera;
 //        else
 //            targetCam = robot.frontCamera;
-
-        robot.visionThread.activeCamera = targetCam;
     }
 }
