@@ -25,6 +25,10 @@ public class OpenCVDumper implements OpenCvConsumer {
 
     @Override
     public void processFrame(Mat frame) {
+        if (!isOn) {
+            return;
+        }
+
         long millis = System.currentTimeMillis();
         if (millis - lastCaptureTime > 500) {
             File file = new File(AppUtil.ROBOT_DATA_DIR + "/" + "webcam-frame-" + new Date().getTime() + ".jpg");
