@@ -11,8 +11,6 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
-import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
-import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -105,8 +103,9 @@ public class SensorThread implements Runnable, Telemeter {
     @Override
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
+
         data.put("Sensor Thread Update time: ",  "" + updateTime);
-        data.put("Robot Pose: ",  this.kalmanFilter.getPose().toDegrees());
+        data.put("Robot Pose Deg: ",  this.kalmanFilter.getPose().toDegrees());
 
         return data;
     }

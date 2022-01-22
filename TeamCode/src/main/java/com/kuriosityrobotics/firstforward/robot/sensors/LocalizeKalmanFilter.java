@@ -127,27 +127,13 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      */
     @Override
     public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
-        // set up
-
-        // Important: package tracker data with tracker info in col 0 and observation in col 1(Currently this way, but if something strange happens, here it is)
-        double tX = obs.getEntry(0, 0);
-        double tY = obs.getEntry(1, 0);
-        double tPhi = angleWrap(obs.getEntry(2, 0));
-
-        double predX = pred[0].getEntry(0, 0);
-        double predY = pred[0].getEntry(1, 0);
-        double predHeading = angleWrap(pred[0].getEntry(2, 0));
         RealMatrix predCov = pred[1];
 
-        RealMatrix predObs = MatrixUtils.createRealMatrix(new double[][]{
-                {(predX - tX) * Math.cos(tPhi) - (predY - tY) * Math.sin(tPhi)},
-                {(predX - tX) * Math.sin(tPhi) + (predY - tY) * Math.cos(tPhi)},
-                {predHeading - tPhi}
-        });
+        RealMatrix predObs = pred[0]; // for full state sensor
 
         RealMatrix H = MatrixUtils.createRealMatrix(new double[][]{
-                {Math.cos(tPhi), -Math.sin(tPhi), 0},
-                {Math.sin(tPhi), Math.cos(tPhi), 0},
+                {1, 0, 0},
+                {0, 1, 0},
                 {0, 0, 1}
         });
 
@@ -160,7 +146,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         RealMatrix S = H.multiply(predCov).multiply(H.transpose()).add(Q);
         RealMatrix K = predCov.multiply(H.transpose().multiply(MatrixUtils.inverse(S)));
 
-        RealMatrix error = obs.getColumnMatrix(1).subtract(predObs);
+        RealMatrix error = obs.getColumnMatrix(0).subtract(predObs);
         error.setEntry(2, 0, angleWrap(error.getEntry(2, 0)));
 
         RealMatrix correct = pred[0].add(K.multiply(error));
