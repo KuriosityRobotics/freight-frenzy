@@ -18,13 +18,14 @@ import java.util.Objects;
 public class RedAutoDucks extends LinearOpMode {
     public enum RedAutoDucksState {
         START,
+        DEPOSIT,
         CAROUSEL,
         PARK
     }
 
     public RedAutoDucksState state = RedAutoDucksState.START;
 
-    public static final Pose START = new Pose(6, 104.5, Math.toRadians(90));
+    public static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
     public static final Pose WOBBLE = new Pose(36, 93, Math.toRadians(-30));
     public static final Pose PARK = new Pose(36, 126.5, Math.toRadians(180));
@@ -58,26 +59,26 @@ public class RedAutoDucks extends LinearOpMode {
 
         switch (state) {
             case START:
-//                switch (Objects.requireNonNull(robot).visionThread.teamMarkerDetector.getLocation()) { // please java shut the GELL up
-//                    case LEVEL_1:
-//                        // level 1 action
-//                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.DOWN, robot).follow();
-//                        state = RedAutoDucksState.CAROUSEL;
-//                        break;
-//                    case LEVEL_2:
-//                        // level 2 action
-//                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.MID, robot).follow();
-//                        state = RedAutoDucksState.CAROUSEL;
-//                        break;
-//                    case LEVEL_3:
-//                        // level 3 action
-//                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.TOP, robot).follow();
-//                        state = RedAutoDucksState.CAROUSEL;
-//                        break;
-//                }
-//
-//                state = RedAutoDucksState.CAROUSEL;
                 toWobble.follow();
+                state = RedAutoDucksState.DEPOSIT;
+            case DEPOSIT:
+                switch (Objects.requireNonNull(robot).visionThread.teamMarkerDetector.getLocation()) { // please java shut the GELL up
+                    case LEVEL_1:
+                        // level 1 action
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.DOWN, robot).follow();
+                        state = RedAutoDucksState.CAROUSEL;
+                        break;
+                    case LEVEL_2:
+                        // level 2 action
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.MID, robot).follow();
+                        state = RedAutoDucksState.CAROUSEL;
+                        break;
+                    case LEVEL_3:
+                        // level 3 action
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.TOP, robot).follow();
+                        state = RedAutoDucksState.CAROUSEL;
+                        break;
+                }
             case CAROUSEL:
                 wobbleToCarousel.follow();
                 state = RedAutoDucksState.PARK;
@@ -89,11 +90,10 @@ public class RedAutoDucks extends LinearOpMode {
 
     public PurePursuit createOutTakeAction(OuttakeModule.VerticalSlideLevel level, Robot robot) {
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new RaiseOuttakeAction(level));
         wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
         return new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(START),
-                new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, wobbleActions),
+                new WayPoint(WOBBLE, new RaiseOuttakeAction(level)),
+                new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
     }
 }
