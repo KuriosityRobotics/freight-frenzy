@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
+package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
 import android.util.Log;
 
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
-public class AutoTest extends LinearOpMode {
+public class RedAutoDucksAndCycle extends LinearOpMode {
     public enum AutoState {
         START,
         CAROUSEL,
