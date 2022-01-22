@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
@@ -20,7 +18,7 @@ import java.util.Objects;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class RedAutoDucksAndCycle extends LinearOpMode {
-    public enum AutoState {
+    public enum RedAutoDucksAndCycleState {
         START,
         CAROUSEL,
         DEPOSIT,
@@ -28,7 +26,7 @@ public class RedAutoDucksAndCycle extends LinearOpMode {
         PARK
     }
 
-    public AutoState state = AutoState.START;
+    public RedAutoDucksAndCycleState state = RedAutoDucksAndCycleState.START;
 
     public static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
 
@@ -92,26 +90,26 @@ public class RedAutoDucksAndCycle extends LinearOpMode {
         switch (state) {
             case START:
                 toCarousel.follow();
-                state = AutoState.CAROUSEL;
+                state = RedAutoDucksAndCycleState.CAROUSEL;
             case CAROUSEL:
                 carouselToWobble.follow();
-                state = AutoState.DEPOSIT;
+                state = RedAutoDucksAndCycleState.DEPOSIT;
             case DEPOSIT:
                 switch (Objects.requireNonNull(robot).visionThread.teamMarkerDetector.getLocation()) { // please java shut the GELL up
                     case LEVEL_1:
                         // level 1 action
                         createOutTakePath(OuttakeModule.VerticalSlideLevel.DOWN, robot).follow();
-                        state = AutoState.CYCLE;
+                        state = RedAutoDucksAndCycleState.CYCLE;
                         break;
                     case LEVEL_2:
                         // level 2 action
                         createOutTakePath(OuttakeModule.VerticalSlideLevel.MID, robot).follow();
-                        state = AutoState.CYCLE;
+                        state = RedAutoDucksAndCycleState.CYCLE;
                         break;
                     case LEVEL_3:
                         // level 3 action
                         createOutTakePath(OuttakeModule.VerticalSlideLevel.TOP, robot).follow();
-                        state = AutoState.CYCLE;
+                        state = RedAutoDucksAndCycleState.CYCLE;
                         break;
                 }
             case CYCLE:
@@ -119,7 +117,7 @@ public class RedAutoDucksAndCycle extends LinearOpMode {
                     toWarehouse.follow();
                     warehouseToWobble.follow();
                 }
-                state = AutoState.PARK;
+                state = RedAutoDucksAndCycleState.PARK;
             case PARK:
                 toPark.follow();
                 break;
