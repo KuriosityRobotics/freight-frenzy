@@ -8,6 +8,7 @@ import de.esoco.coroutine.CoroutineScope;
 import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
+
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
@@ -47,7 +48,7 @@ public final class ManagedCamera {
                 .getCameraManager()
                 .nameForSwitchableCamera(this.cameraName1, this.cameraName2);
         initializeVuforia(switchableCameraName);
-        activateCamera(this.cameraName1);
+        activateCamera(this.cameraName2);
     }
 
     private void initializeVuforia(SwitchableCameraName switchableCameraName) {
@@ -66,7 +67,6 @@ public final class ManagedCamera {
             parameters.vuforiaLicenseKey = VUFORIA_LICENCE_KEY;
             parameters.cameraDirection = VuforiaLocalizer.CameraDirection.FRONT;
             parameters.cameraName = switchableCameraName;
-            // Vuforia ViSLAM kind of inaccurate sometimes
             parameters.useExtendedTracking = false;
 
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -94,6 +94,7 @@ public final class ManagedCamera {
         openCvCamera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
             @Override
             public void onOpened() {
+                activateCamera(cameraName2);
                 openCvCamera.setViewportRenderer(OpenCvCamera.ViewportRenderer.GPU_ACCELERATED);
                 openCvCamera.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
 
@@ -122,7 +123,7 @@ public final class ManagedCamera {
             return;
         }
 
-        this.switchableCamera.setActiveCamera(cameraName);
+        activateCamera(cameraName);
         this.activeCameraName = cameraName;
     }
 

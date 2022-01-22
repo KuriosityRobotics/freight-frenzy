@@ -25,6 +25,7 @@ public class TeleOp extends LinearOpMode {
             this.stop();
             throw new RuntimeException(e);
         }
+        robot.visionThread.managedCamera.activateCamera(robot.frontCamera);
         waitForStart();
 
         while (opModeIsActive()) {
@@ -89,10 +90,12 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCameraStates() {
-        robot.visionThread.activeCamera = robot.frontCamera;
+        WebcamName targetCam = robot.frontCamera;
 //        if (robot.sensorThread.getPose().heading < (3 * Math.PI / 4) && robot.sensorThread.getPose().heading > (-Math.PI / 4))
 //            targetCam = robot.leftCamera;
 //        else
 //            targetCam = robot.frontCamera;
+
+        robot.visionThread.activeCamera = targetCam;
     }
 }

@@ -2,13 +2,21 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FRONT_LOCATION_ON_ROBOT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LOCATION_ON_ROBOT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
+
 import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -22,9 +30,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-import org.opencv.core.Mat;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 import java.util.ArrayList;
 
 /**
@@ -166,9 +172,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));
 
             return MatrixUtils.createRealMatrix(new double[][]{
-                    {robotXOurs, 0},
-                    {robotYOurs, 0},
-                    {robotHeadingOurs, 0}
+                    {robotXOurs},
+                    {robotYOurs},
+                    {robotHeadingOurs}
             });
         }
     }
