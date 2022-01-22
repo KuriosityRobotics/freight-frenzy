@@ -14,9 +14,9 @@ import org.apache.commons.math3.linear.RealMatrix;
 import java.util.ArrayList;
 
 public class VisionThread implements Runnable, Telemeter {
-    private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
-    private final TeamMarkerDetector teamMarkerDetector;
-    private final OpenCVDumper openCVDumper;
+    public final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
+    public final TeamMarkerDetector teamMarkerDetector;
+    public final OpenCVDumper openCVDumper;
 
     public SingleManagedCamera singleManagedCamera;
     private final Robot robot;
