@@ -204,11 +204,10 @@ public class IntakeModule implements Module, Telemeter {
 
     @Override
     public void onClose() {
-        fill(intakeRpmRingBuffer, getRPM());
-        lastSd = 0;
-        retractIntake = true;
+        retractIntake = false;
         intakeOccupied = false;
-        intakePower = 0;
-        intakePosition = IntakePosition.RETRACTED;
+        intakeMotor.setPower(0);
+        extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
+        extenderLeft.setPosition(INTAKE_LEFT_RETRACTED_POS);
     }
 }

@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
-    Robot robot;
+    private final Robot robot;
     private final boolean isOn = true;
     public final DrivetrainModule drivetrainModule;
 
@@ -221,8 +221,6 @@ public class Drivetrain implements Module, Telemeter {
     @Override
     public void onClose() {
         drivetrainModule.onClose();
-        xMov = 0;
-        yMov = 0;
-        turnMov = 0;
+        // motor power setting close stuff are called in drivetrainModule
     }
 }

@@ -115,8 +115,9 @@ public class DrivetrainModule implements Module, Telemeter {
 
     @Override
     public void onClose() {
-        xMov = 0;
-        yMov = 0;
-        turnMov = 0;
+        fLeft.setPower(0);
+        fRight.setPower(0);
+        bLeft.setPower(0);
+        bRight.setPower(0);
     }
 }

@@ -19,7 +19,6 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
     private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
 
-    private final Robot robot;
     private final boolean isOn = true;
 
     //states
@@ -28,10 +27,9 @@ public class CarouselModule implements Module, Telemeter {
     private Long spinStartTimeMillis = null;
 
     //motors
-    private DcMotorEx carouselMotor;
+    private final DcMotorEx carouselMotor;
 
     public CarouselModule(Robot robot) {
-        this.robot = robot;
         carouselMotor = (DcMotorEx) robot.getDcMotor("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
@@ -72,6 +70,7 @@ public class CarouselModule implements Module, Telemeter {
 
     @Override
     public void onClose() {
-        spin = false;
+        carouselMotor.setPower(0);
+        spinStartTimeMillis = null;
     }
 }

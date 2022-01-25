@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -123,8 +125,12 @@ public class Robot {
         telemetryDump.onClose();
 
         for (Thread t : threads) {
-            t.interrupt();
-            t.stop();
+            try {
+                t.interrupt();
+                t.join();
+            } catch (InterruptedException e) {
+                Log.e("Robot onClose", "thread joining failed");
+            }
         }
     }
 

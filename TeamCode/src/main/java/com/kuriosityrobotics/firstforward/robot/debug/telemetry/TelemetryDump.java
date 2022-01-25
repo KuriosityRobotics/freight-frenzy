@@ -99,8 +99,6 @@ public class TelemetryDump implements PoseWatcher {
             canvas.clear();
             dashboard.sendTelemetryPacket(packet);
         }
-        poseHistory.clear();
-        telemeters.clear();
         dashboard.stopCameraStream();
     }
 }

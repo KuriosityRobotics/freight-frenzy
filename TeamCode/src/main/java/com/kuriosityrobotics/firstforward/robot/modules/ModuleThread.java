@@ -84,8 +84,5 @@ public class ModuleThread implements Runnable, Telemeter {
         for (Module m : modules) {
             m.onClose();
         }
-        started = false;
-        updateDuration = 0;
-        timeOfLastUpdate = 0;
     }
 }
