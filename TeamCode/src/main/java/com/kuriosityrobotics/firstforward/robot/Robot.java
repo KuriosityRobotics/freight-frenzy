@@ -29,11 +29,12 @@ public class Robot {
 
     public final SensorThread sensorThread;
     public final ModuleThread moduleThread;
-    public final VisionThread visionThread;
+    public VisionThread visionThread;
     public final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public final IntakeModule intakeModule;
+
     public final OuttakeModule outtakeModule;
     public final CarouselModule carouselModule;
 
