@@ -15,7 +15,7 @@ public class RaiseOuttakeAction extends Action {
     public void tick(Robot robot) {
         super.tick(robot);
 
-        OuttakeModule.slideLevel = slideLevel;
+        robot.outtakeModule.setSlideLevel(slideLevel);
         this.completed = true;
     }
 }

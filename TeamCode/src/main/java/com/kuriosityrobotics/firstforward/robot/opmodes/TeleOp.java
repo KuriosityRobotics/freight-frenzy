@@ -66,11 +66,11 @@ public class TeleOp extends LinearOpMode {
 
     private void updateOuttakeStates() {
         if (gamepad2.dpad_down)
-            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
         if (gamepad2.dpad_up)
-            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
         if (gamepad2.dpad_right)
-            OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.MID;
+            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.MID);
 
         if (gamepad2.left_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_INWARDS);
