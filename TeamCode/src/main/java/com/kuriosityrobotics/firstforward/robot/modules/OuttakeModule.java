@@ -38,8 +38,8 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        TOP(-885),
-        MID(-466),
+        TOP(-1012),
+        MID(-575),
         DOWN(-2);
 
         private final int position;
