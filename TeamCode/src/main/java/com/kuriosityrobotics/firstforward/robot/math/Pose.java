@@ -14,6 +14,8 @@ import java.util.Locale;
 
 // Kuro coordinate system pose :tm:
 public class Pose extends Point {
+    public static final Pose ZERO = new Pose(0, 0, 0);
+
     public double heading;
 
     public Pose(double x, double y, double heading) {
@@ -66,5 +68,38 @@ public class Pose extends Point {
         double y = this.x - HALF_FIELD / MM_PER_INCH;
         double heading = angleWrap(this.heading - Math.PI);
         return new Pose(x, y, heading);
+    }
+
+    /**
+     * Get the global absolute angle of the line between the robot's position and the given point,
+     * where 0 is along the y axis.
+     *
+     * @param point
+     * @return absolute heading to that point
+     */
+    public double absoluteHeadingToPoint(Point point) {
+        return Math.atan2(point.x - this.x, point.y - this.y);
+    }
+
+    /**
+     * The heading the robot would have to turn by to face the point directly.
+     *
+     * @param point
+     * @return relative heading to that point
+     */
+    public double relativeHeadingToPoint(Point point) {
+        double absoluteHeadingToPoint = absoluteHeadingToPoint(point);
+        return angleWrap(absoluteHeadingToPoint - this.heading);
+    }
+
+    public Point relativeComponentsToPoint(Point point) {
+        double relativeHeadingToPoint = relativeHeadingToPoint(point);
+
+        double distanceError = this.distance(point);
+
+        double xError = distanceError * Math.sin(relativeHeadingToPoint);
+        double yError = distanceError * Math.cos(relativeHeadingToPoint);
+
+        return new Point(xError, yError);
     }
 }

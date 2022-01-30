@@ -99,7 +99,7 @@ public class PurePursuit implements Telemeter {
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
         AngleLock targetAngleLock = profile.interpolateTargetHeading(closestIndex, clipped);
 
-        double headingToPoint = robot.drivetrain.relativeHeadingToPoint(target);
+        double headingToPoint = robotPose.relativeHeadingToPoint(target);
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
