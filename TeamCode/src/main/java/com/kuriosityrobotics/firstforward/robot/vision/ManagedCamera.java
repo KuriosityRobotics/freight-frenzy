@@ -123,7 +123,7 @@ public final class ManagedCamera {
             return;
         }
 
-        activateCamera(cameraName);
+        this.switchableCamera.setActiveCamera(cameraName);
         this.activeCameraName = cameraName;
     }
 

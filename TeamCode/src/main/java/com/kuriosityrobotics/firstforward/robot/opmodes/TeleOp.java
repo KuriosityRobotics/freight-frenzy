@@ -60,7 +60,7 @@ public class TeleOp extends LinearOpMode {
                 : 0;
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.retractIntake = true;
+            robot.intakeModule.requestRetraction();
         }
     }
 

@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -39,8 +38,8 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        TOP(-885),
-        MID(-466),
+        TOP(-1012),
+        MID(-575),
         DOWN(-2);
 
         private final int position;
@@ -203,11 +202,9 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setPower(1);
         }
 
-        if (robot.intakeModule.isIntakeRetracting()) {
-            slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-        } else {
+
             slide.setTargetPosition(slideLevel.position);
-        }
+
     }
 
     public OuttakeState getOuttakeState() {
