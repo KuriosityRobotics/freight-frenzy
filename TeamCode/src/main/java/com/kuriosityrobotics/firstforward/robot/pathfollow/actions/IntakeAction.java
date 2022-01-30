@@ -20,7 +20,7 @@ public class IntakeAction extends Action {
             robot.intakeModule.intakePower = 0;
             this.completed = true;
         } else {
-            if (robot.intakeModule.isIntakeRetracting()) {
+            if (robot.intakeModule.inRetractionState()) {
                 startedRetracting = true;
                 startRetractionTime = currentTime;
             }

@@ -57,8 +57,15 @@ public class MathUtil {
         return max;
     }
 
+    public static double mean(Collection<Double> t, int start, int maxCount) {
+        return new Mean().evaluate(t.stream()
+                .skip(start)
+                .limit(maxCount)
+                .mapToDouble(n -> n).toArray());
+    }
+
     public static double mean(Collection<Double> t) {
-        return new Mean().evaluate(t.stream().mapToDouble(n -> n).toArray());
+        return mean(t, 0, t.size());
     }
 
     public static double sd(Collection<Double> t) {

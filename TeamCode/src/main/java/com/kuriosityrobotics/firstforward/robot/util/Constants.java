@@ -18,6 +18,7 @@ public class Constants {
         public static final double INTAKE_DEACCEL_SD = 100;
 
         public static final double INTAKE_EXTEND_TIME = 1500;
+        public static final double INTAKE_RETRACT_TIME = 1500;
 
         public static final double INTAKE_RIGHT_EXTENDED_POS = 0.512;
         public static final double INTAKE_RIGHT_RETRACTED_POS = 0.87614;
