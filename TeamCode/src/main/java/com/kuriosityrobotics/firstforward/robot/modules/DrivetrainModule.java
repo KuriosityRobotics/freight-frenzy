@@ -4,6 +4,7 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
@@ -12,7 +13,6 @@ import java.util.ArrayList;
 
 public class DrivetrainModule implements Module, Telemeter {
     private final Robot robot;
-    private final boolean isOn = true;
 
     //states
     public double xMov = 0;
@@ -58,13 +58,14 @@ public class DrivetrainModule implements Module, Telemeter {
         return max;
     }
 
-    public void setMovements(double xMov, double yMov, double turnMov) {
+    void setMovements(double xMov, double yMov, double turnMov) {
         this.xMov = xMov;
         this.yMov = yMov;
         this.turnMov = turnMov;
-        //Log.i("DrivetrainModule", "xMov " + xMov);
-        //Log.i("DrivetrainModule", "yMov " + yMov);
-        //Log.i("DrivetrainModule", "turnMov " + turnMov);
+    }
+
+    public void setMovements(Pose movementPose) {
+        this.setMovements(movementPose.x, movementPose.y, movementPose.heading);
     }
 
     private void setMotorPowers(double fLPower, double fRPower, double bLPower, double bRPower) {
@@ -95,7 +96,7 @@ public class DrivetrainModule implements Module, Telemeter {
     }
 
     public boolean isOn() {
-        return isOn;
+        return true;
     }
 
     public String getName() {

@@ -9,8 +9,8 @@ import androidx.annotation.NonNull;
  * euclidean plane.
  */
 public class Point {
-    public double x;
-    public double y;
+    public final double x;
+    public final double y;
 
     public Point(double x, double y) {
         this.x = x;

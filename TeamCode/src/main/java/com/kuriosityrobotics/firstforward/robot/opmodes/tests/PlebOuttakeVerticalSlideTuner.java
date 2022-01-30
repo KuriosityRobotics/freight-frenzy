@@ -15,7 +15,7 @@ public class PlebOuttakeVerticalSlideTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        slide = (DcMotorEx) hardwareMap.get(DcMotor.class, "linear_slide_motor");
+        slide = (DcMotorEx) hardwareMap.get(DcMotor.class, "lift");
         slide.setTargetPosition(0);
         slide.setPower(1);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);

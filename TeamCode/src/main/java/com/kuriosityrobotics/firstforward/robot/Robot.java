@@ -56,8 +56,8 @@ public class Robot {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
-        this.leftCamera = hardwareMap.get(WebcamName.class, "Webcam 1");
-        this.frontCamera = hardwareMap.get(WebcamName.class, "Webcam 2");
+        this.frontCamera = hardwareMap.get(WebcamName.class, "Webcam 1");
+        this.leftCamera = frontCamera;//TODO: remove managed camera entirely
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 

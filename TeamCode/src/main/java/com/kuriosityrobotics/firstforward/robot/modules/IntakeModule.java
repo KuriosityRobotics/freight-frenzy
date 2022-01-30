@@ -144,7 +144,7 @@ public class IntakeModule implements Module, Telemeter {
 				if (robot.outtakeModule.readyForIntake())
 					startIntakeRetraction();
 				else
-					OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+					robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
 
 			intakeMotor.setPower(
 					inRetractionState() ? HOLD_POWER : intakePower
@@ -184,7 +184,7 @@ public class IntakeModule implements Module, Telemeter {
 	private synchronized void startIntakeExtension() {
 		if (robot != null) {
 			robot.outtakeModule.hopperOccupied();
-			OuttakeModule.slideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+			robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
 		}
 		intakeOccupied = false;
 		intakerRetractionStartTime = null;
