@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -18,10 +19,10 @@ public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
-    private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
+    private final Collection<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
     public FtcDashboard dashboard;
 
-    private List<Pose> poseHistory = new ArrayList<>();
+    private final List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);

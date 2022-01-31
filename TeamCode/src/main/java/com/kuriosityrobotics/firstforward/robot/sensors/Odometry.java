@@ -60,9 +60,9 @@ public class Odometry implements Telemeter {
     private double lastUpdateTime = 0;
 
     // Constants
-    private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
-    private static final double LR_ENCODER_DIST_FROM_CENTER = ((4.75 / 2) / 1.005555) * 0.99805556;
-    private static final double M_ENCODER_DIST_FROM_CENTER = 3;
+    private final static double INCHES_PER_ENCODER_TICK = 24/23.57 * 0.0007284406721 * 100.0 / 101.9889;
+    private final static double LR_ENCODER_DIST_FROM_CENTER = ((4.75 / 2) / 1.005555) * 0.99805556; // 5.125
+    private final static double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);

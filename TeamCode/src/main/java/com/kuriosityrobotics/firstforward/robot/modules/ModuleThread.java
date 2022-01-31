@@ -16,14 +16,14 @@ public class ModuleThread implements Runnable, Telemeter {
     static final boolean SHOW_UPDATE_SPEED = true;
 
     private final Robot robot;
-    private Module modules[];
+    private final Module[] modules;
 
     private boolean started = false;
 
     private long updateDuration = 0;
     private long timeOfLastUpdate = 0;
 
-    public ModuleThread(Robot robot, Module modules[]) {
+    public ModuleThread(Robot robot, Module[] modules) {
         this.robot = robot;
         this.modules = modules;
 

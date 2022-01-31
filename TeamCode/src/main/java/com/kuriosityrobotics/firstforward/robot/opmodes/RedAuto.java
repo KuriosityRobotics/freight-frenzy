@@ -28,6 +28,9 @@ public class RedAuto extends LinearOpMode {
     public static final Pose WAREHOUSE_PARK = new Pose(31, 126, Math.toRadians(0));
     public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
 
+    public static final Pose WALL_GAP1 = new Pose(6.5, 48, Math.toRadians(180));
+    public static final Pose WALL_GAP2 = new Pose(6.5, 48, Math.toRadians(0));
+
     public void runOpMode() {
         Robot robot = null;
         try {
