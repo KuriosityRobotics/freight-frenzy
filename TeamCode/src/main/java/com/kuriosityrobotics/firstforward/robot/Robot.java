@@ -45,15 +45,13 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public WebcamName leftCamera;
-    public WebcamName frontCamera;
+    public WebcamName camera;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
-        this.frontCamera = hardwareMap.get(WebcamName.class, "Webcam 1");
-        this.leftCamera = frontCamera;//TODO: remove managed camera entirely
+        this.camera = hardwareMap.get(WebcamName.class, "Webcam 1");
 
         telemetryDump = new TelemetryDump(telemetry, DEBUG);
 
@@ -87,7 +85,7 @@ public class Robot {
 
         telemetry.addData("> ", "Please wait for vuforia to init");
         telemetry.update();
-        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(leftCamera, frontCamera);
+        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(camera, hardwareMap);
         visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         telemetry.addData("> ", "Vuforia has been initalized");
         telemetry.update();

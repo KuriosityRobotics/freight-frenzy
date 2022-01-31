@@ -10,7 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
 import org.apache.commons.math3.linear.RealMatrix;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+
 import java.util.ArrayList;
 
 public class VisionThread implements Runnable, Telemeter {
@@ -18,8 +18,7 @@ public class VisionThread implements Runnable, Telemeter {
     private final TeamMarkerDetector teamMarkerDetector;
     private final OpenCVDumper openCVDumper;
 
-    public WebcamName activeCamera;
-    public ManagedCamera managedCamera;
+    public SingleManagedCamera singleManagedCamera;
     private final Robot robot;
 
     private long updateTime = 0;
@@ -31,9 +30,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.vuforiaLocalizationConsumer = vuforiaLocalizationConsumer;
         this.openCVDumper = new OpenCVDumper(robot.isDebug());
         this.teamMarkerDetector = new TeamMarkerDetector();
-        this.managedCamera = new ManagedCamera(robot.leftCamera, robot.frontCamera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
-        this.managedCamera.activateCamera(robot.frontCamera);
-        this.activeCamera = robot.leftCamera;
+        this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
 
         robot.telemetryDump.registerTelemeter(this);
     }
@@ -60,9 +57,6 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public void run() {
         while (robot.running()) {
-            if (!activeCamera.equals(managedCamera.getActiveCameraName()))
-                managedCamera.activateCamera(activeCamera);
-
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
@@ -72,6 +66,6 @@ public class VisionThread implements Runnable, Telemeter {
     }
 
     public RealMatrix getVuforiaMatrix() {
-        return vuforiaLocalizationConsumer.getFormattedMatrix();
+        return vuforiaLocalizationConsumer.getVuforiaMatrix();
     }
 }
