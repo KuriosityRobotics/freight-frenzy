@@ -8,6 +8,8 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
+
+import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import java.util.ArrayList;
 
@@ -67,5 +69,9 @@ public class VisionThread implements Runnable, Telemeter {
         }
         this.vuforiaLocalizationConsumer.deactivate();
         Log.v("VisionThread", "Exited due to opMode no longer being active.");
+    }
+
+    public RealMatrix getVuforiaMatrix() {
+        return vuforiaLocalizationConsumer.getFormattedMatrix();
     }
 }

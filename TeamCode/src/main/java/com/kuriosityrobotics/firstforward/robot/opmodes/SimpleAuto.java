@@ -4,6 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -17,11 +18,13 @@ public class SimpleAuto extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START);
+            robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
         }
+
+        robot.sensorThread.resetPose(START);
 
         PurePursuit park = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(START),

@@ -15,7 +15,6 @@ import java.util.Locale;
 // Kuro coordinate system pose :tm:
 public class Pose extends Point {
     public static final Pose ZERO = new Pose(0, 0, 0);
-
     public final double heading;
 
     public Pose(double x, double y, double heading) {
@@ -108,5 +107,9 @@ public class Pose extends Point {
         double yError = distanceError * Math.cos(relativeHeadingToPoint);
 
         return new Point(xError, yError);
+    }
+
+    public double getHeading() {
+        return heading;
     }
 }

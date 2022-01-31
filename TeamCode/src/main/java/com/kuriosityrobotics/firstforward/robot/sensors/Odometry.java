@@ -15,7 +15,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
-public class Odometry extends RollingVelocityCalculator implements Telemeter {
+public class Odometry implements Telemeter {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
@@ -26,7 +26,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     private double worldY;
     private double worldHeadingRad;
 
-    // velocity of the robot
+    // veloclity of the robot
     private double xVel = 0;
     private double yVel = 0;
     private double angleVel = 0;
@@ -82,11 +82,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
         FileDump.addField("xAccel", this);
         FileDump.addField("yAccel", this);
         FileDump.addField("angleAccel", this);
-    }
-
-    public Odometry(Robot robot) {
-        // (0,0) is the center of the field (IMPORTANT)
-        this(robot, new Pose(0.0, 0.0, 0.0));
     }
 
     public void update() {

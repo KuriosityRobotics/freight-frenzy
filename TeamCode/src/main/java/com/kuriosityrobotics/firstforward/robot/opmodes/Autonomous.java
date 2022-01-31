@@ -10,6 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselActio
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -28,11 +29,13 @@ public class Autonomous extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START);
+            robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
         }
+
+        robot.sensorThread.resetPose(START);
 
         ArrayList<Action> carouselActions = new ArrayList<>();
         carouselActions.add(new CarouselAction());

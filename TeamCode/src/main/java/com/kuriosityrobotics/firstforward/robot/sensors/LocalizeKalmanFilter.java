@@ -4,7 +4,6 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
@@ -21,7 +20,7 @@ import java.util.List;
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
-    public RealMatrix[] matrixPose; // pose, cov
+    private RealMatrix[] matrixPose; // pose, cov
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -30,14 +29,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             {0, 0, Math.pow(Math.toRadians(4), 2)}
     });
 
-    public LocalizeKalmanFilter(Robot robot, RealMatrix matrixPose) {
-        robot.telemetryDump.registerTelemeter(this);
+    protected LocalizeKalmanFilter(RealMatrix matrixPose) {
         this.matrixPose = new RealMatrix[]{matrixPose, STARTING_COVARIANCE};
-    }
-
-    public LocalizeKalmanFilter(Robot robot, RealMatrix[] matrixPose) {
-        robot.telemetryDump.registerTelemeter(this);
-        this.matrixPose = matrixPose;
     }
 
     /**
@@ -176,12 +169,14 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public Pose getPose() {
-        synchronized (this) {
+        try {
             double x = matrixPose[0].getEntry(0, 0);
             double y = matrixPose[0].getEntry(1, 0);
             double heading = matrixPose[0].getEntry(2, 0);
 
             return new Pose(x, y, heading);
+        } catch (NullPointerException e) {
+            return Pose.ZERO;
         }
     }
 

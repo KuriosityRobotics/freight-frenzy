@@ -20,7 +20,7 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         try {
-            robot = new Robot(hardwareMap, telemetry, this, Autonomous.PARK);
+            robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);

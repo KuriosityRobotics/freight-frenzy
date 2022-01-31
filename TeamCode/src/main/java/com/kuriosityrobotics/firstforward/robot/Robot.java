@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
@@ -20,7 +19,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-
 
 public class Robot {
     private static final boolean DEBUG = false;
@@ -41,8 +39,6 @@ public class Robot {
 
     public TelemetryDump telemetryDump;
 
-    public VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
-
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
 
@@ -52,7 +48,7 @@ public class Robot {
     public WebcamName leftCamera;
     public WebcamName frontCamera;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, Pose pose) throws RuntimeException {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -70,8 +66,11 @@ public class Robot {
             throw new RuntimeException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
+        // init sensorThread up here since drivetrain depends on it
+        sensorThread = new SensorThread(this, configLocation);
+
         // modules
-        drivetrain = new Drivetrain(this, pose);
+        drivetrain = new Drivetrain(this, sensorThread.getPose());
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
         carouselModule = new CarouselModule(this);
@@ -83,23 +82,19 @@ public class Robot {
                 carouselModule
         };
 
+        // threads
         moduleThread = new ModuleThread(this, this.modules);
 
         telemetry.addData("> ", "Please wait for vuforia to init");
         telemetry.update();
-        vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(leftCamera, frontCamera);
+        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(leftCamera, frontCamera);
         visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         telemetry.addData("> ", "Vuforia has been initalized");
         telemetry.update();
 
-        sensorThread = new SensorThread(this, configLocation, vuforiaLocalizationConsumer, pose);
         debugThread = new DebugThread(this, DEBUG);
 
         this.start();
-    }
-
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws Exception {
-        this(hardwareMap, telemetry, linearOpMode, new Pose(0.0,0.0,0.0));
     }
 
     public void start() {
