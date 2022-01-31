@@ -2,8 +2,9 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FRONT_LOCATION_ON_ROBOT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LOCATION_ON_ROBOT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_FORWARD_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LEFT_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_VERTICAL_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
@@ -12,16 +13,17 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
+import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
-
+import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -30,33 +32,44 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
 import java.util.ArrayList;
 
 /**
  * Defining a Vuforia localization consumer
  */
+
+// This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
-    private WebcamName cameraName1;
-    private WebcamName cameraName2;
+    private final WebcamName cameraName;
 
     private VuforiaTrackables freightFrenzyTargets;
 
     private volatile VuforiaTrackable detectedTrackable = null;
     private volatile OpenGLMatrix detectedLocation = null;
 
-    private SwitchableCamera switchableCamera;
+    // change states here
+    public static CameraOrientation cameraOrientation = CameraOrientation.CENTER;
+    private final Servo rotator;
 
-    public VuforiaLocalizationConsumer(WebcamName cameraName1, WebcamName cameraName2) {
-        this.cameraName1 = cameraName1;
-        this.cameraName2 = cameraName2;
+    public VuforiaLocalizationConsumer(WebcamName cameraName, HardwareMap hwMap) {
+        this.cameraName = cameraName;
+        rotator = hwMap.get(Servo.class, "WebcamRotator");
+    }
+
+    // TODO: tune
+    private static final double ROTATOR_LEFT_POS = 0;
+    private static final double ROTATOR_CENTER_POS = 0;
+    private static final double ROTATOR_RIGHT_POS = 0;
+
+    public enum CameraOrientation {
+        LEFT,
+        CENTER,
+        RIGHT
     }
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
-        this.switchableCamera = (SwitchableCamera) vuforia.getCamera();
-
-        // Get trackables & activate them
+        // Get trackables & activate them, deactivate first because weird stuff
         if (this.freightFrenzyTargets != null) {
             this.freightFrenzyTargets.deactivate();
         }
@@ -82,18 +95,28 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 return;
             }
 
+            // we do stuff
+            int camRotation;
+            if (cameraOrientation.equals(CameraOrientation.LEFT)) {
+                rotator.setPosition(ROTATOR_LEFT_POS);
+                camRotation = 180;
+            } else if (cameraOrientation.equals(CameraOrientation.CENTER)) {
+                rotator.setPosition(ROTATOR_CENTER_POS);
+                camRotation = 90;
+            } else {
+                rotator.setPosition(ROTATOR_RIGHT_POS);
+                camRotation = 0;
+            }
+
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
                 VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
                 if (listener.isVisible()) {
                     detectedTrackable = trackable;
-                    // The listener does not understand that we have coordinates for the switchable cameras
-                    // It thinks we're at (0,0,0)
-                    // so we correct it here :sunglas:
-                    if (switchableCamera.getActiveCamera() == cameraName1) {
-                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), CAMERA_LEFT_LOCATION_ON_ROBOT);
-                    } else if (switchableCamera.getActiveCamera() == cameraName2) {
-                        listener.setCameraLocationOnRobot(switchableCamera.getCameraName(), CAMERA_FRONT_LOCATION_ON_ROBOT);
-                    }
+
+                    OpenGLMatrix cameraLoc = OpenGLMatrix
+                            .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, camRotation, 0));
+                    listener.setCameraLocationOnRobot(cameraName, cameraLoc);
 
                     OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
                     if (robotLocationTransform != null) {
@@ -113,6 +136,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      */
     public void deactivate() {
         this.freightFrenzyTargets.deactivate();
+        cameraOrientation = CameraOrientation.CENTER;
     }
 
     /**
@@ -141,9 +165,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 
-    public RealMatrix getFormattedMatrix() {
+    public RealMatrix getVuforiaMatrix() {
         synchronized (this) {
-            if (!ManagedCamera.vuforiaActive) {
+            if (SingleManagedCamera.vuforiaActive) {
                 return null;
             }
 

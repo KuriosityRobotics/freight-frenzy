@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
-public final class ManagedCamera {
+public final class DoubleManagedCamera {
     private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
 
@@ -38,7 +38,7 @@ public final class ManagedCamera {
     private WebcamName activeCameraName;
     private VuforiaLocalizer vuforia;
 
-    public ManagedCamera(WebcamName cameraName1, WebcamName cameraName2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public DoubleManagedCamera(WebcamName cameraName1, WebcamName cameraName2, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
 
@@ -113,7 +113,7 @@ public final class ManagedCamera {
         });
     }
 
-    public ManagedCamera(WebcamName webcamName1, WebcamName webcamName2, OpenCvConsumer... openCvConsumers) {
+    public DoubleManagedCamera(WebcamName webcamName1, WebcamName webcamName2, OpenCvConsumer... openCvConsumers) {
         this(webcamName1, webcamName2, null, openCvConsumers);
     }
 

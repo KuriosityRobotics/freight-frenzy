@@ -60,13 +60,9 @@ public class Constants {
         public static final double HALF_ROBOT_WIDTH = 11.75 / 2;
         public static final double HALF_ROBOT_LENGTH = 12.75 / 2;
 
-        public static final OpenGLMatrix CAMERA_LEFT_LOCATION_ON_ROBOT = OpenGLMatrix
-                .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 180, 0));
-
-        public static final OpenGLMatrix CAMERA_FRONT_LOCATION_ON_ROBOT = OpenGLMatrix
-                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
+//        public static final OpenGLMatrix CAMERA_FRONT_LOCATION_ON_ROBOT = OpenGLMatrix
+//                .translation(CAMERA_FRONT_FORWARD_DISPLACEMENT, CAMERA_FRONT_LEFT_DISPLACEMENT, CAMERA_FRONT_VERTICAL_DISPLACEMENT)
+//                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, 90, 30));
 
         public static final String VUFORIA_LICENCE_KEY =
                 "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
