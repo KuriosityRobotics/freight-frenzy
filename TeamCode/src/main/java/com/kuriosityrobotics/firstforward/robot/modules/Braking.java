@@ -22,7 +22,7 @@ public final class Braking {
         angularBrakeController = null;
     }
 
-    Pose getBrakeMovement(Pose currentPose, Pose velocity) {
+    Pose getBrakeMovement(boolean isDriverControlled, Pose currentPose, Pose velocity) {
         // we stop braking when the velocity is low (brake is a synonym for 'stop')
         // TODO:  tune this constant
         if (Math.hypot(velocity.x, velocity.y) < 0.1 && velocity.heading < Math.PI / 12) {
@@ -35,9 +35,11 @@ public final class Braking {
         // we want to save the pose we start braking at (the pose the robot is in when mvoements are 0)
         // at this point we know we want to brake
         if (!isBraking()) {
-            this.brakePose = currentPose.add(velocity.scale(.1)); // we add .1 seconds worth of movement to make it feel snappy
             angularBrakeController = new ClassicalPID(0.5, 0, 1);
-            distanceBrakeController = new ClassicalPID(0.02, 0, 0.7);
+            distanceBrakeController = new ClassicalPID(0.015, 0, 0.7);
+
+            if (isDriverControlled)
+                this.brakePose = currentPose.add(velocity.scale(.1)); // we add .1 seconds worth of movement to make it feel snappy
         }
 
         double moveSpeed = distanceBrakeController.calculateSpeed(currentPose.distance(brakePose)) * 0.55; // to use for PID

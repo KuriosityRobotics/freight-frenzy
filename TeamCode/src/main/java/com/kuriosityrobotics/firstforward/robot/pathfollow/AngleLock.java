@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+
 public class AngleLock {
     public enum AngleLockType {
         CONTINUE_LAST, LOCK, NO_LOCK
@@ -10,7 +12,7 @@ public class AngleLock {
 
     public AngleLock(AngleLockType type, double heading) {
         this.type = type;
-        this.heading = heading;
+        this.heading = angleWrap(heading);
     }
 
     public AngleLock() {

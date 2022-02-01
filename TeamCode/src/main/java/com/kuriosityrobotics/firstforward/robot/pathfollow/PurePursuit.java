@@ -255,6 +255,7 @@ public class PurePursuit implements Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+        data.add("current segment: " + pathIndex);
         data.add("target point: " + target.toString());
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);

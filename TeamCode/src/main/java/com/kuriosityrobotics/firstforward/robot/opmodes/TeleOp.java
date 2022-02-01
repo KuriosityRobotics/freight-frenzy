@@ -2,12 +2,16 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock.AngleLockType.LOCK;
+import static com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock.AngleLockType.NO_LOCK;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
@@ -21,8 +25,8 @@ public class TeleOp extends LinearOpMode {
 
     Button retractButton = new Button();
 
-    private static final Point BLUE_GOAL_ENTRANCE = new Point(10, 0);
-    private static final Point RED_GOAL_ENTRANCE = new Point(6.5, 60);
+    private static final Point BLUE_GOAL_ENTRANCE = new Point(FULL_FIELD - 7, 55);
+    private static final Point RED_GOAL_ENTRANCE = new Point(7, 55);
 
     boolean isRed;
     PurePursuit wallridePursuit = null;
@@ -33,6 +37,7 @@ public class TeleOp extends LinearOpMode {
             robot = new Robot(hardwareMap, telemetry, this, false);
             robot = new Robot(hardwareMap, telemetry, this);
             isRed = robot.sensorThread.getPose().isInRange(0, 0, 70, 140);
+            robot.sensorThread.resetPose(new Pose(6.5, 70, Math.PI / 2));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
@@ -50,12 +55,12 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
-    private boolean isFollowingWall() {
+    public boolean isFollowingWall() {
         return wallridePursuit != null;
     }
 
     private boolean isInGoal() {
-        return robot.sensorThread.getPose().y < 60;
+        return robot.sensorThread.getPose().y < 48;
     }
 
     private Point getClosestEntrance() {
@@ -72,19 +77,27 @@ public class TeleOp extends LinearOpMode {
     private void startFollowingWall() {
         WayPoint start = new WayPoint(robot.sensorThread.getPose());
 
-        Pose entrancePose = new Pose(getClosestEntrance(), isInGoal() ? 0 : Math.PI);
+        // hack so purepursuit doesn't hit the wall when trying to pivot
+        // TODO:  make pure pursuit do this for us
+        Pose pivotPose = new Pose(
+                start, isInGoal() ? 0 : Math.PI
+        );
+        WayPoint pivot = new WayPoint(pivotPose);
+
+        Pose entrancePose = new Pose(getClosestEntrance(), pivotPose.heading);
         WayPoint entrance = new WayPoint(entrancePose);
 
-        WayPoint insideGoal = new WayPoint(new Pose(
+        WayPoint insideGoal = new WayPoint(
                 entrancePose.x,
-                entrancePose.y - 20,
-                entrancePose.heading
-        ));
+                entrance.y - 30,
+                new AngleLock(isInGoal() ? LOCK : NO_LOCK, entrancePose.heading)
+        );
 
-        WayPoint[] path = isInGoal() ? new WayPoint[]{start, insideGoal, entrance}
-                : new WayPoint[]{start, entrance, insideGoal};
+        WayPoint[] path = isInGoal() ?
+                new WayPoint[]{start, pivot, insideGoal, entrance} :
+                new WayPoint[]{start, pivot, entrance, insideGoal};
 
-        wallridePursuit = new PurePursuit(robot, path, 4);
+        wallridePursuit = new PurePursuit(robot, path, 10);
     }
 
     private void stopFollowingWall() {
@@ -97,13 +110,12 @@ public class TeleOp extends LinearOpMode {
                 doublesEqual(gamepad1.left_stick_y, 0);
     }
 
-    // TODO: There's some sort of logic error with the 0,1,2 system(I think the create pp part is good)
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
         double turnMov = gamepad1.right_stick_x;
 
-        if (gamepad1.right_bumper) {
+        if (inSlowMode()) {
             yMov /= 2;
             xMov /= 2;
             turnMov /= 2;
@@ -117,7 +129,15 @@ public class TeleOp extends LinearOpMode {
             if (wallridePursuit.atEnd() || !inputMovementsZero())
                 stopFollowingWall();
         } else
-            robot.drivetrain.setMovements(xMov, yMov, turnMov);
+            setDrivetrainMovements(yMov, xMov, turnMov);
+    }
+
+    private boolean inSlowMode() {
+        return gamepad1.right_bumper;
+    }
+
+    private void setDrivetrainMovements(double yMov, double xMov, double turnMov) {
+        robot.drivetrain.setMovements(xMov, yMov, turnMov);
     }
 
     private void updateIntakeStates() {

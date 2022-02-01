@@ -2,6 +2,12 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FRONT_LOCATION_ON_ROBOT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LOCATION_ON_ROBOT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_TARGET_HEIGHT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.ONE_AND_HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_FORWARD_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LEFT_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_VERTICAL_DISPLACEMENT;
@@ -26,6 +32,8 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.kuriosityrobotics.firstforward.robot.util.Constants;
+import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -97,11 +105,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
         this.freightFrenzyTargets.activate();
 
-        // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage", -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 0);
-        identifyTarget(2, "Red Storage", -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
+        identifyTarget(0, "Blue Storage",       -(Constants.FULL_FIELD / 2),  ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall",  HALF_TILE, Constants.FULL_FIELD / 2,      MM_TARGET_HEIGHT, 90, 0, 0);
+        identifyTarget(2, "Red Storage",        -(Constants.FULL_FIELD / 2), -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -(Constants.FULL_FIELD / 2),      MM_TARGET_HEIGHT, 90, 0, 180);
     }
 
     private void setCameraAngle(double angle) {
@@ -210,8 +217,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
             // Convert from FTC coordinate system to ours
             double robotHeadingOurs = angleWrap(Math.PI - heading);
-            double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
-            double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
+            double robotXOurs = robotLocation.y + (Constants.FULL_FIELD / 2 / MM_PER_INCH);
+            double robotYOurs = -robotLocation.x + (Constants.FULL_FIELD / 2 / MM_PER_INCH);
 
             // Fancy formatting :sunglas
 //            Log.e("Vision", "FTC Coordinate System");

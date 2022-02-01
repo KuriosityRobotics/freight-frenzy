@@ -1,14 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.math;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_PER_INCH;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.kuriosityrobotics.firstforward.robot.util.Constants;
 
 import java.util.Locale;
 
@@ -72,8 +72,8 @@ public class Pose extends Point {
 
     // sus naming but whatever
     public Pose toFTCSystem() {
-        double x = -this.y + HALF_FIELD / MM_PER_INCH;
-        double y = this.x - HALF_FIELD / MM_PER_INCH;
+        double x = -this.y + Constants.FULL_FIELD / 2 / MM_PER_INCH;
+        double y = this.x - Constants.FULL_FIELD / 2 / MM_PER_INCH;
         double heading = angleWrap(this.heading - Math.PI);
         return new Pose(x, y, heading);
     }
