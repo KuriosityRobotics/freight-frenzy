@@ -31,7 +31,6 @@ import de.esoco.coroutine.CoroutineScope;
 public final class SingleManagedCamera {
     private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
-    private Camera camera;
     public static boolean vuforiaActive = true;
     private final List<OpenCvConsumer> openCvConsumers;
     private final WebcamName cameraName;
@@ -64,7 +63,6 @@ public final class SingleManagedCamera {
             parameters.useExtendedTracking = false;
 
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
-            camera = vuforia.getCamera();
 
             vuforiaConsumer.setup(vuforia);
             openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);

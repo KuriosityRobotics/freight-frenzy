@@ -66,6 +66,6 @@ public class VisionThread implements Runnable, Telemeter {
     }
 
     public RealMatrix getVuforiaMatrix() {
-        return vuforiaLocalizationConsumer.getVuforiaMatrix();
+        return vuforiaLocalizationConsumer.getLocationRealMatrix();
     }
 }

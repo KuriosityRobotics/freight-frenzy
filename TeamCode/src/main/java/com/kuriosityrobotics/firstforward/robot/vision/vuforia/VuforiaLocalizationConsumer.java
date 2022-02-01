@@ -5,20 +5,23 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_FORWARD_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LEFT_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_VERTICAL_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
+import android.media.MediaCodecInfo;
 import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -40,6 +43,11 @@ import java.util.ArrayList;
 
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
+    Point WALLTARG_1 = new Point(0, ONE_AND_HALF_TILE + ONE_TILE);
+    Point WALLTARG_2 = new Point(ONE_AND_HALF_TILE, FULL_FIELD);
+    Point WALLTARG_3 = new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD);
+    Point WALLTARG_4 = new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE);
+
     private final WebcamName cameraName;
 
     private VuforiaTrackables freightFrenzyTargets;
@@ -165,7 +173,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
     }
 
-    public RealMatrix getVuforiaMatrix() {
+    public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
             if (SingleManagedCamera.vuforiaActive) {
                 return null;
