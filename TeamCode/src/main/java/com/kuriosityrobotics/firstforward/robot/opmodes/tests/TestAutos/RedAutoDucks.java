@@ -33,7 +33,8 @@ public class RedAutoDucks extends LinearOpMode {
         Robot robot = null;
 
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START);
+            robot = new Robot(hardwareMap, telemetry, this);
+            robot.sensorThread.resetPose(START);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();

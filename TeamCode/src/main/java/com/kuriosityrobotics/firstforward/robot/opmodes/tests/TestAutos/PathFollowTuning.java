@@ -34,7 +34,8 @@ public class PathFollowTuning extends LinearOpMode {
     public void runOpMode() {
         Robot robot = null;
         try {
-            robot = new Robot(hardwareMap, telemetry, this, START);
+            robot = new Robot(hardwareMap, telemetry, this);
+            robot.sensorThread.resetPose(START);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
