@@ -1,8 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS;
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.VerticalSlideLevel.TOP;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -38,6 +40,7 @@ public class RedAuto extends LinearOpMode {
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
+            return;
         }
 
         robot.sensorThread.resetPose(START);

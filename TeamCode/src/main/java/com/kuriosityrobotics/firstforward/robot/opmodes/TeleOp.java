@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.closestNum;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 import static com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock.AngleLockType.LOCK;
 import static com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock.AngleLockType.NO_LOCK;
@@ -25,8 +26,8 @@ public class TeleOp extends LinearOpMode {
 
     Button retractButton = new Button();
 
-    private static final Point BLUE_GOAL_ENTRANCE = new Point(FULL_FIELD - 7, 55);
-    private static final Point RED_GOAL_ENTRANCE = new Point(7, 55);
+    private static final Point BLUE_GOAL_ENTRANCE = new Point(FULL_FIELD - 8, 55);
+    private static final Point RED_GOAL_ENTRANCE = new Point(8, 55);
 
     boolean isRed;
     PurePursuit wallridePursuit = null;
@@ -80,16 +81,18 @@ public class TeleOp extends LinearOpMode {
         // hack so purepursuit doesn't hit the wall when trying to pivot
         // TODO:  make pure pursuit do this for us
         Pose pivotPose = new Pose(
-                start, isInGoal() ? 0 : Math.PI
+                start, closestNum(robot.sensorThread.getPose().heading, new double[]{0, Math.PI})
         );
         WayPoint pivot = new WayPoint(pivotPose);
 
         Pose entrancePose = new Pose(getClosestEntrance(), pivotPose.heading);
-        WayPoint entrance = new WayPoint(entrancePose);
+        WayPoint entrance = new WayPoint(entrancePose.x, entrancePose.y, new AngleLock(
+                LOCK, entrancePose.heading
+        ));
 
         WayPoint insideGoal = new WayPoint(
                 entrancePose.x,
-                entrance.y - 30,
+                24,
                 new AngleLock(isInGoal() ? LOCK : NO_LOCK, entrancePose.heading)
         );
 
@@ -97,7 +100,7 @@ public class TeleOp extends LinearOpMode {
                 new WayPoint[]{start, pivot, insideGoal, entrance} :
                 new WayPoint[]{start, pivot, entrance, insideGoal};
 
-        wallridePursuit = new PurePursuit(robot, path, 10);
+        wallridePursuit = new PurePursuit(robot, path, .2);
     }
 
     private void stopFollowingWall() {
