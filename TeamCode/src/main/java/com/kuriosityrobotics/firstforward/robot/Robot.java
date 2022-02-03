@@ -85,7 +85,7 @@ public class Robot {
 
         telemetry.addData("> ", "Please wait for vuforia to init");
         telemetry.update();
-        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(camera, hardwareMap);
+        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(this, camera, hardwareMap);
         visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
         telemetry.addData("> ", "Vuforia has been initalized");
         telemetry.update();

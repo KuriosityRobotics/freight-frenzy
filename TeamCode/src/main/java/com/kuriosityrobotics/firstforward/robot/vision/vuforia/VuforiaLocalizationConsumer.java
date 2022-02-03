@@ -18,8 +18,9 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
-import android.media.MediaCodecInfo;
 import android.util.Log;
+
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
@@ -36,6 +37,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Defining a Vuforia localization consumer
@@ -43,10 +46,12 @@ import java.util.ArrayList;
 
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
-    Point WALLTARG_1 = new Point(0, ONE_AND_HALF_TILE + ONE_TILE);
-    Point WALLTARG_2 = new Point(ONE_AND_HALF_TILE, FULL_FIELD);
-    Point WALLTARG_3 = new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD);
-    Point WALLTARG_4 = new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE);
+    private static final Point[] targets = {
+            new Point(0, ONE_AND_HALF_TILE + ONE_TILE),
+            new Point(ONE_AND_HALF_TILE, FULL_FIELD),
+            new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD),
+            new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE)
+    };
 
     private final WebcamName cameraName;
 
@@ -59,7 +64,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public static CameraOrientation cameraOrientation = CameraOrientation.CENTER;
     private final Servo rotator;
 
-    public VuforiaLocalizationConsumer(WebcamName cameraName, HardwareMap hwMap) {
+    private final Robot robot;
+    public VuforiaLocalizationConsumer(Robot robot, WebcamName cameraName, HardwareMap hwMap) {
+        this.robot = robot;
         this.cameraName = cameraName;
         rotator = hwMap.get(Servo.class, "WebcamRotator");
     }
@@ -74,6 +81,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         CENTER,
         RIGHT
     }
+
+
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -92,6 +101,18 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
     }
 
+    private void setCameraAngle(double angle) {
+        //stub
+    }
+
+    private double getCamAngleTo(Point point) {
+        Pose currentPosition = robot.sensorThread.getPose();
+        return angleWrap(Math.atan2(
+                currentPosition.y - point.y,
+                currentPosition.x - point.x
+        ), 0);
+    }
+
     @Override
     public void update() {
         synchronized (this) {
@@ -104,17 +125,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             }
 
             // we do stuff
-            int camRotation;
-            if (cameraOrientation.equals(CameraOrientation.LEFT)) {
-                rotator.setPosition(ROTATOR_LEFT_POS);
-                camRotation = 180;
-            } else if (cameraOrientation.equals(CameraOrientation.CENTER)) {
-                rotator.setPosition(ROTATOR_CENTER_POS);
-                camRotation = 90;
-            } else {
-                rotator.setPosition(ROTATOR_RIGHT_POS);
-                camRotation = 0;
-            }
+            double cameraAngle = Arrays.stream(targets).map(this::getCamAngleTo)
+                    .min(Comparator.naturalOrder())
+                    .orElse(0.);
+            setCameraAngle(cameraAngle);
 
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
                 VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
@@ -123,7 +137,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                     OpenGLMatrix cameraLoc = OpenGLMatrix
                             .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90, camRotation, 0));
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, (float)Math.PI/2, (float)cameraAngle, 0));
                     listener.setCameraLocationOnRobot(cameraName, cameraLoc);
 
                     OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
