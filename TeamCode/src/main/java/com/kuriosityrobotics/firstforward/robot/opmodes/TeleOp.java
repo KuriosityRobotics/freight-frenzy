@@ -57,24 +57,14 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateOuttakeStates() {
-        if (gamepad2.dpad_down)
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
-        if (gamepad2.dpad_up)
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
-        if (gamepad2.dpad_right)
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.MID);
+        if(gamepad2.right_bumper)
+            robot.outtakeModule.raise();
 
         if (gamepad2.left_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_INWARDS);
         else if (gamepad2.right_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
 
-        if (gamepad2.right_stick_x == 0 && gamepad2.right_stick_y == 0){
-            OuttakeModule.pivotHeading = 0;
-        } else{
-            OuttakeModule.pivotHeading = angleWrap(Math.atan2(gamepad2.right_stick_x, gamepad2.right_stick_y) - Math.PI);
-        }
-        OuttakeModule.skipRotate = gamepad2.y;
     }
 
     private void updateCarouselStates() {
