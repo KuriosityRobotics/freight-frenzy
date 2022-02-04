@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
-@Disabled
 @TeleOp
 public class PlebOuttakeVerticalSlideTuner extends LinearOpMode {
     DcMotorEx slide;

@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Disabled
 @TeleOp
 public class PlebOuttakeHopperDumpTuner extends LinearOpMode {
     Servo dumpMotor;
@@ -14,7 +13,7 @@ public class PlebOuttakeHopperDumpTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        dumpMotor = hardwareMap.get(Servo.class, "hopper_pivot_servo");
+        dumpMotor = hardwareMap.get(Servo.class, "hopper");
 
         waitForStart();
 
