@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.IDLE;
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.LINKAGE_IN;
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.LINKAGE_OUT;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.SLIDES_UP;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.WAIT_FOR_COMMAND;
 
@@ -23,8 +25,13 @@ public class OuttakeModule implements Module, Telemeter {
     private static final double LINKAGE_EXTENDED = 0.78306;
     private static final double LINKAGE_RETRACTED = .106872;
     private static final double HOPPER_PIVOT_IN = 1;
-    private static final double HOPPER_PIVOT_OUT = .31161;
+    private static final double HOPPER_PIVOT_OUT_180 = .31161;
+    private static final double HOPPER_PIVOT_OUT_90 = (HOPPER_PIVOT_IN + HOPPER_PIVOT_OUT_180) / 2;
+    private static final double HOPPER_PIVOT_OUT_270 = HOPPER_PIVOT_OUT_90 * 3; // pepega
     private static final double HOPPER_RESTING_POSITION = .584;
+
+    private double pivotOutPosition = HOPPER_PIVOT_OUT_180;
+
     private boolean stateJustSetManually;
 
     public enum HopperDumpPosition {
@@ -75,8 +82,8 @@ public class OuttakeModule implements Module, Telemeter {
     private boolean isHopperOccupied = false;
 
     public enum OuttakeState {
-        SLIDES_UP(SLIDE_RAISE_TIME),
         LINKAGE_OUT(HOPPER_EXTEND_TIME),
+        SLIDES_UP(SLIDE_RAISE_TIME),
         PIVOT_OUT(HOPPER_PIVOT_TIME),
         WAIT_FOR_COMMAND(10),
         DUMP(HOPPER_DUMP_TIME),
@@ -91,6 +98,22 @@ public class OuttakeModule implements Module, Telemeter {
         OuttakeState(long completionTime) {
             this.completionTime = completionTime;
         }
+    }
+
+    public void pivotRight() {
+        pivotOutPosition = HOPPER_PIVOT_OUT_90;
+    }
+
+    public void pivotStraight() {
+        pivotOutPosition = HOPPER_PIVOT_OUT_180;
+    }
+
+    public void pivot270() {
+        pivotOutPosition = HOPPER_PIVOT_OUT_270;
+    }
+
+    public void pivotIn() {
+        pivotOutPosition = HOPPER_PIVOT_IN;
     }
 
 
@@ -161,17 +184,17 @@ public class OuttakeModule implements Module, Telemeter {
     public void update() {
         synchronized (lock) {
             if (phaseComplete()) {
-                if(!stateJustSetManually) advanceState();
+                if (!stateJustSetManually) advanceState();
                 else stateJustSetManually = false;
 
                 switch (this.outtakeState) {
-                    case SLIDES_UP:
-                        slideLevel = VerticalSlideLevel.TOP;
                     case LINKAGE_OUT:
                         linkage.setPosition(LINKAGE_EXTENDED);
                         break;
+                    case SLIDES_UP:
+                        slideLevel = VerticalSlideLevel.TOP;
                     case PIVOT_OUT:
-                        pivot.setPosition(HOPPER_PIVOT_OUT);
+                        pivot.setPosition(HOPPER_PIVOT_OUT_180);
                         break;
                     case WAIT_FOR_COMMAND:
                         break;
@@ -204,9 +227,16 @@ public class OuttakeModule implements Module, Telemeter {
                 slide.setPower(1);
             }
 
+            if (outtakeState != IDLE
+                    && outtakeState.ordinal() > LINKAGE_OUT.ordinal()
+                    && outtakeState.ordinal() < LINKAGE_IN.ordinal())
+                pivot.setPosition(pivotOutPosition);
+
+
             slide.setTargetPosition(slideLevel.position);
         }
     }
+
     public void raise() {
         this.outtakeState = SLIDES_UP;
     }
@@ -228,6 +258,10 @@ public class OuttakeModule implements Module, Telemeter {
     @Override
     public String getName() {
         return "OuttakeModule";
+    }
+
+    {
+        var a = "";
     }
 
     @Override
