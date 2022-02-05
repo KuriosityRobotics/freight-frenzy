@@ -18,9 +18,9 @@ import java.util.ArrayList;
 public class BlueAuto extends LinearOpMode {
     public static final Pose START = new Pose(140.5-6, 94.5, Math.toRadians(-90));
 
-    public static final Pose CAROUSEL = new Pose(140.5-12.8-3.5, 124, Math.toRadians(68));
+    public static final Pose CAROUSEL = new Pose(140.5-12.8-3.25, 124, Math.toRadians(68));
 
-    public static final Pose WOBBLE = new Pose(140.5-31.5, 108.5, Math.toRadians(27));
+    public static final Pose WOBBLE = new Pose(140.5-31.5, 108.25, Math.toRadians(25));
 
     public static final Pose WALL_ENT = new Pose(10, 100, Math.toRadians(180));
     public static final Pose WAREHOUSE_PARK = new Pose(140.5-31, 126, Math.toRadians(0));
