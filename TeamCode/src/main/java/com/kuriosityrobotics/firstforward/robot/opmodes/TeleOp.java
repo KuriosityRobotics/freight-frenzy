@@ -65,6 +65,15 @@ public class TeleOp extends LinearOpMode {
         else if (gamepad2.right_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
 
+        if(gamepad2.a)
+            robot.outtakeModule.pivotIn();
+        else if (gamepad2.y)
+            robot.outtakeModule.pivotStraight();
+        else if (gamepad2.x)
+            robot.outtakeModule.pivotRight();
+        else if (gamepad2.b)
+            robot.outtakeModule.pivot270();
+
     }
 
     private void updateCarouselStates() {
