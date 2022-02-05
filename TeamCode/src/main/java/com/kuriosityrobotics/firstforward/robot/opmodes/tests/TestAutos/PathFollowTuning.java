@@ -53,10 +53,12 @@ public class PathFollowTuning extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
+        /*
         PurePursuit carouselToWobble = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(CAROUSEL, new RaiseOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
                 new WayPoint(WOBBLE_W, 0, wobbleActions)
         }, 4);
+         */
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(new IntakeAction());
@@ -82,7 +84,7 @@ public class PathFollowTuning extends LinearOpMode {
 
         PurePursuit carouselToStorage = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(CAROUSEL),
-                new WayPoint(new Pose((CAROUSEL.x + STORAGE.x)/2, (CAROUSEL.y + STORAGE.y)/2, -90), 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(CAROUSEL.between(STORAGE), 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(STORAGE, 0, new ArrayList<>())
         }, 4);
 
