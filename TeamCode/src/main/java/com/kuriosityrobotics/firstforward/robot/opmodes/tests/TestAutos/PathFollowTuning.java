@@ -12,10 +12,12 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAc
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class PathFollowTuning extends LinearOpMode {
     public static final Pose START_W = new Pose(6, 60, Math.toRadians(90)); //start near warehouse

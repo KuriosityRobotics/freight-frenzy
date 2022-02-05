@@ -24,6 +24,7 @@ public class CarouselModule implements Module, Telemeter {
 
     //states
     public volatile boolean spin = false;
+    public volatile boolean clockwise = false;
 
     private Long spinStartTimeMillis = null;
 
@@ -32,12 +33,12 @@ public class CarouselModule implements Module, Telemeter {
 
     public CarouselModule(Robot robot) {
         this.robot = robot;
-        robot.telemetryDump.registerTelemeter(this);
+//        robot.telemetryDump.registerTelemeter(this);
         carouselMotor = (DcMotorEx) robot.getDcMotor("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    private static double MAX_CAROUSEL_SPEED = 1.7 * PI; // original:  1.4 * pi
+    private static double MAX_CAROUSEL_SPEED = 1.4 * PI; // original:  1.4 * pi
     private static double MAX_SPEED_MS = 1200;
 
     private double target = 0;
@@ -49,7 +50,7 @@ public class CarouselModule implements Module, Telemeter {
             }
 
             double speed = MAX_CAROUSEL_SPEED * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
-            carouselMotor.setVelocity(speed, AngleUnit.RADIANS);
+            carouselMotor.setVelocity(clockwise ? -speed : speed, AngleUnit.RADIANS);
             target = speed;
         } else {
             spinStartTimeMillis = null;
@@ -70,7 +71,7 @@ public class CarouselModule implements Module, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("spin: " + spin);
-        data.add("velcoity: " + carouselMotor.getVelocity(AngleUnit.RADIANS));
+        data.add("velocity: " + carouselMotor.getVelocity(AngleUnit.RADIANS));
         data.add("target: " + target);
 
         return data;

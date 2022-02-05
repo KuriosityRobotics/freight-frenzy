@@ -1,9 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
-
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -38,7 +35,7 @@ public class PurePursuit implements Telemeter {
     private final MotionProfile profile;
     private final FeedForwardPID yPID = new FeedForwardPID(0.020, 0.0165, 0, 0);
     private final FeedForwardPID xPID = new FeedForwardPID(0.022, 0.03, 0, 0);
-    private final ClassicalPID headingPID = new ClassicalPID(0.91, 0.000085, 0.09);
+    private final ClassicalPID headingPID = new ClassicalPID(0.9, 0.000075, 0);
 //    private final ClassicalPID headingPID = new ClassicalPID(0.85, 0, 0);
 
     // helpers
@@ -47,11 +44,10 @@ public class PurePursuit implements Telemeter {
     private boolean executedLastAction;
 
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel;
+    Point target = new Point(0, 0);
 
     public PurePursuit(Robot robot, WayPoint[] path, boolean backwards, double followRadius) {
         this.robot = robot;
-
-        robot.telemetryDump.registerTelemeter(this);
 
         this.path = path;
         this.followRadius = followRadius;
@@ -71,6 +67,8 @@ public class PurePursuit implements Telemeter {
     }
 
     public void follow() {
+        robot.telemetryDump.registerTelemeter(this);
+
         while (robot.isOpModeActive()) {
             boolean atEnd = atEnd();
             if (atEnd && !executedLastAction) {
@@ -78,14 +76,13 @@ public class PurePursuit implements Telemeter {
                 executedLastAction = true;
             } else if (atEnd && executedLastAction && actionExecutor.doneExecuting()) {
                 robot.drivetrain.setMovements(0, 0, 0);
-
-                robot.telemetryDump.removeTelemeter(this);
-
                 break;
             }
 
             this.update();
         }
+
+        robot.telemetryDump.removeTelemeter(this);
     }
 
     public void update() {
@@ -133,7 +130,7 @@ public class PurePursuit implements Telemeter {
 
         double normPow = xPow + yPow;
         double leftOver = 1 - angPow;
-        double scale = normPow > leftOver ? (leftOver / normPow) : 1;
+        double scale = (normPow != 0 && normPow > leftOver) ? (leftOver / normPow) : 1;
         xPow *= scale;
         yPow *= scale;
 
@@ -154,6 +151,8 @@ public class PurePursuit implements Telemeter {
         targy = targetYVelo;
         heading = robotPose.heading;
         targhead = targetAngleLock.getHeading();
+
+        this.target = target;
     }
 
     private Point clipToPath(Point robotPosition) {
@@ -256,6 +255,7 @@ public class PurePursuit implements Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+        data.add("target point: " + target.toString());
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);
         data.add("distToEnd: " + robot.drivetrain.distanceToPoint(path[path.length - 1]));

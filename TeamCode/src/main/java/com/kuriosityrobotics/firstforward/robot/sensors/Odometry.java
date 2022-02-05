@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
@@ -64,7 +65,7 @@ public class Odometry implements Telemeter {
     private static final double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
-//        robot.telemetryDump.registerTelemeter(this);
+        robot.telemetryDump.registerTelemeter(this);
 
         this.worldX = pose.x;
         this.worldY = pose.y;
@@ -229,16 +230,19 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeadingRad: " + angleWrap(worldHeadingRad));
         data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
 
-        data.add("--");
-
-        data.add("xVel: " + xVel);
-        data.add("yVel: " + yVel);
-        data.add("angleVel: " + angleVel);
-
         return data;
+    }
+
+    public void setPose(Pose pose) {
+        this.oldX = pose.x;
+        this.oldY = pose.y;
+        this.oldHeading = pose.heading;
+
+        this.worldX = pose.x;
+        this.worldY = pose.y;
+        this.worldHeadingRad = pose.heading;
     }
 
     /**

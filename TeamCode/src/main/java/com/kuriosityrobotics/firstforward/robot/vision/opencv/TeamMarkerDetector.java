@@ -1,9 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Detect.*;
 import android.util.Log;
+
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Core;
@@ -50,22 +56,36 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         // yeah i'm sure these are correct(corresponding shipping hub levels)
         LEVEL_1,
         LEVEL_2,
-        LEVEL_3
+        LEVEL_3;
+
+        public OuttakeModule.VerticalSlideLevel slideLevel() {
+            switch (this) {
+                case LEVEL_1:
+                    return OuttakeModule.VerticalSlideLevel.DOWN;
+                case LEVEL_2:
+                    return OuttakeModule.VerticalSlideLevel.MID;
+                case LEVEL_3:
+                    return OuttakeModule.VerticalSlideLevel.TOP;
+            }
+            return OuttakeModule.VerticalSlideLevel.MID;
+        }
     }
+
 
     private volatile TeamMarkerLocation location;
 
     public TeamMarkerLocation getLocation() {
-        return location;
+        return location == null ? TeamMarkerLocation.LEVEL_3 : location;
     }
 
     private static double[] rgbaToRgb(double[] value) {
         return new double[] {value[0], value[1], value[2]};
     }
 
+    int i = 0;
     @Override
     public void processFrame(Mat frame) {
-        if (isOn) {
+        if (i < 20) {
             location = null;
 
             // TODO: Find out why PlebDetect streams at 1920x1080 but TeleOp streams at 640x480 with the exact same parameters???
@@ -78,9 +98,21 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
 //            final Rect boundingBox3 = new Rect(new Point(482, 1184), new Point(765, 1425));
 
             // for 640x480
-            final Rect boundingBox1 = new Rect(new Point(100, 215), new Point(200, 315));
-            final Rect boundingBox2 = new Rect(new Point(300, 215), new Point(400, 315));
-            final Rect boundingBox3 = new Rect(new Point(500, 215), new Point(600, 315));
+            final Rect boundingBox1;
+            final Rect boundingBox2;
+            final Rect boundingBox3;
+
+            if(!Robot.isBlue) {
+                boundingBox1 = new Rect(new Point(0, 215), new Point(200, 415));
+                boundingBox2 = new Rect(new Point(200, 215), new Point(400, 415));
+                boundingBox3 = new Rect(new Point(400, 215), new Point(600, 415));
+            } else {
+                boundingBox2 = new Rect(new Point(640-200, 215), new Point(640-0, 415));
+                boundingBox3 = new Rect(new Point(640-400, 215), new Point(640-200, 415));
+                boundingBox1 = new Rect(new Point(640-600, 215), new Point(640-400, 415));
+            }
+
+            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGB2HSV);
 
             Mat submat1 = frame.submat(boundingBox1);
             Mat submat2 = frame.submat(boundingBox2);
@@ -94,11 +126,18 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
             submat2.release();
             submat3.release();
 
-            double area1 = sectionOne.crossProduct(RED).getNorm();
-            double area2 = sectionTwo.crossProduct(RED).getNorm();
-            double area3 = sectionThree.crossProduct(RED).getNorm();
+            double area1 = Math.abs(angleWrap(Math.toRadians(sectionOne.getX())));
+            double area2 = Math.abs(angleWrap(Math.toRadians(sectionTwo.getX())));
+            double area3 = Math.abs(angleWrap(Math.toRadians(sectionThree.getX())));
 
-            double closestToRed = new Min().evaluate(new double[]{area1, area2, area3});
+            Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
+
+            Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 0), 5);
+
+            Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
+
+
+            double closestToRed = new Max().evaluate(new double[]{area1, area2, area3});
             if (closestToRed == area1) {
                 Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 255), 5);
                 this.location = TeamMarkerLocation.LEVEL_1;
@@ -113,6 +152,7 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
             Log.v("Detect", "Detection finished. Location detected: " + location);
         }
 
-        isOn = false;
+        i++;
+//        isOn = false;
     }
 }

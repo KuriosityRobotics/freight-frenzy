@@ -26,6 +26,8 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -73,9 +75,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     // TODO: tune
-    private static final double ROTATOR_LEFT_POS = 0;
+    private static final double ROTATOR_LEFT_POS = 0.75014;
     private static final double ROTATOR_CENTER_POS = 0;
-    private static final double ROTATOR_RIGHT_POS = 0;
+    private static final double ROTATOR_RIGHT_POS = 0.0;
 
     public enum CameraOrientation {
         LEFT,
@@ -103,15 +105,17 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     private void setCameraAngle(double angle) {
+        double rotationAngle = angle / (2 * Math.PI);
+//        rotator.setPosition(ROTATOR_LEFT_POS + rotationAngle * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS));
         //stub
     }
 
     private double getCamAngleTo(Point point) {
         Pose currentPosition = robot.sensorThread.getPose();
-        return angleWrap(Math.atan2(
-                currentPosition.y - point.y,
-                currentPosition.x - point.x
-        ), 0);
+        return Math.atan2(
+                currentPosition.x - point.x,
+                currentPosition.y - point.y
+        );
     }
 
     @Override

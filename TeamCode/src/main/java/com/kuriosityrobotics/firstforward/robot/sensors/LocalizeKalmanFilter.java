@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
@@ -169,15 +170,11 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public Pose getPose() {
-        try {
-            double x = matrixPose[0].getEntry(0, 0);
-            double y = matrixPose[0].getEntry(1, 0);
-            double heading = matrixPose[0].getEntry(2, 0);
+        double x = matrixPose[0].getEntry(0, 0);
+        double y = matrixPose[0].getEntry(1, 0);
+        double heading = matrixPose[0].getEntry(2, 0);
 
-            return new Pose(x, y, heading);
-        } catch (NullPointerException e) {
-            return Pose.ZERO;
-        }
+        return new Pose(x, y, heading);
     }
 
     @Override

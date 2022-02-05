@@ -12,12 +12,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
     private final boolean debug;
 
-    private final List<Telemeter> telemeters = Collections.synchronizedList(new ArrayList<>());
+    private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
     public FtcDashboard dashboard;
 
     private List<Pose> poseHistory = new ArrayList<>();

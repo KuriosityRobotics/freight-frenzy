@@ -11,11 +11,13 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAc
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class RedAutoCycle extends LinearOpMode {
     public enum RedAutoCycleState {

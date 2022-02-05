@@ -48,6 +48,8 @@ public class Robot {
 
     public WebcamName camera;
 
+    public static boolean isBlue = false;
+
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
