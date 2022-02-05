@@ -28,6 +28,7 @@ public class Autonomous extends LinearOpMode {
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
     public static final Pose WOBBLE_W = new Pose(25.5, 72, Math.toRadians(-110));
+    public static final Pose WOBBLE_C = new Pose(36, 93, Math.toRadians(-30));
     public static final Pose WAREHOUSE = new Pose(8, 15, Math.toRadians(180));
     public static final Pose BETWEEN_START_WOBBLE = new Pose(21, 65.25, Math.toRadians(-110));
     public static final Pose WALL_GAP = new Pose(6.5, 47.25, 180);
@@ -39,6 +40,7 @@ public class Autonomous extends LinearOpMode {
     public static PurePursuit warehouseToWobble;
     public static PurePursuit startwToWobble;
     public static PurePursuit carouselToStorage;
+    public static PurePursuit startcToWobble;
     /*
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
 
@@ -153,7 +155,7 @@ public class Autonomous extends LinearOpMode {
         Autonomous.startwToWobble = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(START_W),
                 new WayPoint(BETWEEN_START_WOBBLE , 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(WOBBLE_W, 0, new ArrayList<>())
+                new WayPoint(WOBBLE_W, 0, wobbleActions)
         }, 4);
 
         Autonomous.carouselToStorage = new PurePursuit(robot, new WayPoint[]{
@@ -167,6 +169,12 @@ public class Autonomous extends LinearOpMode {
                 new WayPoint(WALL_GAP, 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BETWEEN_WOBBLE_WALLGAP,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE_W, 0, wobbleActions)
+        }, 4);
+
+        Autonomous.startcToWobble = new PurePursuit(robot, new WayPoint[]{
+                new WayPoint(START_C),
+                new WayPoint(START_C.between(WOBBLE_C), 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WOBBLE_C, 0, wobbleActions)
         }, 4);
     }
 }
