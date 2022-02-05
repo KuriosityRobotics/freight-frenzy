@@ -73,14 +73,14 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.raise();
             robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
         }
-        if(gamepad2.a)
+        if(gamepad2.b)
             robot.outtakeModule.pivotIn();
         else if (gamepad2.y)
             robot.outtakeModule.pivotStraight();
         else if (gamepad2.x)
             robot.outtakeModule.pivotRight();
-        else if (gamepad2.b)
-            robot.outtakeModule.pivot270();
+//        else if (gamepad2.b)
+//            robot.outtakeModule.pivot270();
 
     }
 

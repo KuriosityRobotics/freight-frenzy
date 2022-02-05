@@ -1,10 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-//@Disabled
+@Disabled
 @TeleOp
 public class PlebMotorTest extends LinearOpMode {
     private DcMotor motor;
