@@ -68,7 +68,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public VuforiaLocalizationConsumer(Robot robot, WebcamName cameraName, HardwareMap hwMap) {
         this.robot = robot;
         this.cameraName = cameraName;
-        rotator = hwMap.get(Servo.class, "WebcamRotator");
+        rotator = hwMap.get(Servo.class, "webcamPivot");
+        rotator.setPosition(0.399897);
     }
 
     // TODO: tune

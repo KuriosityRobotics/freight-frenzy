@@ -1,18 +1,20 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-@Disabled
+//@Disabled
 @TeleOp
-public class PlebRPMDeterminer extends LinearOpMode {
-    private IntakeModule intake;
+public class PlebMotorTest extends LinearOpMode {
+    private DcMotor intake;
 
     @Override
     public void runOpMode() {
-        intake = new IntakeModule(hardwareMap, true);
+//        intake = hardwareMap.dcMotor.get("intake");
+        intake = hardwareMap.dcMotor.get("carousel");
+//        intake = hardwareMap.dcMotor.get("carousel");
 
         waitForStart();
 
@@ -22,9 +24,8 @@ public class PlebRPMDeterminer extends LinearOpMode {
     }
 
     public void win() {
-        intake.intakePower = gamepad1.left_stick_y;
-        intake.update();
-        intake.getTelemetryData().forEach(telemetry::addLine);
+        intake.setPower(gamepad1.left_stick_y);
+        telemetry.addData("intake pos: ", "" + intake.getCurrentPosition());
         telemetry.update();
     }
 }
