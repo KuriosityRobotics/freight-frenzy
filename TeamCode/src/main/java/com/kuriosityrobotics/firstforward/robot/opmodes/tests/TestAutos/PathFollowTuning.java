@@ -22,7 +22,6 @@ public class PathFollowTuning extends LinearOpMode {
     public static final Pose START_C = new Pose(6, 108, Math.toRadians(90)); //start near carousel
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
-
     public static final Pose WOBBLE_W = new Pose(25.5, 72, Math.toRadians(-110));
     public static final Pose WAREHOUSE = new Pose(8, 15, Math.toRadians(180));
     public static final Pose BETWEEN_START_WOBBLE = new Pose(21, 65.25, Math.toRadians(-110));
@@ -53,12 +52,6 @@ public class PathFollowTuning extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
-        /*
-        PurePursuit carouselToWobble = new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(CAROUSEL, new RaiseOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
-                new WayPoint(WOBBLE_W, 0, wobbleActions)
-        }, 4);
-         */
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(new IntakeAction());
