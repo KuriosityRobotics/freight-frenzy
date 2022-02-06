@@ -20,10 +20,10 @@ public class BlueAuto extends LinearOpMode {
 
     public static final Pose CAROUSEL = new Pose(140.5-12.8-3.25, 124, Math.toRadians(68));
 
-    public static final Pose WOBBLE = new Pose(140.5-31.5, 108.25, Math.toRadians(25));
+    public static final Pose WOBBLE = new Pose(140.5-31.6, 107.75, Math.toRadians(25));
 
     public static final Pose WALL_ENT = new Pose(10, 100, Math.toRadians(180));
-    public static final Pose WAREHOUSE_PARK = new Pose(140.5-31, 126, Math.toRadians(0));
+    public static final Pose WAREHOUSE_PARK = new Pose(140.5-32, 126, Math.toRadians(0));
     public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
 
     public void runOpMode() {

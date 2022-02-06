@@ -19,9 +19,9 @@ import java.util.ArrayList;
 public class RedAuto extends LinearOpMode {
     public static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
 
-    public static final Pose CAROUSEL = new Pose(12.8, 124.75, Math.toRadians(-75));
+    public static final Pose CAROUSEL = new Pose(12.8, 124, Math.toRadians(-75));
 
-    public static final Pose WOBBLE = new Pose(31, 110, Math.toRadians(-27));
+    public static final Pose WOBBLE = new Pose(32, 111, Math.toRadians(-27));
 
     public static final Pose WALL_ENT = new Pose(10, 100, Math.toRadians(180));
     public static final Pose WAREHOUSE_PARK = new Pose(31, 126, Math.toRadians(0));

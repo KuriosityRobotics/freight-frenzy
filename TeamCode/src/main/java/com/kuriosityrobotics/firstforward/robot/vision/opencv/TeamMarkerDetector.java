@@ -85,7 +85,7 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
     int i = 0;
     @Override
     public void processFrame(Mat frame) {
-        if (i < 20) {
+        while (i < 20) {
             location = null;
 
             // TODO: Find out why PlebDetect streams at 1920x1080 but TeleOp streams at 640x480 with the exact same parameters???
@@ -150,9 +150,9 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
             }
 
             Log.v("Detect", "Detection finished. Location detected: " + location);
-        }
 
-        i++;
+            i++;
+        }
 //        isOn = false;
     }
 }

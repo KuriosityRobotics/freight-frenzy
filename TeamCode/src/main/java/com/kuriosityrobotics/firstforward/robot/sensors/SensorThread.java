@@ -81,7 +81,10 @@ public class SensorThread implements Runnable, Telemeter {
             odometry.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
-            RealMatrix vuforia = robot.visionThread.getVuforiaMatrix();
+            RealMatrix vuforia = null;
+            if (robot.isCamera) {
+                vuforia = robot.visionThread.getVuforiaMatrix();
+            }
 
             theKalmanFilter.update(odometry, vuforia);
 

@@ -59,7 +59,8 @@ public class IntakeModule implements Module, Telemeter {
 
         double sd = MathUtil.sd(avgRPMs);
         lastSd = sd;
-        return sd > INTAKE_OCCUPIED_SD;
+//        return sd > INTAKE_OCCUPIED_SD;
+        return false;
     }
 
     private boolean hasDecelerated() {
