@@ -14,7 +14,7 @@ public class Constants {
 
         // PPR = Ticks per Revolution(abrv different but doesn't matter)
         public static final double GOBILDA_1620_PPR = 103.8;
-        public static final double INTAKE_OCCUPIED_SD = 50;
+        public static final double INTAKE_OCCUPIED_SD = 100;
         public static final double INTAKE_DEACCEL_SD = 100;
 
         public static final double INTAKE_EXTEND_TIME = 1500;

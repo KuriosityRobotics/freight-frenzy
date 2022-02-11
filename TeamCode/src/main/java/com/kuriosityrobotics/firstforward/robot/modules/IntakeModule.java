@@ -59,7 +59,8 @@ public class IntakeModule implements Module, Telemeter {
 
         double sd = MathUtil.sd(avgRPMs);
         lastSd = sd;
-        return sd > INTAKE_OCCUPIED_SD;
+//        return sd > INTAKE_OCCUPIED_SD;
+        return false;
     }
 
     private boolean hasDecelerated() {
@@ -202,11 +203,11 @@ public class IntakeModule implements Module, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add(String.format(Locale.US, "Intake speed (RPM): %f", getRPM()));
-        data.add("retract: " + inRetractionState());
+//        data.add("retract: " + inRetractionState());
         data.add(String.format(Locale.US, "Intake position:  %s", intakePosition));
         data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));
-        data.add(String.format(Locale.US, "sd:  %f", lastSd));
-        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
+//        data.add(String.format(Locale.US, "sd:  %f", lastSd));
+//        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
 
         return data;
     }

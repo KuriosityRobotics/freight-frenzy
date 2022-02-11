@@ -1,19 +1,23 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.HOPPER_RETURNING;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.IDLE;
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.LINKAGE_IN;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.LINKAGE_OUT;
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.SLIDES_DOWN;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.SLIDES_UP;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.WAIT_FOR_COMMAND;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.WAIT_FOR_COMMAND2;
+
+import static java.lang.Math.abs;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import java.time.DayOfWeek;
 import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
@@ -26,11 +30,12 @@ public class OuttakeModule implements Module, Telemeter {
     //constants
     private static final double LINKAGE_EXTENDED = 0.826;
     private static final double LINKAGE_RETRACTED = 0.00;
-    private static final double HOPPER_PIVOT_IN = 0.9438718;
+    private static final double HOPPER_PIVOT_IN = 0.948718;
     private static final double HOPPER_PIVOT_OUT_180 = 0.252369;
     private static final double HOPPER_PIVOT_OUT_90 = (HOPPER_PIVOT_IN + HOPPER_PIVOT_OUT_180) / 2;
-    private static final double HOPPER_PIVOT_OUT_270 = HOPPER_PIVOT_OUT_90 * 3; // pepega
-    private static final double HOPPER_RESTING_POSITION = 0.53552;
+    private static final double HOPPER_PIVOT_OUT_270 = 0; // pepega
+    private static final double HOPPER_RECEIVING_POSITION = 0.53552;
+    private static final double HOPPER_FLAT = 0.350542;
     private boolean stateJustSetManually;
 
     private double pivotOutPosition = HOPPER_PIVOT_OUT_180;
@@ -52,7 +57,8 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        TOP(-1012),
+        TOP_TOP(-1535),
+        TOP(-1275),
         MID(-575),
         DOWN(-2);
 
@@ -91,6 +97,7 @@ public class OuttakeModule implements Module, Telemeter {
     // helpers
     private HopperDumpPosition dumpMode = HopperDumpPosition.DUMP_OUTWARDS;
     private boolean isHopperOccupied = false;
+    private boolean extendSlides = false;
 
     public enum OuttakeState {
         SLIDES_UP(SLIDE_RAISE_TIME),
@@ -156,7 +163,7 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(1);
 
-        hopper.setPosition(HOPPER_RESTING_POSITION);
+        hopper.setPosition(HOPPER_RECEIVING_POSITION);
         pivot.setPosition(HOPPER_PIVOT_IN);
         linkage.setPosition(LINKAGE_RETRACTED);
 
@@ -181,12 +188,19 @@ public class OuttakeModule implements Module, Telemeter {
 
     public boolean readyForIntake() {
         return slide.getCurrentPosition() > -50
-                && Math.abs(pivot.getPosition() - HOPPER_PIVOT_IN) < 0.1;
+                && abs(pivot.getPosition() - HOPPER_PIVOT_IN) < 0.1;
     }
 
     private long phaseCompletionTime;
 
     private boolean phaseComplete() {
+        if (outtakeState == SLIDES_UP || outtakeState == SLIDES_DOWN)
+            return abs(slide.getCurrentPosition() - slide.getTargetPosition()) < 50;
+        else if (outtakeState == HOPPER_RETURNING) {
+            if (pivotOutPosition >= HOPPER_PIVOT_OUT_270)
+                return System.currentTimeMillis() >= (phaseCompletionTime + 500);
+        }
+
         return System.currentTimeMillis() >= phaseCompletionTime;
     }
 
@@ -217,10 +231,13 @@ public class OuttakeModule implements Module, Telemeter {
 
                 switch (this.outtakeState) {
                     case LINKAGE_OUT:
-                        linkage.setPosition(LINKAGE_EXTENDED);
+                        hopper.setPosition(HOPPER_FLAT);
+                        extendSlides = true;
+//                        linkage.setPosition(LINKAGE_EXTENDED);
                         break;
                     case SLIDES_UP:
-                        slideLevel = VerticalSlideLevel.TOP;
+//                        slideLevel = VerticalSlideLevel.TOP;
+                        break;
                     case PIVOT_OUT:
                         pivot.setPosition(HOPPER_PIVOT_OUT_180);
                         break;
@@ -231,13 +248,14 @@ public class OuttakeModule implements Module, Telemeter {
                         this.isHopperOccupied = false;
                         break;
                     case HOPPER_RESTING:
-                        hopper.setPosition(HOPPER_RESTING_POSITION);
+                        hopper.setPosition(HOPPER_RECEIVING_POSITION);
                         break;
                     case HOPPER_RETURNING:
                         pivot.setPosition(HOPPER_PIVOT_IN);
                         break;
                     case LINKAGE_IN:
-                        linkage.setPosition(LINKAGE_RETRACTED);
+//                        linkage.setPosition(LINKAGE_RETRACTED);
+                        extendSlides = false;
                         break;
                     case SLIDES_DOWN:
                         slideLevel = VerticalSlideLevel.DOWN;
@@ -247,6 +265,12 @@ public class OuttakeModule implements Module, Telemeter {
                 }
 
                 this.startPhaseTimer(outtakeState.completionTime);
+            }
+
+            if (extendSlides) {
+                linkage.setPosition((pivotOutPosition == HOPPER_PIVOT_OUT_90 || pivotOutPosition == HOPPER_PIVOT_OUT_270) ? 0.55 : LINKAGE_EXTENDED);
+            } else {
+                linkage.setPosition(LINKAGE_RETRACTED);
             }
 
             if (slide.getTargetPosition() >= -15) {
@@ -302,13 +326,13 @@ public class OuttakeModule implements Module, Telemeter {
     public Iterable<String> getTelemetryData() {
         return new ArrayList<>() {{
             add("State:  " + outtakeState.toString());
-            add("last:  " + lastRan);
+//            add("last:  " + lastRan);
             add("slideLevel: " + slideLevel.name());
-            add("--");
-            add("slide target:  " + slide.getTargetPosition());
-            add("current slide:  " + slide.getCurrentPosition());
-            add("hopper occupied:  " + isHopperOccupied);
-            add("timer:  " + (phaseCompletionTime - System.currentTimeMillis()));
+//            add("--");
+//            add("slide target:  " + slide.getTargetPosition());
+//            add("current slide:  " + slide.getCurrentPosition());
+//            add("hopper occupied:  " + isHopperOccupied);
+//            add("timer:  " + (phaseCompletionTime - System.currentTimeMillis()));
         }};
     }
 
@@ -323,5 +347,9 @@ public class OuttakeModule implements Module, Telemeter {
             stateJustSetManually = true;
         } else
             this.slideLevel = slideLevel;
+
+        if (this.slideLevel == VerticalSlideLevel.DOWN) {
+            hopper.setPosition(HOPPER_FLAT);
+        }
     }
 }

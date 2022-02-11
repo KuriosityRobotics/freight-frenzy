@@ -1,10 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-//@Disabled
+@Disabled
 @TeleOp
 public class PlebServoTuner extends LinearOpMode {
     Servo servo;
@@ -13,8 +14,8 @@ public class PlebServoTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        servo = hardwareMap.servo.get("extenderRight");
-//        servo = hardwareMap.servo.get("webcamPivot");
+//        servo = hardwareMap.servo.get("extenderRight");
+        servo = hardwareMap.servo.get("webcamPivot");
 
         waitForStart();
 

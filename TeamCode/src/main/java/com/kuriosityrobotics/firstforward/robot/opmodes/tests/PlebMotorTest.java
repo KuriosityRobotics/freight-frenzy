@@ -5,16 +5,20 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-//@Disabled
+@Disabled
 @TeleOp
 public class PlebMotorTest extends LinearOpMode {
-    private DcMotor intake;
+    private DcMotor motor;
 
     @Override
     public void runOpMode() {
 //        intake = hardwareMap.dcMotor.get("intake");
-        intake = hardwareMap.dcMotor.get("carousel");
 //        intake = hardwareMap.dcMotor.get("carousel");
+//        intake = hardwareMap.dcMotor.get("carousel");
+        motor = hardwareMap.dcMotor.get("fLeft");
+
+        motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         waitForStart();
 
@@ -24,8 +28,8 @@ public class PlebMotorTest extends LinearOpMode {
     }
 
     public void win() {
-        intake.setPower(gamepad1.left_stick_y);
-        telemetry.addData("intake pos: ", "" + intake.getCurrentPosition());
+        motor.setPower(gamepad1.left_stick_y);
+        telemetry.addData("motor pos: ", "" + motor.getCurrentPosition());
         telemetry.update();
     }
 }

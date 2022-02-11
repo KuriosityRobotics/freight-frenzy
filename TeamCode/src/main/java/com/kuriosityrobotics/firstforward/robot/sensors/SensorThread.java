@@ -34,8 +34,8 @@ public class SensorThread implements Runnable, Telemeter {
     private long lastPoseSendTime = 0;
 
     /**
-     This is a singleton.  Pose position and history is persisted through this.
-     Remember to register it as a telemeter each time a new Robot is created.
+     * This is a singleton.  Pose position and history is persisted through this.
+     * Remember to register it as a telemeter each time a new Robot is created.
      */
     private static LocalizeKalmanFilter theKalmanFilter;
 
@@ -48,11 +48,17 @@ public class SensorThread implements Runnable, Telemeter {
     }
 
     public void resetPose(Pose pose) {
+        odometry.setPose(pose);
+
+        robot.telemetryDump.removeTelemeter(theKalmanFilter);
+
         theKalmanFilter = new LocalizeKalmanFilter(MatrixUtils.createRealMatrix(new double[][]{
                 {pose.x},
                 {pose.y},
                 {pose.heading}
         }));
+
+        robot.telemetryDump.registerTelemeter(theKalmanFilter);
     }
 
     public SensorThread(Robot robot, String configLocation) {
@@ -75,7 +81,10 @@ public class SensorThread implements Runnable, Telemeter {
             odometry.update();
 
             RealMatrix odometry = this.odometry.getDeltaMatrix();
-            RealMatrix vuforia = robot.visionThread.getVuforiaMatrix();
+            RealMatrix vuforia = null;
+            if (robot.isCamera) {
+                vuforia = robot.visionThread.getVuforiaMatrix();
+            }
 
             theKalmanFilter.update(odometry, vuforia);
 
@@ -100,10 +109,6 @@ public class SensorThread implements Runnable, Telemeter {
         return theKalmanFilter.getRollingVelocity();
     }
 
-    public Pose getOdomVelocity() {
-        return odometry.getInstantaneousVelocity();
-    }
-
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
@@ -118,8 +123,8 @@ public class SensorThread implements Runnable, Telemeter {
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
 
-        data.put("Sensor Thread Update time: ",  "" + updateTime);
-        data.put("Robot Pose Deg: ",  theKalmanFilter.getPose().toDegrees());
+        data.put("Sensor Thread Update time: ", "" + updateTime);
+        data.put("Robot Pose Deg: ", theKalmanFilter.getPose().toDegrees());
 
         return data;
     }

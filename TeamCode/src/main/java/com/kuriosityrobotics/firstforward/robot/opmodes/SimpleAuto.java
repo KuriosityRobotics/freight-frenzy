@@ -4,16 +4,17 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
-import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleAuto extends LinearOpMode {
     private static final Pose START = new Pose((11.5 / 2), 71, Math.toRadians(180));
 
-    private static final Pose PARK = Autonomous.PARK;
+    private static final Pose PARK = RedAuto.PARK;
 
     public void runOpMode() {
         Robot robot = null;

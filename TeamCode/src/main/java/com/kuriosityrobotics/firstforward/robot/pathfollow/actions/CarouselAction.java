@@ -10,6 +10,8 @@ public class CarouselAction extends Action {
     public void tick(Robot robot) {
         super.tick(robot);
 
+        robot.carouselModule.maxSpeed = 0.8 * Math.PI;
+
         if (this.msSinceStart() >= WAIT_TIME_MS) {
             robot.carouselModule.spin = false;
             this.completed = true;

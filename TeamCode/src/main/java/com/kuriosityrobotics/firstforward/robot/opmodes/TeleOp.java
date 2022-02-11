@@ -1,10 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -16,7 +19,7 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         try {
-            robot = new Robot(hardwareMap, telemetry, this);
+            robot = new Robot(hardwareMap, telemetry, this, false);
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
@@ -56,6 +59,8 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
+    Button extendMode = new Button();
+
     private void updateOuttakeStates() {
 
         if (gamepad2.left_bumper)
@@ -63,28 +68,46 @@ public class TeleOp extends LinearOpMode {
         else if (gamepad2.right_bumper)
             robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
 
+        boolean dpad_up = extendMode.isToggled(gamepad2.dpad_up);
         if (gamepad2.dpad_up) {
             robot.outtakeModule.raise();
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
-        } else if (gamepad2.dpad_right) {
+
+            if(robot.outtakeModule.getSlideLevel() == OuttakeModule.VerticalSlideLevel.TOP || robot.outtakeModule.getSlideLevel() == OuttakeModule.VerticalSlideLevel.TOP_TOP) {
+//                maxExtend = !maxExtend;
+
+                if (!dpad_up)
+                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP_TOP);
+                else
+                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
+            } else {
+                extendMode = new Button();
+                robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
+            }
+
+        } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
             robot.outtakeModule.raise();
             robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.MID);
         } else if (gamepad2.dpad_down) {
             robot.outtakeModule.raise();
             robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
         }
-        if(gamepad2.a)
-            robot.outtakeModule.pivotIn();
+        if (gamepad2.x)
+            robot.outtakeModule.pivot270();
         else if (gamepad2.y)
             robot.outtakeModule.pivotStraight();
-        else if (gamepad2.x)
-            robot.outtakeModule.pivotRight();
         else if (gamepad2.b)
-            robot.outtakeModule.pivot270();
+            robot.outtakeModule.pivotRight();
+//        else if (gamepad2.b)
+//            robot.outtakeModule.pivot270();
 
     }
 
     private void updateCarouselStates() {
-        robot.carouselModule.spin = gamepad2.left_trigger > 0.01;
+        if (gamepad2.right_trigger > 0.01) {
+            robot.carouselModule.clockwise = true;
+        } else if (gamepad2.left_trigger > 0.01) {
+            robot.carouselModule.clockwise = false;
+        }
+        robot.carouselModule.spin = gamepad2.left_trigger > 0.01 || gamepad2.right_trigger > 0.01;
     }
 }

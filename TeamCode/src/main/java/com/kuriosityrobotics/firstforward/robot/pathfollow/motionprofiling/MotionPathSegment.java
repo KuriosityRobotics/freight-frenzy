@@ -41,7 +41,7 @@ class MotionPathSegment {
             double accel = end.velocity > start.velocity ? maxAccel : maxDeccel;
             double distanceNeeded = (Math.pow(end.velocity, 2) - Math.pow(start.velocity, 2)) / (2 * accel * accelSign);
 
-            if (distanceNeeded > totalDistance) {
+            if (distanceNeeded >= totalDistance) {
                 // vf = sqrt(vi^2 + 2ad).
                 double maxVel = Math.sqrt(Math.pow(start.velocity, 2) + (2 * accelSign * this.maxAccel * distanceNeeded));
 

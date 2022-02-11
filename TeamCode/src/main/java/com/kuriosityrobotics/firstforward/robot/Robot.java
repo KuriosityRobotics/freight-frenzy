@@ -29,11 +29,12 @@ public class Robot {
 
     public final SensorThread sensorThread;
     public final ModuleThread moduleThread;
-    public final VisionThread visionThread;
+    public VisionThread visionThread;
     public final DebugThread debugThread;
 
     public final Drivetrain drivetrain;
     public final IntakeModule intakeModule;
+
     public final OuttakeModule outtakeModule;
     public final CarouselModule carouselModule;
 
@@ -47,7 +48,11 @@ public class Robot {
 
     public WebcamName camera;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) throws RuntimeException {
+    public static boolean isBlue = false;
+
+    public boolean isCamera;
+
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) throws RuntimeException {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -83,25 +88,40 @@ public class Robot {
         // threads
         moduleThread = new ModuleThread(this, this.modules);
 
-        telemetry.addData("> ", "Please wait for vuforia to init");
-        telemetry.update();
-        VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(this, camera, hardwareMap);
-        visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
-        telemetry.addData("> ", "Vuforia has been initalized");
-        telemetry.update();
+        this.isCamera = isCamera;
+        if (isCamera) {
+            telemetry.addData("> ", "Please wait for vuforia to init");
+            telemetry.update();
+            VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(this, camera, hardwareMap);
+            visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
+            telemetry.addData("> ", "Vuforia has been initalized");
+            telemetry.update();
+        }
 
         debugThread = new DebugThread(this, DEBUG);
 
         this.start();
     }
 
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode) {
+        this(hardwareMap, telemetry, linearOpMode, true);
+    }
+
     public void start() {
-        threads = new Thread[]{
-                new Thread(sensorThread),
-                new Thread(moduleThread),
-                new Thread(visionThread),
-                new Thread(debugThread)
-        };
+        if (this.isCamera) {
+            threads = new Thread[]{
+                    new Thread(sensorThread),
+                    new Thread(moduleThread),
+                    new Thread(visionThread),
+                    new Thread(debugThread)
+            };
+        } else {
+            threads = new Thread[]{
+                    new Thread(sensorThread),
+                    new Thread(moduleThread),
+                    new Thread(debugThread)
+            };
+        }
 
         for (Thread thread : threads) {
             thread.start();
