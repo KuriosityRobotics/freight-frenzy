@@ -27,7 +27,7 @@ public class PurePursuit implements Telemeter {
     // params
     private final boolean backwards;
     private final double followRadius;
-    
+
     // motion magic
     private final MotionProfile profile;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
@@ -41,6 +41,7 @@ public class PurePursuit implements Telemeter {
     private int closestIndex; // which path segment is our robot closest to? updated in clipToPath()
     private boolean executedLastAction;
     private boolean pathEnding;
+    private boolean followingLastPoint = false;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
         this.path = path;
@@ -65,6 +66,7 @@ public class PurePursuit implements Telemeter {
             executedLastAction = true;
         } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
             drivetrain.setMovements(0, 0, 0);
+            followingLastPoint = false;
             return false;
         }
 
@@ -77,7 +79,13 @@ public class PurePursuit implements Telemeter {
         Pose robotPose = locationProvider.getPose();
         Point robotVelo = locationProvider.getVelocity();
 
-        Point target = targetPosition(robotPose);
+        if (!followingLastPoint){
+            target = targetPosition(robotPose);
+        }
+        if (target.distance(path[path.length - 1]) < 0.5){
+            target = path[path.length - 1];
+            followingLastPoint = true;
+        }
 
         Point clipped = clipToPath(robotPose);
 
@@ -157,12 +165,10 @@ public class PurePursuit implements Telemeter {
             Point clipped = robotPosition.projectToSegment(segment);
             double clipDistance = robotPosition.distance(clipped);
 
-            if (segment.containsPoint(clipped)) {
-                if (clipDistance < nearestClipDist) {
-                    nearestClippedPoint = clipped;
-                    nearestClipDist = clipDistance;
-                    closestIndex = i; // this is quite sus
-                }
+            if (clipDistance < nearestClipDist) {
+                nearestClippedPoint = clipped;
+                nearestClipDist = clipDistance;
+                closestIndex = i; // this is quite sus
             }
         }
 
