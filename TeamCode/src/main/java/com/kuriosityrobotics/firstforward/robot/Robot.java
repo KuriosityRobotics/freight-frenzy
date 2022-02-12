@@ -10,7 +10,6 @@ import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -89,14 +88,8 @@ public class Robot {
         moduleThread = new ModuleThread(this, this.modules);
 
         this.isCamera = isCamera;
-        if (isCamera) {
-            telemetry.addData("> ", "Please wait for vuforia to init");
-            telemetry.update();
-            VuforiaLocalizationConsumer vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(this, camera, hardwareMap);
-            visionThread = new VisionThread(this, vuforiaLocalizationConsumer);
-            telemetry.addData("> ", "Vuforia has been initalized");
-            telemetry.update();
-        }
+        visionThread = new VisionThread(this, camera);
+
 
         debugThread = new DebugThread(this, DEBUG);
 

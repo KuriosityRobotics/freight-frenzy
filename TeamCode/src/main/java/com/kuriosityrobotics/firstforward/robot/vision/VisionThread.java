@@ -10,13 +10,14 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
 import org.apache.commons.math3.linear.RealMatrix;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.ArrayList;
 
 public class VisionThread implements Runnable, Telemeter {
     public final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
-    public final TeamMarkerDetector teamMarkerDetector;
-    public final OpenCVDumper openCVDumper;
+    public TeamMarkerDetector teamMarkerDetector;
+    public OpenCVDumper openCVDumper;
 
     public SingleManagedCamera singleManagedCamera;
     private final Robot robot;
@@ -24,15 +25,10 @@ public class VisionThread implements Runnable, Telemeter {
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public VisionThread(Robot robot, VuforiaLocalizationConsumer vuforiaLocalizationConsumer) {
+    public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
 
-        this.vuforiaLocalizationConsumer = vuforiaLocalizationConsumer;
-        this.openCVDumper = new OpenCVDumper(robot.isDebug());
-        this.teamMarkerDetector = new TeamMarkerDetector();
-        this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
-
-        robot.telemetryDump.registerTelemeter(this);
+        this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, camera, robot.hardwareMap);
     }
 
     @Override
@@ -56,6 +52,12 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
+        this.openCVDumper = new OpenCVDumper(robot.isDebug());
+        this.teamMarkerDetector = new TeamMarkerDetector();
+        this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
+
+        robot.telemetryDump.registerTelemeter(this);
+
         while (robot.running()) {
             long currentTime = SystemClock.elapsedRealtime();
             updateTime = currentTime - lastLoopTime;
