@@ -85,58 +85,56 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         location = null;
 
         // lol weird hack so we only run detect once but not the first time
-        for (int i = 0; i < 20; i++) {
-            // for 640x480
-            final Rect boundingBox1;
-            final Rect boundingBox2;
-            final Rect boundingBox3;
+        // for 640x480
+        final Rect boundingBox1;
+        final Rect boundingBox2;
+        final Rect boundingBox3;
 
-            if(!Robot.isBlue) {
-                boundingBox1 = new Rect(new Point(0, 215), new Point(200, 415));
-                boundingBox2 = new Rect(new Point(200, 215), new Point(400, 415));
-                boundingBox3 = new Rect(new Point(400, 215), new Point(600, 415));
-            } else {
-                boundingBox2 = new Rect(new Point(440, 215), new Point(640, 415));
-                boundingBox3 = new Rect(new Point(240, 215), new Point(440, 415));
-                boundingBox1 = new Rect(new Point(40, 215), new Point(240, 415));
-            }
-
-            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGB2HSV);
-
-            Mat submat1 = frame.submat(boundingBox1);
-            Mat submat2 = frame.submat(boundingBox2);
-            Mat submat3 = frame.submat(boundingBox3);
-
-            Vector3D sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
-            Vector3D sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
-            Vector3D sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
-
-            submat1.release();
-            submat2.release();
-            submat3.release();
-
-            double area1 = Math.abs(angleWrap(Math.toRadians(sectionOne.getX())));
-            double area2 = Math.abs(angleWrap(Math.toRadians(sectionTwo.getX())));
-            double area3 = Math.abs(angleWrap(Math.toRadians(sectionThree.getX())));
-
-            Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
-            Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 0), 5);
-            Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
-
-            double closestToRed = new Max().evaluate(new double[]{area1, area2, area3});
-            if (doublesEqual(closestToRed, area1)) {
-                Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 255), 5);
-                this.location = TeamMarkerLocation.LEVEL_1;
-            } else if (doublesEqual(closestToRed, area2)) {
-                Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 255), 5);
-                this.location = TeamMarkerLocation.LEVEL_2;
-            } else if (doublesEqual(closestToRed, area3)) {
-                Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 255), 5);
-                this.location = TeamMarkerLocation.LEVEL_3;
-            }
-
-            Log.v("Detect", "Detection finished. Location detected: " + location);
+        if(!Robot.isBlue) {
+            boundingBox1 = new Rect(new Point(0, 215), new Point(200, 415));
+            boundingBox2 = new Rect(new Point(200, 215), new Point(400, 415));
+            boundingBox3 = new Rect(new Point(400, 215), new Point(600, 415));
+        } else {
+            boundingBox2 = new Rect(new Point(440, 215), new Point(640, 415));
+            boundingBox3 = new Rect(new Point(240, 215), new Point(440, 415));
+            boundingBox1 = new Rect(new Point(40, 215), new Point(240, 415));
         }
+
+        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGB2HSV);
+
+        Mat submat1 = frame.submat(boundingBox1);
+        Mat submat2 = frame.submat(boundingBox2);
+        Mat submat3 = frame.submat(boundingBox3);
+
+        Vector3D sectionOne = new Vector3D(rgbaToRgb(Core.mean(submat1).val));
+        Vector3D sectionTwo = new Vector3D(rgbaToRgb(Core.mean(submat2).val));
+        Vector3D sectionThree = new Vector3D(rgbaToRgb(Core.mean(submat3).val));
+
+        submat1.release();
+        submat2.release();
+        submat3.release();
+
+        double area1 = Math.abs(angleWrap(Math.toRadians(sectionOne.getX())));
+        double area2 = Math.abs(angleWrap(Math.toRadians(sectionTwo.getX())));
+        double area3 = Math.abs(angleWrap(Math.toRadians(sectionThree.getX())));
+
+        Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 0), 5);
+        Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 0), 5);
+        Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 0), 5);
+
+        double closestToRed = new Max().evaluate(new double[]{area1, area2, area3});
+        if (doublesEqual(closestToRed, area1)) {
+            Imgproc.rectangle(frame, boundingBox1, new Scalar(0, 0, 255), 5);
+            this.location = TeamMarkerLocation.LEVEL_1;
+        } else if (doublesEqual(closestToRed, area2)) {
+            Imgproc.rectangle(frame, boundingBox2, new Scalar(0, 0, 255), 5);
+            this.location = TeamMarkerLocation.LEVEL_2;
+        } else if (doublesEqual(closestToRed, area3)) {
+            Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 255), 5);
+            this.location = TeamMarkerLocation.LEVEL_3;
+        }
+
+        Log.v("Detect", "Detection finished. Location detected: " + location);
 
         runCount++;
     }
