@@ -16,16 +16,16 @@ import java.util.ArrayList;
 @Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class PathFollowTuning extends LinearOpMode {
-    public static final Pose START_W = new Pose(6, 60, Math.toRadians(90)); //start near warehouse
+    public static final Pose START_W = new Pose(6, 58.5, Math.toRadians(90)); //start near warehouse
     public static final Pose START_C = new Pose(6, 108, Math.toRadians(90)); //start near carousel
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
-    public static final Pose WOBBLE_W = new Pose(25.5, 72, Math.toRadians(-110));
-    public static final Pose WAREHOUSE = new Pose(8, 15, Math.toRadians(180));
+    public static final Pose WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(-110));
+    public static final Pose WAREHOUSE = new Pose(6.5, 15, Math.toRadians(-180));
     public static final Pose BETWEEN_START_WOBBLE = new Pose(21, 65.25, Math.toRadians(-110));
-    public static final Pose WALL_GAP = new Pose(6.5, 47.25, 180);
-    public static final Pose BETWEEN_WOBBLE_WALLGAP = new Pose(12, 72, Math.toRadians(-110));
-    public static final Pose STORAGE = new Pose(36, 132, Math.toRadians(-90));
+    public static final Pose WALL_GAP = new Pose(6.5, 47.25, -180);
+    public static final Pose BETWEEN_WOBBLE_WALLGAP = new Pose(12, 70.5, Math.toRadians(-110));
+    public static final Pose STORAGE = new Pose(36, 128.5, Math.toRadians(-90));
 
     //public static final Pose WALL_ENT = new Pose(9, 100, Math.toRadians(180));
 
@@ -70,7 +70,7 @@ public class PathFollowTuning extends LinearOpMode {
 
         PurePursuit startwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START_W),
-                new WayPoint(BETWEEN_START_WOBBLE, 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(START_W.between(WOBBLE_W) , 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE_W, 0, new ArrayList<>())
         }, 4);
 
@@ -84,5 +84,8 @@ public class PathFollowTuning extends LinearOpMode {
 
         robot.followPath(startwToWobble);
 
+        wobbleToWarehouse.follow(false);
+
+        warehouseToWobble.follow(false);
     }
 }
