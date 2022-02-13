@@ -1,14 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.ListIterator;
+import java.util.Map;
 
 public class MotionProfile {
     public static final double ROBOT_MAX_VEL = 35;
@@ -17,67 +18,26 @@ public class MotionProfile {
 
     private double maxVel, maxAccel, maxDeccel;
 
-    private ArrayList<MotionPathSegment> profile;
+    private WayPoint[] path;
+    private WayPoint[] angleProfile;
+    private ArrayList<MotionSegment> velocityProfile;
 
     public MotionProfile(WayPoint[] inputPath) {
         this(inputPath, ROBOT_MAX_VEL, ROBOT_MAX_ACCEL, ROBOT_MAX_DECCEL);
     }
 
     public MotionProfile(WayPoint[] inputPath, double maxVel, double maxAccel, double maxDeccel) {
-        this.profile = new ArrayList<>();
-
         this.maxVel = maxVel;
         this.maxAccel = maxAccel;
         this.maxDeccel = maxDeccel;
 
-        generateHeadingProfile(inputPath);
-        generateVelocityProfile(inputPath);
+        this.path = inputPath;
+
+        this.angleProfile = interpolateHeadingProfile(inputPath);
+        this.velocityProfile = generateVelocityProfile(inputPath);
     }
 
-    private void generateVelocityProfile(WayPoint[] path) {
-        // use the last specified velocity as the default velocity for unspecified points
-        double lastVelocity = 0.1337;
-
-        for (int i = 0; i < path.length - 1; i++) {
-            double startVelo;
-            double endVelo;
-
-            if (i == 0) { // starting behavior
-                if (path[i].hasTargetVelocity()) { // if we're given a starting velocity
-                    startVelo = path[i].getVelocity();
-
-                    // carry through starting velocity if end has no given target velo
-                    endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : startVelo;
-                } else {
-                    // default starting velo is something low
-                    startVelo = 5;
-
-                    // if second point doesn't have a target velo assume we're ramping up to max
-                    endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : this.maxVel;
-                }
-            } else { // 2nd + path segment
-                startVelo = lastVelocity;
-
-                // carry over starting velo if no next given
-                endVelo = path[i + 1].hasTargetVelocity() ? path[i + 1].getVelocity() : startVelo;
-            }
-
-            // generate the segment
-            MotionPathSegment segment = new MotionPathSegment(
-                    new MotionPoint(path[i], startVelo, path[i].getAngleLock()),
-                    new MotionPoint(path[i + 1], endVelo, path[i + 1].getAngleLock()),
-                    maxAccel, maxDeccel
-            );
-
-            // use what value velocity actually gets to as the lastvelocity
-            // due to constrained acceleration sometimes the velo we get to is not the velo targetted
-            lastVelocity = segment.endVelocity();
-
-            profile.add(segment);
-        }
-    }
-
-    private WayPoint[] generateHeadingProfile(WayPoint[] in) {
+    private WayPoint[] interpolateHeadingProfile(WayPoint[] in) {
         int interpolatedTo = 0;
         for (int i = 0; i < in.length; i++) {
             if (i < interpolatedTo) {
@@ -94,10 +54,10 @@ public class MotionProfile {
             if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
                 if (i >= 2 && in[i - 1].getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
                     double before = new Line(in[i - 2], in[i - 1]).getHeading();
-                    double after = new Line(in[i-1], in[i]).getHeading();
+                    double after = new Line(in[i - 1], in[i]).getHeading();
 
-                    in[i-1].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                    in[i-1].getAngleLock().heading = (before + after) / 2;
+                    in[i - 1].getAngleLock().type = AngleLock.AngleLockType.LOCK;
+                    in[i - 1].getAngleLock().heading = (before + after) / 2;
                 }
 
                 // Look ahead for the next LOCK or UNLOCK to interpolate the points in between
@@ -107,12 +67,13 @@ public class MotionProfile {
                 double nextTargetHeading = 0; // how much distance we have to change our heading
 
                 // starting from the next point, look for where the next angle change must occur
-                outerloop: //lemon
+                outerloop:
+                //lemon
                 for (int j = i + 1; j < in.length; j++) {
                     totalDist += in[j].distance(in[j - 1]);
 
                     // look for the next point that isn't CONTINUE_LAST
-                    switch(in[j].getAngleLock().getType()) {
+                    switch (in[j].getAngleLock().getType()) {
                         case LOCK:
                             // if it's LOCK, we're trying to get to that lock heading
 
@@ -170,8 +131,8 @@ public class MotionProfile {
             } else if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
                 // switch all the next CONTINUE points to reflect this one
                 int j = i;
-                while (j + 1 < in.length && in[j+1].getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
-                    in[j+1].getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
+                while (j + 1 < in.length && in[j + 1].getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
+                    in[j + 1].getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
                     j++;
                 }
 
@@ -182,11 +143,172 @@ public class MotionProfile {
         return in;
     }
 
+    private ArrayList<MotionSegment> generateVelocityProfile(WayPoint[] path) {
+        LinkedHashMap<Double, Double> velocityCheckPoints = generateVelocityCheckpoints(path);
+        ArrayList<MotionSegment> profile = new ArrayList<>();
+
+        // start from the back and generate forwards to make sure we can end where we want to
+        // this means our profile will be backwards, we'll flip at end
+        // though technically currently order doesn't matter
+
+        // there's a corner case for this logic currently we should fix later:
+        // if there's three points, low high low, the current implementation lowers the second
+        // point as needed to make sure we can deccel from high to low. But it doesn't guarantee
+        // that it's adjusted low enough so that we can go from the first to the second point.
+        // it's hard to say if this is really a corner case, because technically the second 'high'
+        // point is programmed as part of the input path
+
+        ListIterator<Map.Entry<Double, Double>> iterator = new ArrayList<>(velocityCheckPoints.entrySet()).listIterator(velocityCheckPoints.size());
+        Map.Entry<Double, Double> lastCheckpoint = iterator.previous();
+        while (iterator.hasPrevious()) {
+            double nextDistAlongPath = lastCheckpoint.getKey();
+            double nextVel = lastCheckpoint.getValue();
+
+            Map.Entry<Double, Double> checkpoint = iterator.previous();
+            double currentDist = checkpoint.getKey();
+            double currentVel = checkpoint.getValue();
+
+            double deltaDist = nextDistAlongPath - currentDist;
+
+            if (currentVel == nextVel) {
+                profile.add(new MotionSegment(currentVel, currentDist, nextVel, nextDistAlongPath));
+            } else {
+                double accel = (nextVel > currentVel) ? maxAccel : -maxDeccel;
+                double distanceNeeded = (Math.pow(nextVel, 2) - Math.pow(currentVel, 2)) / (2 * accel);
+
+                if (distanceNeeded >= deltaDist) { // we have to adjust the current target velo
+                    // so the acceleration is actually possible
+
+                    double actualVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * accel * distanceNeeded));
+
+                    profile.add(new MotionSegment(currentDist, actualVel,
+                            nextDistAlongPath, nextVel));
+                } else { // let's try to go as high as we can while still starting and ending
+                    // at the right velocities
+
+                    double switchDist = (Math.pow(nextVel, 2) - Math.pow(currentVel, 2) + (2 * maxDeccel * deltaDist))
+                            / ((2 * maxAccel) + (2 * maxDeccel));
+                    double maxVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * maxAccel * switchDist));
+
+                    // if we're capable of getting to a velocity higher than our max,
+                    // we'll just accelerate to the max vel and back down
+                    if (maxVel > maxVel) {
+                        double up = (Math.pow(maxVel, 2) - Math.pow(currentVel, 2)) / (2 * maxAccel);
+                        double down = (Math.pow(nextVel, 2) - Math.pow(maxVel, 2)) / (2 * -maxDeccel);
+
+                        profile.add(new MotionSegment(maxVel, deltaDist - down,
+                                nextVel, nextDistAlongPath));
+                        profile.add(new MotionSegment(maxVel, currentDist + up,
+                                maxVel, distanceNeeded - down));
+                        profile.add(new MotionSegment(currentVel, currentDist,
+                                maxVel, currentDist + up));
+                    } else {
+                        profile.add(new MotionSegment(maxVel, currentDist + switchDist,
+                                nextVel, nextDistAlongPath));
+                        profile.add(new MotionSegment(currentVel, currentDist,
+                                maxVel, currentDist + switchDist));
+                    }
+
+                    if (Math.signum(accel) < 0) { // if we're deccel, hold current velo and then deccel
+                        // remember we have to add backwards
+                        profile.add(new MotionSegment(currentVel, nextDistAlongPath - distanceNeeded,
+                                nextVel, nextDistAlongPath));
+                        profile.add(new MotionSegment(currentVel, currentDist,
+                                currentVel, nextDistAlongPath - distanceNeeded));
+                    } else { // if we're accel, accel asap and then hold
+                        // remember we're adding backwards
+                        profile.add(new MotionSegment(nextVel, currentDist + distanceNeeded,
+                                nextVel, nextDistAlongPath));
+                        profile.add(new MotionSegment(currentVel, currentDist,
+                                nextVel, currentDist + distanceNeeded));
+                    }
+                }
+            }
+
+            lastCheckpoint = checkpoint;
+        }
+
+        Collections.reverse(profile);
+
+        return profile;
+    }
+
+    private LinkedHashMap<Double, Double> generateVelocityCheckpoints(WayPoint[] path) {
+        LinkedHashMap<Double, Double> velocityCheckPoints = new LinkedHashMap<>();
+
+        double dist = 0;
+
+        if (path[0].hasTargetVelocity()) {
+            velocityCheckPoints.put(dist, path[0].getVelocity());
+        } else {
+            // starting velocity can't be 0 or else the robot will never start moving
+            // can look into using lookahead instead
+            velocityCheckPoints.put(0., 5.);
+        }
+
+        for (int i = 0; i < path.length; i++) {
+            WayPoint start = path[i];
+            WayPoint end = path[i + 1];
+
+            dist += start.distance(end);
+
+            if (end.hasTargetVelocity()) {
+                velocityCheckPoints.put(dist, end.getVelocity());
+            }
+        }
+
+        return velocityCheckPoints;
+    }
+
     public double interpolateTargetVelocity(int pathIndex, Point clippedPosition) {
-        return profile.get(pathIndex).interpolateTargetVelocity(clippedPosition);
+        double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
+        for (MotionSegment segment : velocityProfile) {
+            if (distAlongPath >= segment.startDistanceAlongPath && distAlongPath <= segment.endDistanceAlongPath) {
+                return segment.interpolateTargetVelocity(distAlongPath);
+            }
+        }
+        throw new Error("Trying to interpolate to a distance outside of generated profile!");
     }
 
     public AngleLock interpolateTargetHeading(int pathIndex, Point clippedPosition) {
-        return profile.get(pathIndex).interpolateTargetHeading(clippedPosition);
+        WayPoint start = angleProfile[pathIndex];
+        WayPoint end = angleProfile[pathIndex + 1];
+
+        if (end.getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
+            return end.getAngleLock();
+        } else if (end.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
+            if (start.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
+                double startHeading = start.getAngleLock().getHeading();
+                double endHeading = end.getAngleLock().getHeading();
+
+                double distAlong = start.distance(clippedPosition);
+                double totalDist = start.distance(end);
+
+                if (distAlong > totalDist) {
+                    throw new IllegalArgumentException("Clipped position isn't within profiled bounds!");
+                }
+
+                return new AngleLock(((distAlong / totalDist) * (endHeading - startHeading)) + startHeading);
+            } else {
+                return end.getAngleLock();
+            }
+        } else {
+            throw new IllegalArgumentException("Each point of a MotionPathSegment should either be angle locked or unlocked! (e.g. no CONTINUE) This should be guaranteed by interpolatePath() in MotionProfile.");
+        }
+    }
+
+    public double distanceAlongPath(int pathIndex, Point clippedPosition) {
+        double dist = 0;
+        // add up all the paths prior to the one we're on
+        for (int i = 0; i < pathIndex - 1; i++) {
+            WayPoint start = path[i];
+            WayPoint end = path[i + 1];
+
+            dist += start.distance(end);
+        }
+
+        dist += path[pathIndex].distance(clippedPosition);
+
+        return dist;
     }
 }
