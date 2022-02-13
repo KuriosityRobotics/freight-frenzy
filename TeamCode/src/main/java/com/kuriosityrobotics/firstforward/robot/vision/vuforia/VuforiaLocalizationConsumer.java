@@ -49,6 +49,7 @@ import java.util.Comparator;
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final Point[] targets = {
+            // all in our coordinate system
             new Point(0, ONE_AND_HALF_TILE + ONE_TILE),
             new Point(ONE_AND_HALF_TILE, FULL_FIELD),
             new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD),
@@ -213,16 +214,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-            // Fancy formatting :sunglas
-//            Log.e("Vision", "FTC Coordinate System");
-//            Log.v("Vision", "FTC x: " + robotLocation.x);
-//            Log.v("Vision", "FTC y: " + robotLocation.y);
-//            Log.v("Vision", "FTC heading: " + Math.toDegrees(heading));
-//
-//            Log.v("Vision", "Our Coordinate System");
-//            Log.v("Vision", "Our x: " + robotXOurs);
-//            Log.v("Vision", "Our y: " + robotYOurs);
-//            Log.v("Vision", "Our heading: " + Math.toDegrees(robotHeadingOurs));
+//            logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs},
@@ -230,5 +222,20 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     {robotHeadingOurs}
             });
         }
+    }
+
+    // for debug
+    private void logValues(Pose ftcLocation, Pose ourSystem) {
+        // Fancy formatting :sunglas:
+
+        Log.e("Vision", "FTC Coordinate System");
+        Log.v("Vision", "FTC x: " + ftcLocation.x);
+        Log.v("Vision", "FTC y: " + ftcLocation.y);
+        Log.v("Vision", "FTC heading: " + Math.toDegrees(ftcLocation.heading));
+
+        Log.v("Vision", "Our Coordinate System");
+        Log.v("Vision", "Our x: " + ourSystem.x);
+        Log.v("Vision", "Our y: " + ourSystem.y);
+        Log.v("Vision", "Our heading: " + Math.toDegrees(ourSystem.heading));
     }
 }
