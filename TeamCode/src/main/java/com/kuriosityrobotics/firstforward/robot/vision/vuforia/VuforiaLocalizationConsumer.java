@@ -23,7 +23,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
+import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -107,7 +107,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private void setCameraAngle(double angle) {
         double rotationAngle = angle / (2 * Math.PI);
 //        rotator.setPosition(ROTATOR_LEFT_POS + rotationAngle * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS));
-        //stub
+        // TODO: stub
     }
 
     private double getCamAngleTo(Point point) {
@@ -196,7 +196,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
-            if (SingleManagedCamera.vuforiaActive) {
+            if (ManagedCamera.vuforiaActive) {
                 return null;
             }
 

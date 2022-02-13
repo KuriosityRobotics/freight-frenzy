@@ -19,7 +19,7 @@ public class VisionThread implements Runnable, Telemeter {
     public final TeamMarkerDetector teamMarkerDetector;
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
-    private SingleManagedCamera singleManagedCamera;
+    private ManagedCamera managedCamera;
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
@@ -55,7 +55,7 @@ public class VisionThread implements Runnable, Telemeter {
             OpenCVDumper openCVDumper = new OpenCVDumper(robot.isDebug());
             CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot.sensorThread);
 
-            this.singleManagedCamera = new SingleManagedCamera(
+            this.managedCamera = new ManagedCamera(
                     robot.camera,
                     vuforiaLocalizationConsumer,
                     openCVDumper,
@@ -74,14 +74,14 @@ public class VisionThread implements Runnable, Telemeter {
                 lastLoopTime = currentTime;
             }
             this.vuforiaLocalizationConsumer.deactivate();
-            this.singleManagedCamera.close();
+            this.managedCamera.close();
             Log.v("VisionThread", "Exited due to opMode's no longer being active.");
         } catch (Exception e) {
             if (robot.isOpModeActive()) // if we got interrupted bc the opmode is stopping its fine;  if we're still running, rethrow
                 throw e;
         } finally {
-            if (singleManagedCamera != null)
-                singleManagedCamera.close();
+            if (managedCamera != null)
+                managedCamera.close();
         }
     }
 
