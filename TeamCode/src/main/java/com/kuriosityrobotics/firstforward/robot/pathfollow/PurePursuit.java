@@ -79,13 +79,7 @@ public class PurePursuit implements Telemeter {
         Pose robotPose = locationProvider.getPose();
         Point robotVelo = locationProvider.getVelocity();
 
-        if (!followingLastPoint){
-            target = targetPosition(robotPose);
-        }
-        if (target.distance(path[path.length - 1]) < 0.5){
-            target = path[path.length - 1];
-            followingLastPoint = true;
-        }
+        Point target = targetPosition(robotPose);
 
         Point clipped = clipToPath(robotPose);
 

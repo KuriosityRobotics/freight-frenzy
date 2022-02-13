@@ -212,5 +212,4 @@ public class IntakeModule implements Module, Telemeter {
     public IntakeAction intakeAction() {
         return new IntakeAction(this);
     }
-
 }

@@ -1,13 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.PauseAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -18,14 +18,14 @@ public class PathFollowTuning extends LinearOpMode {
     public static final Pose START_W = new Pose(6, 58.5, Math.toRadians(90)); //start near warehouse
     public static final Pose START_C = new Pose(6, 108, Math.toRadians(90)); //start near carousel
 
-    public static final Pose WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(-110));
-    public static final Pose WAREHOUSE = new Pose(6.5, 15, Math.toRadians(-180));
-    public static final Pose WAREHOUSE_IN_RIDE = new Pose(4, 40.25, Math.toRadians(-180));
-    public static final Pose WAREHOUSE_OUT_RIDE = new Pose(4, 54.25, Math.toRadians(-180));
+    public static final Pose WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(-120));
+    public static final Pose WAREHOUSE = new Pose(5.5, 28, Math.toRadians(-180));
+    //public static final Pose WAREHOUSE_IN_RIDE = new Pose(4.5, 35, Math.toRadians(-180));
+    //public static final Pose WAREHOUSE_OUT_RIDE = new Pose(6.5, 54.25, Math.toRadians(-180));
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
-    public static final Pose WALL_GAP = new Pose(6.5, 47.25, -180);
-    public static final Pose BETWEEN_WOBBLE_WALLGAP = new Pose(6.5, 70.5, Math.toRadians(-180));
+    public static final Pose WALL_GAP = new Pose(4.5, 47.25, Math.toRadians(-180));
+    public static final Pose BETWEEN_WOBBLE_WALLGAP = new Pose(13, 69 /*nice*/, Math.toRadians(-150));
     public static final Pose STORAGE = new Pose(36, 128.5, Math.toRadians(-90));
 
     public void runOpMode() {
@@ -41,6 +41,7 @@ public class PathFollowTuning extends LinearOpMode {
 
         ArrayList<Action> carouselActions = new ArrayList<>();
         carouselActions.add(robot.carouselModule.carouselAction());
+        //carouselActions.add(new CarouselAction());
         PurePursuit startcToCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(START_C),
                 new WayPoint(START_C.x + 20, START_C.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
@@ -50,28 +51,32 @@ public class PathFollowTuning extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
+        wobbleActions.add(new PauseAction());
+        //wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(robot.intakeModule.intakeAction());
+        wobbleActions.add(new PauseAction());
+        //intakeActions.add(new IntakeAction());
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE_W),
-                new WayPoint(BETWEEN_WOBBLE_WALLGAP,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(WAREHOUSE_IN_RIDE, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BETWEEN_WOBBLE_WALLGAP, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WALL_GAP, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WAREHOUSE, 0, intakeActions)
         }, 4);
 
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(WAREHOUSE),
-                new WayPoint(WALL_GAP, 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(BETWEEN_WOBBLE_WALLGAP,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WALL_GAP, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BETWEEN_WOBBLE_WALLGAP, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE_W, 0, wobbleActions)
         }, 4);
 
         PurePursuit startwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START_W),
-                new WayPoint(START_W.between(WOBBLE_W) , 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(WOBBLE_W, 0, new ArrayList<>())
-        }, 4);
+                new WayPoint(START_W.between(WOBBLE_W), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(WOBBLE_W, 0, wobbleActions)
+        }, 3);
 
         PurePursuit carouselToStorage = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
@@ -88,3 +93,4 @@ public class PathFollowTuning extends LinearOpMode {
         robot.followPath(warehouseToWobble);
     }
 }
+
