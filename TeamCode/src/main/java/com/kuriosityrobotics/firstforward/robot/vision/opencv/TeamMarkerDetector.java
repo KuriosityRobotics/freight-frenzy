@@ -46,6 +46,13 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         return isOn;
     }
 
+    public enum AutoStartLocation {
+        RED_DUCKS,
+        RED_CYCLE,
+        BLUE_DUCKS,
+        BLUE_CYCLE
+    }
+
     public enum TeamMarkerLocation {
         LEVEL_1,
         LEVEL_2,
@@ -66,6 +73,8 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
 
 
     private volatile TeamMarkerLocation location;
+    // remember to set in auto!!!!!!!!!!!!!!!
+    public volatile AutoStartLocation startLocation;
 
     public TeamMarkerLocation getLocation() {
         return location == null ? TeamMarkerLocation.LEVEL_3 : location;
@@ -92,14 +101,14 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         final Rect boundingBox2;
         final Rect boundingBox3;
 
-        if(!Robot.isBlue) {
-            boundingBox1 = new Rect(new Point(0, 215), new Point(200, 415));
-            boundingBox2 = new Rect(new Point(200, 215), new Point(400, 415));
-            boundingBox3 = new Rect(new Point(400, 215), new Point(600, 415));
+        if (startLocation.equals(AutoStartLocation.RED_DUCKS) || startLocation.equals(AutoStartLocation.BLUE_CYCLE)) {
+            boundingBox1 = new Rect(new Point(285, 220), new Point(370, 315));
+            boundingBox2 = new Rect(new Point(485, 220), new Point(540, 315));
+            boundingBox3 = new Rect(new Point(685, 220), new Point(780, 315));
         } else {
-            boundingBox2 = new Rect(new Point(440, 215), new Point(640, 415));
-            boundingBox3 = new Rect(new Point(240, 215), new Point(440, 415));
-            boundingBox1 = new Rect(new Point(40, 215), new Point(240, 415));
+            boundingBox1 = new Rect(new Point(0, 220), new Point(115, 315));
+            boundingBox2 = new Rect(new Point(245, 220), new Point(315, 315));
+            boundingBox3 = new Rect(new Point(420, 220), new Point(515, 315));
         }
 
         Mat submat1 = frame.submat(boundingBox1);

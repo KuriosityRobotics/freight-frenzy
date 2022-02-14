@@ -10,6 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselActio
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class BlueAuto extends LinearOpMode {
         Robot.isBlue = true;
 
         robot.sensorThread.resetPose(START);
-
+        robot.visionThread.teamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.BLUE_DUCKS;
         robot.carouselModule.clockwise = true;
 
         waitForStart();
