@@ -140,14 +140,14 @@ public class PurePursuit implements Telemeter {
         double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo)), -1, 1);
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
-        if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK && robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD) {
+        if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK && robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD) {
             angPow = 0;
         } else {
             double targHeading;
-            if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK) {
+            if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK) {
                 targHeading = this.backwards ? angleWrap(headingToPoint + Math.PI) : headingToPoint;
             } else {
-                targHeading = targetAngleLock.getHeading();
+                targHeading = targetAngleLock.heading;
             }
             targHeading = angleWrap(targHeading, Math.PI);
             double currHeading = angleWrap(robotPose.heading, Math.PI);
@@ -181,7 +181,7 @@ public class PurePursuit implements Telemeter {
         targx = targetXVelo;
         targy = targetYVelo;
         heading = robotPose.heading;
-        targhead = targetAngleLock.getHeading();
+        targhead = targetAngleLock.heading;
 
         this.target = target;
     }
@@ -265,9 +265,9 @@ public class PurePursuit implements Telemeter {
     public boolean atEnd() {
         WayPoint end = path[path.length - 1];
         AngleLock lastAngle = end.getAngleLock();
-        boolean angleEnd = lastAngle.getType() != AngleLock.AngleLockType.LOCK
-                || (Math.abs(angleWrap(robot.drivetrain.getCurrentPose().heading - lastAngle.getHeading())) <= ANGLE_THRESHOLD && robot.drivetrain.getVelocity().heading < Math.toRadians(2));
-        boolean stopped = !end.targetVelocity || end.velocity != 0 || (robot.drivetrain.getOrthVelocity() <= 3);
+        boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
+                || (Math.abs(angleWrap(robot.drivetrain.getCurrentPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && robot.drivetrain.getVelocity().heading < Math.toRadians(2));
+        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (robot.drivetrain.getOrthVelocity() <= 3);
         return robot.drivetrain.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd
                 && stopped;

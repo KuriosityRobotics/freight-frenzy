@@ -21,14 +21,6 @@ public class AngleLock {
         this(AngleLockType.LOCK, heading);
     }
 
-    public AngleLockType getType() {
-        return type;
-    }
-
-    public double getHeading() {
-        return heading;
-    }
-
     @Override
     public String toString() {
         return "type: " + type + ", heading: " + heading;

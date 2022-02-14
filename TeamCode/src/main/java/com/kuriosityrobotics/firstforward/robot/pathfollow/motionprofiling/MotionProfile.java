@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
 import java.util.ArrayList;
@@ -46,13 +47,13 @@ public class MotionProfile {
 
             WayPoint currentPoint = in[i];
 
-            if (i == 0 && currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
+            if (i == 0 && currentPoint.getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
 //                throw new IllegalArgumentException("The first point in a path cannot have an angleLock of CONTINUE_LAST!");
                 currentPoint.getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
             }
 
-            if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
-                if (i >= 2 && in[i - 1].getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
+            if (currentPoint.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
+                if (i >= 2 && in[i - 1].getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
                     double before = new Line(in[i - 2], in[i - 1]).getHeading();
                     double after = new Line(in[i - 1], in[i]).getHeading();
 
@@ -73,13 +74,13 @@ public class MotionProfile {
                     totalDist += in[j].distance(in[j - 1]);
 
                     // look for the next point that isn't CONTINUE_LAST
-                    switch (in[j].getAngleLock().getType()) {
+                    switch (in[j].getAngleLock().type) {
                         case LOCK:
                             // if it's LOCK, we're trying to get to that lock heading
 
                             lockChanges = true;
                             targetChangesIndex = j;
-                            nextTargetHeading = in[j].getAngleLock().getHeading();
+                            nextTargetHeading = in[j].getAngleLock().heading;
 
                             break outerloop;
                         case NO_LOCK:
@@ -108,18 +109,18 @@ public class MotionProfile {
                     // update rest of points to lock at that heading
                     for (int j = i + 1; j < in.length; j++) {
                         in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                        in[j].getAngleLock().heading = currentPoint.getAngleLock().getHeading();
+                        in[j].getAngleLock().heading = currentPoint.getAngleLock().heading;
                     }
                 } else {
                     // interpolate rest of points so we get to the target heading
                     double distSoFar = 0;
 
-                    double targetChange = nextTargetHeading - currentPoint.getAngleLock().getHeading();
+                    double targetChange = nextTargetHeading - currentPoint.getAngleLock().heading;
 
                     for (int j = i + 1; j < targetChangesIndex; j++) {
                         distSoFar += in[j].distance(in[j - 1]);
 
-                        double targetHeading = (distSoFar / totalDist) * (targetChange) + currentPoint.getAngleLock().getHeading();
+                        double targetHeading = (distSoFar / totalDist) * (targetChange) + currentPoint.getAngleLock().heading;
 
                         in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
                         in[j].getAngleLock().heading = targetHeading;
@@ -128,10 +129,10 @@ public class MotionProfile {
 
                 // jump over this section we just interpolated
                 interpolatedTo = targetChangesIndex;
-            } else if (currentPoint.getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
+            } else if (currentPoint.getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
                 // switch all the next CONTINUE points to reflect this one
                 int j = i;
-                while (j + 1 < in.length && in[j + 1].getAngleLock().getType() == AngleLock.AngleLockType.CONTINUE_LAST) {
+                while (j + 1 < in.length && in[j + 1].getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
                     in[j + 1].getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
                     j++;
                 }
@@ -144,7 +145,7 @@ public class MotionProfile {
     }
 
     private ArrayList<MotionSegment> generateVelocityProfile(WayPoint[] path) {
-        LinkedHashMap<Double, Double> velocityCheckPoints = generateVelocityCheckpoints(path);
+        LinkedHashMap<Double, VelocityLock> velocityCheckPoints = generateVelocityCheckpoints(path);
         ArrayList<MotionSegment> profile = new ArrayList<>();
 
         // start from the back and generate forwards to make sure we can end where we want to
@@ -158,15 +159,15 @@ public class MotionProfile {
         // it's hard to say if this is really a corner case, because technically the second 'high'
         // point is programmed as part of the input path
 
-        ListIterator<Map.Entry<Double, Double>> iterator = new ArrayList<>(velocityCheckPoints.entrySet()).listIterator(velocityCheckPoints.size());
-        Map.Entry<Double, Double> lastCheckpoint = iterator.previous();
+        ListIterator<Map.Entry<Double, VelocityLock>> iterator = new ArrayList<>(velocityCheckPoints.entrySet()).listIterator(velocityCheckPoints.size());
+        Map.Entry<Double, VelocityLock> lastCheckpoint = iterator.previous();
         while (iterator.hasPrevious()) {
             double nextDistAlongPath = lastCheckpoint.getKey();
-            double nextVel = lastCheckpoint.getValue();
+            double nextVel = lastCheckpoint.getValue().velocity;
 
-            Map.Entry<Double, Double> checkpoint = iterator.previous();
+            Map.Entry<Double, VelocityLock> checkpoint = iterator.previous();
             double currentDist = checkpoint.getKey();
-            double currentVel = checkpoint.getValue();
+            double currentVel = checkpoint.getValue().velocity;
 
             double deltaDist = nextDistAlongPath - currentDist;
 
@@ -183,44 +184,49 @@ public class MotionProfile {
 
                     profile.add(new MotionSegment(currentDist, actualVel,
                             nextDistAlongPath, nextVel));
-                } else { // let's try to go as high as we can while still starting and ending
-                    // at the right velocities
 
-                    double switchDist = (Math.pow(nextVel, 2) - Math.pow(currentVel, 2) + (2 * maxDeccel * deltaDist))
-                            / ((2 * maxAccel) + (2 * maxDeccel));
-                    double maxVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * maxAccel * switchDist));
+                    checkpoint.setValue(new VelocityLock(actualVel, checkpoint.getValue().allowAccel));
+                } else {
+                    if (checkpoint.getValue().allowAccel) {
+                        // let's try to go as high as we can while still starting and ending
+                        // at the right velocities
 
-                    // if we're capable of getting to a velocity higher than our max,
-                    // we'll just accelerate to the max vel and back down
-                    if (maxVel > maxVel) {
-                        double up = (Math.pow(maxVel, 2) - Math.pow(currentVel, 2)) / (2 * maxAccel);
-                        double down = (Math.pow(nextVel, 2) - Math.pow(maxVel, 2)) / (2 * -maxDeccel);
+                        double switchDist = (Math.pow(nextVel, 2) - Math.pow(currentVel, 2) + (2 * maxDeccel * deltaDist))
+                                / ((2 * maxAccel) + (2 * maxDeccel));
+                        double highestVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * maxAccel * switchDist));
 
-                        profile.add(new MotionSegment(maxVel, deltaDist - down,
-                                nextVel, nextDistAlongPath));
-                        profile.add(new MotionSegment(maxVel, currentDist + up,
-                                maxVel, distanceNeeded - down));
-                        profile.add(new MotionSegment(currentVel, currentDist,
-                                maxVel, currentDist + up));
+                        // if we're capable of getting to a velocity higher than our max,
+                        // we'll just accelerate to the max vel and back down
+                        if (highestVel > maxVel) {
+                            double up = (Math.pow(maxVel, 2) - Math.pow(currentVel, 2)) / (2 * maxAccel);
+                            double down = (Math.pow(nextVel, 2) - Math.pow(maxVel, 2)) / (2 * maxDeccel);
+
+                            profile.add(new MotionSegment(maxVel, deltaDist - down,
+                                    nextVel, nextDistAlongPath));
+                            profile.add(new MotionSegment(maxVel, currentDist + up,
+                                    maxVel, distanceNeeded - down));
+                            profile.add(new MotionSegment(currentVel, currentDist,
+                                    maxVel, currentDist + up));
+                        } else {
+                            profile.add(new MotionSegment(highestVel, currentDist + switchDist,
+                                    nextVel, nextDistAlongPath));
+                            profile.add(new MotionSegment(currentVel, currentDist,
+                                    highestVel, currentDist + switchDist));
+                        }
                     } else {
-                        profile.add(new MotionSegment(maxVel, currentDist + switchDist,
-                                nextVel, nextDistAlongPath));
-                        profile.add(new MotionSegment(currentVel, currentDist,
-                                maxVel, currentDist + switchDist));
-                    }
-
-                    if (Math.signum(accel) < 0) { // if we're deccel, hold current velo and then deccel
-                        // remember we have to add backwards
-                        profile.add(new MotionSegment(currentVel, nextDistAlongPath - distanceNeeded,
-                                nextVel, nextDistAlongPath));
-                        profile.add(new MotionSegment(currentVel, currentDist,
-                                currentVel, nextDistAlongPath - distanceNeeded));
-                    } else { // if we're accel, accel asap and then hold
-                        // remember we're adding backwards
-                        profile.add(new MotionSegment(nextVel, currentDist + distanceNeeded,
-                                nextVel, nextDistAlongPath));
-                        profile.add(new MotionSegment(currentVel, currentDist,
-                                nextVel, currentDist + distanceNeeded));
+                        if (Math.signum(accel) < 0) { // if we're deccel, hold current velo and then deccel
+                            // remember we have to add backwards
+                            profile.add(new MotionSegment(currentVel, nextDistAlongPath - distanceNeeded,
+                                    nextVel, nextDistAlongPath));
+                            profile.add(new MotionSegment(currentVel, currentDist,
+                                    currentVel, nextDistAlongPath - distanceNeeded));
+                        } else { // if we're accel, accel asap and then hold
+                            // remember we're adding backwards
+                            profile.add(new MotionSegment(nextVel, currentDist + distanceNeeded,
+                                    nextVel, nextDistAlongPath));
+                            profile.add(new MotionSegment(currentVel, currentDist,
+                                    nextVel, currentDist + distanceNeeded));
+                        }
                     }
                 }
             }
@@ -233,17 +239,17 @@ public class MotionProfile {
         return profile;
     }
 
-    private LinkedHashMap<Double, Double> generateVelocityCheckpoints(WayPoint[] path) {
-        LinkedHashMap<Double, Double> velocityCheckPoints = new LinkedHashMap<>();
+    private LinkedHashMap<Double, VelocityLock> generateVelocityCheckpoints(WayPoint[] path) {
+        LinkedHashMap<Double, VelocityLock> velocityCheckPoints = new LinkedHashMap<>();
 
         double dist = 0;
 
-        if (path[0].hasTargetVelocity()) {
-            velocityCheckPoints.put(dist, path[0].getVelocity());
+        if (path[0].getVelocityLock().targetVelocity) {
+            velocityCheckPoints.put(dist, path[0].getVelocityLock());
         } else {
             // starting velocity can't be 0 or else the robot will never start moving
             // can look into using lookahead instead
-            velocityCheckPoints.put(0., 5.);
+            velocityCheckPoints.put(0., new VelocityLock(5));
         }
 
         for (int i = 0; i < path.length; i++) {
@@ -252,8 +258,8 @@ public class MotionProfile {
 
             dist += start.distance(end);
 
-            if (end.hasTargetVelocity()) {
-                velocityCheckPoints.put(dist, end.getVelocity());
+            if (end.getVelocityLock().targetVelocity) {
+                velocityCheckPoints.put(dist, end.getVelocityLock());
             }
         }
 
@@ -274,12 +280,12 @@ public class MotionProfile {
         WayPoint start = angleProfile[pathIndex];
         WayPoint end = angleProfile[pathIndex + 1];
 
-        if (end.getAngleLock().getType() == AngleLock.AngleLockType.NO_LOCK) {
+        if (end.getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
             return end.getAngleLock();
-        } else if (end.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
-            if (start.getAngleLock().getType() == AngleLock.AngleLockType.LOCK) {
-                double startHeading = start.getAngleLock().getHeading();
-                double endHeading = end.getAngleLock().getHeading();
+        } else if (end.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
+            if (start.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
+                double startHeading = start.getAngleLock().heading;
+                double endHeading = end.getAngleLock().heading;
 
                 double distAlong = start.distance(clippedPosition);
                 double totalDist = start.distance(end);
