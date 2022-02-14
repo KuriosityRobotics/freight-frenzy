@@ -10,8 +10,6 @@ class MotionSegment {
     public double startVelocity, startDistanceAlongPath, endVelocity, endDistanceAlongPath;
 
     public MotionSegment(double startVelocity, double startDistanceAlongPath, double endVelocity, double endDistanceAlongPath) {
-        Log.v("PP", "start: " + startVelocity);
-        Log.v("PP", "end: " + endVelocity);
         this.startVelocity = startVelocity;
         this.startDistanceAlongPath = startDistanceAlongPath;
 

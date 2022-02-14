@@ -52,19 +52,30 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public void run() {
-        this.openCVDumper = new OpenCVDumper(robot.isDebug());
-        this.teamMarkerDetector = new TeamMarkerDetector();
-        this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
+        try {
+            this.openCVDumper = new OpenCVDumper(robot.isDebug());
+            this.teamMarkerDetector = new TeamMarkerDetector();
+            this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
 
-        robot.telemetryDump.registerTelemeter(this);
+            Log.v("VisionThread", "Done initing camera");
 
-        while (robot.running()) {
-            long currentTime = SystemClock.elapsedRealtime();
-            updateTime = currentTime - lastLoopTime;
-            lastLoopTime = currentTime;
+            robot.telemetryDump.registerTelemeter(this);
+
+            while (robot.running()) {
+                long currentTime = SystemClock.elapsedRealtime();
+                updateTime = currentTime - lastLoopTime;
+                lastLoopTime = currentTime;
+            }
+            this.vuforiaLocalizationConsumer.deactivate();
+            this.singleManagedCamera.close();
+            Log.v("VisionThread", "Exited due to opMode's no longer being active.");
+        } catch (Exception e) {
+            if (robot.isOpModeActive()) // if we got interrupted bc the opmode is stopping its fine;  if we're still running, rethrow
+                throw e;
+        } finally {
+            if (singleManagedCamera != null)
+                singleManagedCamera.close();
         }
-        this.vuforiaLocalizationConsumer.deactivate();
-        Log.v("VisionThread", "Exited due to opMode no longer being active.");
     }
 
     public RealMatrix getVuforiaMatrix() {

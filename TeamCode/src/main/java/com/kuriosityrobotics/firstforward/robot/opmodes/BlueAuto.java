@@ -27,12 +27,14 @@ public class BlueAuto extends LinearOpMode {
     public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
 
     public void runOpMode() {
+
         Robot robot = null;
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
-            this.stop();
+            stop();
             e.printStackTrace();
+            return;
         }
 
         Robot.isBlue = true;
