@@ -21,6 +21,7 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
@@ -48,13 +49,17 @@ import java.util.Comparator;
 
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
-    private static final Point[] targets = {
+    private static final Point[] TARGETS = {
             // all in our coordinate system
             new Point(0, ONE_AND_HALF_TILE + ONE_TILE),
             new Point(ONE_AND_HALF_TILE, FULL_FIELD),
             new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD),
             new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE)
     };
+
+    // In radians, this is used to determine if the angle is good enough for an accurate reading. THIS HAS TO BE POSITIVE
+    // TODO: tune, currently at 60 degrees
+    private static final double CAM_EPSILON = Math.toRadians(60);
 
     private final WebcamName cameraName;
 
@@ -131,7 +136,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             }
 
             // we do stuff
-            double cameraAngle = Arrays.stream(targets).map(this::getCamAngleTo)
+            double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
                     .min(Comparator.naturalOrder())
                     .orElse(0.);
             setCameraAngle(cameraAngle);
@@ -197,7 +202,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
-            if (ManagedCamera.vuforiaActive) {
+            if (!ManagedCamera.vuforiaActive) {
                 return null;
             }
 
@@ -214,7 +219,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
+            // NOTE: The zeros doesn't matter, it's just implemented so we can use pose stuff
+            Pose trackableFTCSysCoords = new Pose(detectedTrackable.getLocation().getTranslation().get(0), detectedTrackable.getLocation().getTranslation().get(1), 0);
 //            logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
+
+            if (!goodVuforiaReading(new Pose(robotXOurs, robotYOurs, 0), trackableFTCSysCoords)) {
+                return null;
+            }
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs},
@@ -222,6 +233,12 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     {robotHeadingOurs}
             });
         }
+    }
+
+    private boolean goodVuforiaReading(Pose robotLoc, Pose vumark) {
+        Line connection = new Line(new Point(robotLoc.x, robotLoc.y), new Point(vumark.x, vumark.y));
+
+        return (Math.atan(connection.getSlope()) >= CAM_EPSILON || Math.atan(connection.getSlope()) <= -CAM_EPSILON);
     }
 
     // for debug
