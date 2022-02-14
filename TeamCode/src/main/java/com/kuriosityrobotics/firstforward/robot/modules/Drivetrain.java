@@ -1,11 +1,16 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.sd;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +29,12 @@ public class Drivetrain implements Module, Telemeter {
     private Braking brake = new Braking(); // whether or not to actively brake
     private boolean opmodeStarted = false;
 
-    //braking controller
-
+    // stall detector
+    private static final int STALL_DETECTOR_CAPACITY = 300;
+    private static final double STALL_EPSION = 0.1;
+    private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>();
+    private final CircularFifoQueue<Double> poseYSD = new CircularFifoQueue<>();
+    private final CircularFifoQueue<Double> poseHeadingSD = new CircularFifoQueue<>();
 
     public Drivetrain(Robot robot, Pose brakePose) {
         this.robot = robot;
@@ -65,6 +74,10 @@ public class Drivetrain implements Module, Telemeter {
             }
 
             drivetrainModule.update();
+
+            poseXSD.add(getCurrentPose().x);
+            poseYSD.add(getCurrentPose().y);
+            poseHeadingSD.add(getCurrentPose().heading);
         }
     }
 
@@ -83,6 +96,17 @@ public class Drivetrain implements Module, Telemeter {
     public double getOrthVelocity() {
         Pose velo = getVelocity();
         return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
+    }
+
+    public boolean isStalled() {
+        boolean movementsSet = doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0);
+
+        boolean isXStalled = mean(poseXSD) < STALL_EPSION;
+        boolean isYStalled = mean(poseYSD) < STALL_EPSION;
+        boolean isHeadingStalled = mean(poseHeadingSD) < STALL_EPSION;
+        boolean isStalled = isXStalled && isYStalled && isHeadingStalled;
+
+        return movementsSet && isStalled;
     }
 
     @Override
@@ -105,6 +129,9 @@ public class Drivetrain implements Module, Telemeter {
 
         data.add("Braking: " + brake.isBraking());
         data.add("Brake Pose: " + brake.getBrakePose());
+
+        data.add("--");
+        data.add("Stall Status: " + isStalled());
 
         return data;
     }
