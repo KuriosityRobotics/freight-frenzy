@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.sd;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -32,9 +31,9 @@ public class Drivetrain implements Module, Telemeter {
     // stall detector
     private static final int STALL_DETECTOR_CAPACITY = 300;
     private static final double STALL_EPSION = 0.1;
-    private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>();
-    private final CircularFifoQueue<Double> poseYSD = new CircularFifoQueue<>();
-    private final CircularFifoQueue<Double> poseHeadingSD = new CircularFifoQueue<>();
+    private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    private final CircularFifoQueue<Double> poseYSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    private final CircularFifoQueue<Double> poseHeadingSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
 
     public Drivetrain(Robot robot, Pose brakePose) {
         this.robot = robot;
