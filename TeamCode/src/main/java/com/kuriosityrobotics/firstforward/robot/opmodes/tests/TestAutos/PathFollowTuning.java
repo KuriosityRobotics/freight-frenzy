@@ -15,16 +15,16 @@ import java.util.ArrayList;
 //@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class PathFollowTuning extends LinearOpMode {
-    public static final Pose START_W = new Pose(6, 58.5, Math.toRadians(90)); //start near warehouse
-    public static final Pose START_C = new Pose(6, 108, Math.toRadians(90)); //start near carousel
+    public static final Pose START_W = new Pose(7.5, 64.5, Math.toRadians(90)); //start near warehouse
+    public static final Pose START_C = new Pose(6.5, 108, Math.toRadians(90)); //start near carousel
 
     public static final Pose WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(240));
-    public static final Pose WAREHOUSE = new Pose(5.5, 28, Math.toRadians(180));
+    public static final Pose WAREHOUSE = new Pose(6.5, 28, Math.toRadians(180));
     //public static final Pose WAREHOUSE_IN_RIDE = new Pose(4.5, 35, Math.toRadians(-180));
     //public static final Pose WAREHOUSE_OUT_RIDE = new Pose(6.5, 54.25, Math.toRadians(-180));
 
     public static final Pose CAROUSEL = new Pose(12.5, 125.5, Math.toRadians(-80));
-    public static final Pose WALL_GAP = new Pose(4.5, 47.25, Math.toRadians(180));
+    public static final Pose WALL_GAP = new Pose(5.5, 47.25, Math.toRadians(180));
     public static final Pose BETWEEN_WOBBLE_WALLGAP = new Pose(14, 69 /*nice*/, Math.toRadians(210));
     public static final Pose STORAGE = new Pose(36, 128.5, Math.toRadians(-90));
 
