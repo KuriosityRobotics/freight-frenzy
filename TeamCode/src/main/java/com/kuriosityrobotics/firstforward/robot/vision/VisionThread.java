@@ -28,6 +28,8 @@ public class VisionThread implements Runnable, Telemeter {
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
 
+        this.openCVDumper = new OpenCVDumper(robot.isDebug());
+        this.teamMarkerDetector = new TeamMarkerDetector();
         this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, camera, robot.hardwareMap);
     }
 
@@ -53,8 +55,6 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public void run() {
         try {
-            this.openCVDumper = new OpenCVDumper(robot.isDebug());
-            this.teamMarkerDetector = new TeamMarkerDetector();
             this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
 
             Log.v("VisionThread", "Done initing camera");

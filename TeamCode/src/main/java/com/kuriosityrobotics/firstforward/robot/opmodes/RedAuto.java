@@ -38,8 +38,8 @@ public class RedAuto extends LinearOpMode {
         }
 
         robot.sensorThread.resetPose(START);
-        robot.visionThread.teamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_DUCKS;
         robot.carouselModule.clockwise = false;
+        robot.visionThread.teamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_DUCKS;
 
         waitForStart();
 

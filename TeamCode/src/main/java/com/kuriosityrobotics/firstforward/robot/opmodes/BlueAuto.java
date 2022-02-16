@@ -41,8 +41,8 @@ public class BlueAuto extends LinearOpMode {
         Robot.isBlue = true;
 
         robot.sensorThread.resetPose(START);
-        robot.visionThread.teamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.BLUE_DUCKS;
         robot.carouselModule.clockwise = true;
+        robot.visionThread.teamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.BLUE_DUCKS;
 
         waitForStart();
 
