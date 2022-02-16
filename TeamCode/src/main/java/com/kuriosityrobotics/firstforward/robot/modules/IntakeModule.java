@@ -18,10 +18,12 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.MathUtil;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.apache.commons.collections4.BoundedCollection;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,8 @@ public class IntakeModule implements Module, Telemeter {
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
+
+    private final DistanceSensor distanceSensor;
 
     private Robot robot;
 
@@ -60,6 +64,13 @@ public class IntakeModule implements Module, Telemeter {
         double sd = MathUtil.sd(avgRPMs);
         lastSd = sd;
 //        return sd > INTAKE_OCCUPIED_SD;
+        return false;
+    }
+
+    private boolean mineralInIntake() {
+        // needs to be tuned
+        if (getDistanceSensorReading() < 1)
+            return true;
         return false;
     }
 
@@ -90,6 +101,7 @@ public class IntakeModule implements Module, Telemeter {
         this.extenderLeft = robot.hardwareMap.servo.get("extenderLeft");
         this.extenderRight = robot.hardwareMap.servo.get("extenderRight");
         this.intakeMotor = (DcMotorEx) robot.hardwareMap.dcMotor.get("intake");
+        this.distanceSensor = robot.hardwareMap.get(DistanceSensor.class, "distance");
 
         intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -194,6 +206,10 @@ public class IntakeModule implements Module, Telemeter {
         return intakerRetractionStartTime != null;
     }
 
+    public double getDistanceSensorReading() {
+        return distanceSensor.getDistance(DistanceUnit.INCH);
+    }
+
     public boolean isOn() {
         return isOn;
     }
@@ -208,6 +224,10 @@ public class IntakeModule implements Module, Telemeter {
         data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));
 //        data.add(String.format(Locale.US, "sd:  %f", lastSd));
 //        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
+
+        data.add("--");
+        data.add(String.format(Locale.US, "Distance sensor reading: %s", getDistanceSensorReading()));
+        data.add(String.format(Locale.US, "Mineral is in intake: %b", mineralInIntake()));
 
         return data;
     }
