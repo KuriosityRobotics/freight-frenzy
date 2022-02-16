@@ -1,17 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 
-import android.util.Log;
-
-import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.stat.descriptive.rank.Max;
-import org.apache.commons.math3.stat.descriptive.rank.Min;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -19,33 +12,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.ArrayList;
-
-public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
-    private boolean isOn;
-
-    public TeamMarkerDetector() {
-        this.isOn = true;
-    }
-
-    @Override
-    public Iterable<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
-        data.add("Location: " + location.toString());
-
-        return data;
-    }
-
-    @Override
-    public String getName() {
-        return "TeamMarkerDetection";
-    }
-
-    @Override
-    public boolean isOn() {
-        return isOn;
-    }
-
+public class TeamMarkerDetector implements OpenCvConsumer {
     public enum AutoStartLocation {
         RED_DUCKS,
         RED_CYCLE,
@@ -71,7 +38,6 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         }
     }
 
-
     private volatile TeamMarkerLocation location;
     // remember to set in auto!!!!!!!!!!!!!!!
     public volatile AutoStartLocation startLocation;
@@ -80,15 +46,11 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         return location == null ? TeamMarkerLocation.LEVEL_3 : location;
     }
 
-    private static double[] rgbaToRgb(double[] value) {
-        return new double[] {value[0], value[1], value[2]};
-    }
-
     int runCount = 0;
     @Override
     public void processFrame(Mat frame) {
         // lol weird hack so we only run detect once but not the first time
-        if (runCount != 1) {
+        if (runCount != 20) {
             runCount++;
             return;
         }
@@ -101,14 +63,14 @@ public class TeamMarkerDetector implements OpenCvConsumer, Telemeter {
         final Rect boundingBox2;
         final Rect boundingBox3;
 
-        if (startLocation.equals(AutoStartLocation.RED_DUCKS) || startLocation.equals(AutoStartLocation.BLUE_CYCLE)) {
-            boundingBox1 = new Rect(new Point(285, 220), new Point(370, 315));
-            boundingBox2 = new Rect(new Point(485, 220), new Point(540, 315));
-            boundingBox3 = new Rect(new Point(685, 220), new Point(780, 315));
+        if (startLocation.equals(AutoStartLocation.RED_CYCLE) || startLocation.equals(AutoStartLocation.BLUE_DUCKS)) {
+            boundingBox1 = new Rect(new Point(275, 220), new Point(380, 315));
+            boundingBox2 = new Rect(new Point(475, 220), new Point(550, 315));
+            boundingBox3 = new Rect(new Point(675, 220), new Point(790, 315));
         } else {
-            boundingBox1 = new Rect(new Point(0, 220), new Point(115, 315));
-            boundingBox2 = new Rect(new Point(245, 220), new Point(315, 315));
-            boundingBox3 = new Rect(new Point(420, 220), new Point(515, 315));
+            boundingBox1 = new Rect(new Point(0, 220), new Point(125, 315));
+            boundingBox2 = new Rect(new Point(255, 220), new Point(325, 315));
+            boundingBox3 = new Rect(new Point(430, 220), new Point(525, 315));
         }
 
         Mat submat1 = frame.submat(boundingBox1);
