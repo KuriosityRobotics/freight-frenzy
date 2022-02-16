@@ -98,14 +98,14 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     public boolean isStalled() {
-        boolean movementsSet = doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0);
+        boolean movementsNotSet = doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0);
 
         boolean isXStalled = mean(poseXSD) < STALL_EPSION;
         boolean isYStalled = mean(poseYSD) < STALL_EPSION;
         boolean isHeadingStalled = mean(poseHeadingSD) < STALL_EPSION;
         boolean isStalled = isXStalled && isYStalled && isHeadingStalled;
 
-        return movementsSet && isStalled;
+        return !movementsNotSet && isStalled;
     }
 
     @Override
