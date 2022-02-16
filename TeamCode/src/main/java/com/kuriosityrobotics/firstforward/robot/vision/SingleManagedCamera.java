@@ -93,6 +93,11 @@ public final class SingleManagedCamera {
         });
     }
 
+    public void close() {
+        this.vuforia.close();
+        this.openCvCamera.closeCameraDevice();
+    }
+
     public SingleManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
         this(webcamName, null, openCvConsumers);
     }

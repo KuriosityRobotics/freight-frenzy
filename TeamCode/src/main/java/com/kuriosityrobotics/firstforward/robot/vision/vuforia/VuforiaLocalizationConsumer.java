@@ -26,7 +26,6 @@ import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Range;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -38,6 +37,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -67,6 +67,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private final Servo rotator;
 
     private final Robot robot;
+
     public VuforiaLocalizationConsumer(Robot robot, WebcamName cameraName, HardwareMap hwMap) {
         this.robot = robot;
         this.cameraName = cameraName;
@@ -86,7 +87,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
 
-
     @Override
     public void setup(VuforiaLocalizer vuforia) {
         // Get trackables & activate them, deactivate first because weird stuff
@@ -98,10 +98,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage",       -HALF_FIELD,  ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(1, "Blue Alliance Wall",  HALF_TILE,   HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 0);
-        identifyTarget(2, "Red Storage",        -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(3, "Red Alliance Wall",   HALF_TILE,  -HALF_FIELD,      MM_TARGET_HEIGHT, 90, 0, 180);
+        identifyTarget(0, "Blue Storage", -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 0);
+        identifyTarget(2, "Red Storage", -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
+        identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
     }
 
     private void setCameraAngle(double angle) {
@@ -142,7 +142,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                     OpenGLMatrix cameraLoc = OpenGLMatrix
                             .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, (float)Math.PI/2, (float)cameraAngle, 0));
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, (float) Math.PI / 2, (float) cameraAngle, 0));
                     listener.setCameraLocationOnRobot(cameraName, cameraLoc);
 
                     OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
@@ -162,14 +162,16 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      * Remember to call when opmode finishes
      */
     public void deactivate() {
-        this.freightFrenzyTargets.deactivate();
+        if (this.freightFrenzyTargets != null) {
+            this.freightFrenzyTargets.deactivate();
+        }
         cameraOrientation = CameraOrientation.CENTER;
     }
 
     /**
      * Get robot position messages via vuforia localization data
-     * @return
-     * Data for the Vuforia Localization and Telemetry Dump
+     *
+     * @return Data for the Vuforia Localization and Telemetry Dump
      */
     public ArrayList<String> logPositionandDetection() {
         synchronized (this) {
