@@ -219,11 +219,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-            // NOTE: The zeros doesn't matter, it's just implemented so we can use pose stuff
-            Pose trackableFTCSysCoords = new Pose(detectedTrackable.getLocation().getTranslation().get(0), detectedTrackable.getLocation().getTranslation().get(1), 0);
+            Point trackableFTCSysCoords = new Point(detectedTrackable.getLocation().getTranslation().get(0), detectedTrackable.getLocation().getTranslation().get(1));
 //            logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
 
-            if (!goodVuforiaReading(new Pose(robotXOurs, robotYOurs, 0), trackableFTCSysCoords)) {
+            if (!goodVuforiaReading(new Point(robotXOurs, robotYOurs), trackableFTCSysCoords)) {
                 return null;
             }
 
@@ -235,8 +234,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-    private boolean goodVuforiaReading(Pose robotLoc, Pose vumark) {
-        Line connection = new Line(new Point(robotLoc.x, robotLoc.y), new Point(vumark.x, vumark.y));
+    private boolean goodVuforiaReading(Point robotLoc, Point vumark) {
+        Line connection = new Line(robotLoc, vumark);
 
         return (Math.atan(connection.getSlope()) >= CAM_EPSILON || Math.atan(connection.getSlope()) <= -CAM_EPSILON);
     }
