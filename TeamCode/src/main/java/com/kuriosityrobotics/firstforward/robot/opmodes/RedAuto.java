@@ -11,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAc
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -37,8 +38,8 @@ public class RedAuto extends LinearOpMode {
         }
 
         robot.sensorThread.resetPose(START);
-
         robot.carouselModule.clockwise = false;
+        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_DUCKS;
 
         waitForStart();
 

@@ -80,7 +80,7 @@ public final class SingleManagedCamera {
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
                 try {
-                    openCvCamera.startStreaming(640, 480);
+                    openCvCamera.startStreaming(800, 448);
                 } catch(Exception e) {
                     e.printStackTrace();
                 }
