@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
@@ -55,11 +56,13 @@ public class VisionThread implements Runnable, Telemeter {
         try {
             this.openCVDumper = new OpenCVDumper(robot.isDebug());
             this.teamMarkerDetector = new TeamMarkerDetector();
-            this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector);
+            CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot);
+            this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector, cargoDetector);
 
             Log.v("VisionThread", "Done initing camera");
 
             robot.telemetryDump.registerTelemeter(this);
+            robot.telemetryDump.registerTelemeter(cargoDetector);
 
             while (robot.running()) {
                 long currentTime = SystemClock.elapsedRealtime();
