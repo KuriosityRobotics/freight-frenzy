@@ -77,7 +77,7 @@ public final class ManagedCamera {
                 try {
                     openCvCamera.startStreaming(800, 448);
                 } catch(Exception e) {
-                    e.printStackTrace();
+                    Log.e("Managed Camera", "An error occured! " + e);
                 }
             }
 
@@ -88,7 +88,7 @@ public final class ManagedCamera {
         });
     }
 
-    public SingleManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
         this(webcamName, null, openCvConsumers);
     }
 

@@ -59,7 +59,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     // In radians, this is used to determine if the angle is good enough for an accurate reading. THIS HAS TO BE POSITIVE
     // TODO: tune, currently at 60 degrees
-    private static final double CAM_EPSILON = Math.toRadians(60);
+    private static final double CAM_THRESHOLD = Math.toRadians(60);
 
     private final WebcamName cameraName;
 
@@ -237,7 +237,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private boolean goodVuforiaReading(Point robotLoc, Point vumark) {
         Line connection = new Line(robotLoc, vumark);
 
-        return (Math.atan(connection.getSlope()) >= CAM_EPSILON || Math.atan(connection.getSlope()) <= -CAM_EPSILON);
+        return (Math.atan(connection.getSlope()) >= CAM_THRESHOLD || Math.atan(connection.getSlope()) <= -CAM_THRESHOLD);
     }
 
     // for debug
