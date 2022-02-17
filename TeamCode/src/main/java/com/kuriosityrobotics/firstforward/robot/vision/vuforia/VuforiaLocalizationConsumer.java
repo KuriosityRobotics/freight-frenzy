@@ -202,7 +202,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
-            if (!ManagedCamera.vuforiaActive) {
+            if (!robot.visionThread.managedCamera.vuforiaActive) {
                 return null;
             }
 
