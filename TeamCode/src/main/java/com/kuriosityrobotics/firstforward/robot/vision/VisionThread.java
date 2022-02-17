@@ -16,13 +16,10 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import java.util.ArrayList;
 
 public class VisionThread implements Runnable, Telemeter {
-    public final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
-    public TeamMarkerDetector teamMarkerDetector;
-    public OpenCVDumper openCVDumper;
-
-    public SingleManagedCamera singleManagedCamera;
+    public final TeamMarkerDetector teamMarkerDetector;
+    private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
-
+    private SingleManagedCamera singleManagedCamera;
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
@@ -30,6 +27,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.robot = robot;
 
         this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, camera, robot.hardwareMap);
+        this.teamMarkerDetector = new TeamMarkerDetector();
     }
 
     @Override
@@ -54,15 +52,21 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public void run() {
         try {
-            this.openCVDumper = new OpenCVDumper(robot.isDebug());
-            this.teamMarkerDetector = new TeamMarkerDetector();
-            CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot);
-            this.singleManagedCamera = new SingleManagedCamera(robot.camera, vuforiaLocalizationConsumer, openCVDumper, teamMarkerDetector, cargoDetector);
+            OpenCVDumper openCVDumper = new OpenCVDumper(robot.isDebug());
+            CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot.sensorThread);
 
-            Log.v("VisionThread", "Done initing camera");
+            this.singleManagedCamera = new SingleManagedCamera(
+                    robot.camera,
+                    vuforiaLocalizationConsumer,
+                    openCVDumper,
+                    teamMarkerDetector,
+                    cargoDetector
+            );
 
             robot.telemetryDump.registerTelemeter(this);
             robot.telemetryDump.registerTelemeter(cargoDetector);
+
+            Log.v("VisionThread", "Done initing camera");
 
             while (robot.running()) {
                 long currentTime = SystemClock.elapsedRealtime();
