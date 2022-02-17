@@ -72,7 +72,7 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation);
 
         // modules
-        drivetrain = new Drivetrain(this, sensorThread.getPose());
+        drivetrain = new Drivetrain(this);
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
         carouselModule = new CarouselModule(this);

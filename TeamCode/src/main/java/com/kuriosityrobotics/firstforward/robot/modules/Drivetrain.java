@@ -28,14 +28,10 @@ public class Drivetrain implements Module, Telemeter {
     private Braking brake = new Braking(); // whether or not to actively brake
     private boolean opmodeStarted = false;
 
-    // stall detector
-    private static final int STALL_DETECTOR_CAPACITY = 300;
-    private static final double STALL_EPSION = 0.1;
-    private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
-    private final CircularFifoQueue<Double> poseYSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
-    private final CircularFifoQueue<Double> poseHeadingSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    // stalling states
+    private StallDetector stallDetector = new StallDetector();
 
-    public Drivetrain(Robot robot, Pose brakePose) {
+    public Drivetrain(Robot robot) {
         this.robot = robot;
         drivetrainModule = new DrivetrainModule(robot);
         robot.telemetryDump.registerTelemeter(this);
@@ -72,11 +68,8 @@ public class Drivetrain implements Module, Telemeter {
                 drivetrainModule.setMovements(xMov, yMov, turnMov);
             }
 
+            stallDetector.sendPose(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
-
-            poseXSD.add(getCurrentPose().x);
-            poseYSD.add(getCurrentPose().y);
-            poseHeadingSD.add(getCurrentPose().heading);
         }
     }
 
@@ -95,17 +88,6 @@ public class Drivetrain implements Module, Telemeter {
     public double getOrthVelocity() {
         Pose velo = getVelocity();
         return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
-    }
-
-    public boolean isStalled() {
-        boolean movementsNotSet = doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0);
-
-        boolean isXStalled = mean(poseXSD) < STALL_EPSION;
-        boolean isYStalled = mean(poseYSD) < STALL_EPSION;
-        boolean isHeadingStalled = mean(poseHeadingSD) < STALL_EPSION;
-        boolean isStalled = isXStalled && isYStalled && isHeadingStalled;
-
-        return !movementsNotSet && isStalled;
     }
 
     @Override
@@ -130,7 +112,7 @@ public class Drivetrain implements Module, Telemeter {
         data.add("Brake Pose: " + brake.getBrakePose());
 
         data.add("--");
-        data.add("Stall Status: " + isStalled());
+        data.add("Stall Status: " + stallDetector.isStalled());
 
         return data;
     }
