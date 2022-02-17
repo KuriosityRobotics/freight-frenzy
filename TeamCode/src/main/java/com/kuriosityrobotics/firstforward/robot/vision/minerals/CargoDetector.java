@@ -48,7 +48,7 @@ public class CargoDetector {
         var detections = new ArrayList<Detection>();
 
         detections:
-        for (var i = 0; i < detectorOutputLayer.rows(); i++) {
+        for (int i = 0; i < detectorOutputLayer.rows(); i++) {
             var confidence = detectorOutputLayer.get(i, 4)[0];
 
             if (confidence > .6) {
@@ -141,13 +141,7 @@ public class CargoDetector {
 
         @Override
         public String toString() {
-            return "Detection[" +
-                    "confidence=" + confidence + ", " +
-                    "cx=" + cx + ", " +
-                    "cy=" + cy + ", " +
-                    "w=" + w + ", " +
-                    "h=" + h + ", " +
-                    "type=" + type + ']';
+            return String.format("%s @ (%d, %d) confidence=%.2f", type, cx, cy, confidence);
         }
 
     }
