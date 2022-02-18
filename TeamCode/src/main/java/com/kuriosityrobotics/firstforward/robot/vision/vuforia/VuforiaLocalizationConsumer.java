@@ -136,7 +136,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 setCameraAngle(cameraAngle);
                 cameraLoc = OpenGLMatrix
                         .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90f, (float) cameraAngle, 0f));
+                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90f, (float) Math.toDegrees(cameraAngle), 0f));
             } else { // the else condition is for kf verification
                 cameraLoc = OpenGLMatrix
                         .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
