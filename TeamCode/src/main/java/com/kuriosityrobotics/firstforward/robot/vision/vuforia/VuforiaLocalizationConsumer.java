@@ -2,9 +2,11 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_FORWARD_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LEFT_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_VERTICAL_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
@@ -24,7 +26,6 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Line;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -125,7 +126,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 return;
             }
 
-            // we do stuff
+            // we do turret stuff
             double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
                     .min(Comparator.naturalOrder())
                     .orElse(0.);
@@ -137,7 +138,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     detectedTrackable = trackable;
 
                     OpenGLMatrix cameraLoc = OpenGLMatrix
-                            .translation(CAMERA_LEFT_FORWARD_DISPLACEMENT, CAMERA_LEFT_LEFT_DISPLACEMENT, CAMERA_LEFT_VERTICAL_DISPLACEMENT)
+                            .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
                             .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, (float) Math.PI / 2, (float) cameraAngle, 0));
                     listener.setCameraLocationOnRobot(cameraName, cameraLoc);
 

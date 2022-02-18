@@ -36,9 +36,13 @@ public class Constants {
 
         // Camera positions on robot (both front and left)
         // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)
-        public static final float CAMERA_LEFT_FORWARD_DISPLACEMENT = .125f * MM_PER_INCH;
-        public static final float CAMERA_LEFT_VERTICAL_DISPLACEMENT = 7.25f * MM_PER_INCH;
-        public static final float CAMERA_LEFT_LEFT_DISPLACEMENT = 5.5f * MM_PER_INCH;
+        public static final float SERVO_FORWARD_DISPLACEMENT = 4.821f * MM_PER_INCH;
+        public static final float SERVO_VERTICAL_DISPLACEMENT = 16.519f * MM_PER_INCH;
+        public static final float SERVO_LEFT_DISPLACEMENT = 0.318f * MM_PER_INCH;
+
+        // camera pos relative to the turret servo
+        public static final float CAMERA_VARIABLE_DISPLACEMENT = 3.382f * MM_PER_INCH;
+        public static final float CAMERA_VERTICAL_DISPLACEMENT = 0f * MM_PER_INCH;
 
         // Constants for perimeter targets
         public static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
