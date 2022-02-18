@@ -69,7 +69,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private volatile OpenGLMatrix detectedLocation = null;
 
     // change states here
-    public static CameraOrientation cameraOrientation = CameraOrientation.CENTER;
     private final Servo rotator;
 
     private final Robot robot;
@@ -81,21 +80,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         rotator.setPosition(0.399897);
     }
 
-    // TODO: tune
-    private static final double ROTATOR_LEFT_POS = 0.75014;
-    private static final double ROTATOR_CENTER_POS = 0;
-    private static final double ROTATOR_RIGHT_POS = 0.0;
-
-    public enum CameraOrientation {
-        LEFT,
-        CENTER,
-        RIGHT
-    }
-
+    private static final double TURRET_270 = .78988,
+            TURRET_180 = .4896,
+            TURRET_90 = .1906;
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
-        // Get trackables & activate them, deactivate first because weird stuff
+        // Get trackables & activate them, deactivate first because weird stuff can occur if we don't
         if (this.freightFrenzyTargets != null) {
             this.freightFrenzyTargets.deactivate();
         }
@@ -112,15 +103,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private void setCameraAngle(double angle) {
         double rotationAngle = angle / (2 * Math.PI);
-//        rotator.setPosition(ROTATOR_LEFT_POS + rotationAngle * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS));
-        // TODO: stub
+        rotator.setPosition(TURRET_90 + rotationAngle * (TURRET_270 - TURRET_90));
     }
 
-    private double getCamAngleTo(Point point) {
+    private double getCamAngleTo(Point target) {
         Pose currentPosition = robot.sensorThread.getPose();
         return Math.atan2(
-                currentPosition.x - point.x,
-                currentPosition.y - point.y
+                currentPosition.x - target.x,
+                currentPosition.y - target.y
         );
     }
 
@@ -171,7 +161,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         if (this.freightFrenzyTargets != null) {
             this.freightFrenzyTargets.deactivate();
         }
-        cameraOrientation = CameraOrientation.CENTER;
     }
 
     /**
@@ -202,11 +191,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
-            if (!robot.visionThread.managedCamera.vuforiaActive) {
-                return null;
-            }
-
-            if (detectedLocation == null) {
+            if (!robot.visionThread.managedCamera.vuforiaActive || detectedLocation == null) {
                 return null;
             }
 
