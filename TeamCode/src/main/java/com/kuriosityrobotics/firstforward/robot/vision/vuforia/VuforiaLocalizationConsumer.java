@@ -14,7 +14,6 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE;
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
@@ -97,10 +96,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage", -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 0);
-        identifyTarget(2, "Red Storage", -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, 90, 0, 90);
-        identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, 90, 0, 180);
+        identifyTarget(0, "Blue Storage", -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
+        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, 0f);
+        identifyTarget(2, "Red Storage", -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
+        identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(180));
     }
 
     private void setCameraAngle(double angle) {
@@ -136,11 +135,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 setCameraAngle(cameraAngle);
                 cameraLoc = OpenGLMatrix
                         .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90f, (float) Math.toDegrees(cameraAngle), 0f));
+                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) cameraAngle, 0f));
             } else { // the else condition is for kf verification
                 cameraLoc = OpenGLMatrix
                         .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, DEGREES, 90f, 90f, 0f));
+                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), 0f));
             }
 
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
@@ -195,7 +194,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         VuforiaTrackable aTarget = this.freightFrenzyTargets.get(targetIndex);
         aTarget.setName(targetName);
         aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, DEGREES, rx, ry, rz)));
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, RADIANS, rx, ry, rz)));
     }
 
     public RealMatrix getLocationRealMatrix() {
