@@ -2,14 +2,11 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.sd;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-
-import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +65,7 @@ public class Drivetrain implements Module, Telemeter {
                 drivetrainModule.setMovements(xMov, yMov, turnMov);
             }
 
-            stallDetector.sendPose(getCurrentPose(), xMov, yMov, turnMov);
+            stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
         }
     }
