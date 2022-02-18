@@ -6,9 +6,11 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 
+import org.apache.commons.collections4.OrderedMapIterator;
+import org.apache.commons.collections4.map.LinkedMap;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -17,11 +19,11 @@ public class MotionProfile {
     public static final double ROBOT_MAX_ACCEL = 90;
     public static final double ROBOT_MAX_DECCEL = 45;
 
-    private double maxVel, maxAccel, maxDeccel;
+    private final double maxVel, maxAccel, maxDeccel;
 
-    private WayPoint[] path;
-    private WayPoint[] angleProfile;
-    private ArrayList<MotionSegment> velocityProfile;
+    private final WayPoint[] path;
+    private LinkedMap<Double, AngleLock> angleLockProfile;
+    private final ArrayList<MotionSegment> velocityProfile;
 
     public MotionProfile(WayPoint[] inputPath) {
         this(inputPath, ROBOT_MAX_VEL, ROBOT_MAX_ACCEL, ROBOT_MAX_DECCEL);
@@ -34,118 +36,50 @@ public class MotionProfile {
 
         this.path = inputPath;
 
-        this.angleProfile = interpolateHeadingProfile(inputPath);
+        this.angleLockProfile = generateAngleLockProfile(inputPath);
         this.velocityProfile = generateVelocityProfile(inputPath);
     }
 
-    private WayPoint[] interpolateHeadingProfile(WayPoint[] in) {
-        int interpolatedTo = 0;
-        for (int i = 0; i < in.length; i++) {
-            if (i < interpolatedTo) {
-                continue;
+    private LinkedMap<Double, AngleLock> generateAngleLockProfile(WayPoint[] in) {
+        LinkedMap<Double, AngleLock> profile = new LinkedMap<>();
+
+        double dist = 0;
+
+        profile.put(dist, in[0].getAngleLock());
+        AngleLock lastLock = in[0].getAngleLock();
+        for (int i = 1; i < in.length; i++) {
+            WayPoint start = in[i - 1];
+            WayPoint end = in[i];
+
+            dist += start.distance(end);
+
+            AngleLock lock = in[i].getAngleLock();
+
+            switch (lock.type) {
+                case CONTINUE_LAST:
+                    // ensure there's an anglelock for the end of the path
+                    if (i == in.length - 1) {
+                        profile.put(dist, profile.get(profile.lastKey()));
+                    }
+                    continue;
+                case NO_LOCK:
+                    if (lastLock.type != AngleLock.AngleLockType.NO_LOCK) {
+                        profile.put(dist, lock);
+                    }
+                    break;
+                case LOCK:
+                    profile.put(dist, lock);
+                    break;
             }
 
-            WayPoint currentPoint = in[i];
-
-            if (i == 0 && currentPoint.getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
-//                throw new IllegalArgumentException("The first point in a path cannot have an angleLock of CONTINUE_LAST!");
-                currentPoint.getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
-            }
-
-            if (currentPoint.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
-                if (i >= 2 && in[i - 1].getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
-                    double before = new Line(in[i - 2], in[i - 1]).getHeading();
-                    double after = new Line(in[i - 1], in[i]).getHeading();
-
-                    in[i - 1].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                    in[i - 1].getAngleLock().heading = (before + after) / 2;
-                }
-
-                // Look ahead for the next LOCK or UNLOCK to interpolate the points in between
-                boolean lockChanges = false;
-                double totalDist = 0;
-                int targetChangesIndex = 0;
-                double nextTargetHeading = 0; // how much distance we have to change our heading
-
-                // starting from the next point, look for where the next angle change must occur
-                outerloop:
-                //lemon
-                for (int j = i + 1; j < in.length; j++) {
-                    totalDist += in[j].distance(in[j - 1]);
-
-                    // look for the next point that isn't CONTINUE_LAST
-                    switch (in[j].getAngleLock().type) {
-                        case LOCK:
-                            // if it's LOCK, we're trying to get to that lock heading
-
-                            lockChanges = true;
-                            targetChangesIndex = j;
-                            nextTargetHeading = in[j].getAngleLock().heading;
-
-                            break outerloop;
-                        case NO_LOCK:
-                            // if it's NO_LOCK, we'll estimate what angle we should be at at that point
-                            // by averaging the angles of the path before and after :)
-
-                            // this only has meaning if it isn't the last point on the path
-                            if (j != in.length - 1) {
-                                lockChanges = true;
-                                targetChangesIndex = j;
-
-                                double inHeading = new Line(in[j - 1], in[j]).getHeading();
-                                double outHeading = new Line(in[j], in[j + 1]).getHeading();
-
-                                nextTargetHeading = (inHeading + outHeading) / 2;
-                                in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                                in[j].getAngleLock().heading = nextTargetHeading;
-                            }
-
-                            break outerloop;
-                    }
-                }
-
-                // if we just keep this heading locked forever
-                if (!lockChanges) {
-                    // update rest of points to lock at that heading
-                    for (int j = i + 1; j < in.length; j++) {
-                        in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                        in[j].getAngleLock().heading = currentPoint.getAngleLock().heading;
-                    }
-                } else {
-                    // interpolate rest of points so we get to the target heading
-                    double distSoFar = 0;
-
-                    double targetChange = nextTargetHeading - currentPoint.getAngleLock().heading;
-
-                    for (int j = i + 1; j < targetChangesIndex; j++) {
-                        distSoFar += in[j].distance(in[j - 1]);
-
-                        double targetHeading = (distSoFar / totalDist) * (targetChange) + currentPoint.getAngleLock().heading;
-
-                        in[j].getAngleLock().type = AngleLock.AngleLockType.LOCK;
-                        in[j].getAngleLock().heading = targetHeading;
-                    }
-                }
-
-                // jump over this section we just interpolated
-                interpolatedTo = targetChangesIndex;
-            } else if (currentPoint.getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
-                // switch all the next CONTINUE points to reflect this one
-                int j = i;
-                while (j + 1 < in.length && in[j + 1].getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
-                    in[j + 1].getAngleLock().type = AngleLock.AngleLockType.NO_LOCK;
-                    j++;
-                }
-
-                interpolatedTo = j;
-            }
+            lastLock = lock;
         }
 
-        return in;
+        return profile;
     }
 
     private ArrayList<MotionSegment> generateVelocityProfile(WayPoint[] path) {
-        LinkedHashMap<Double, VelocityLock> velocityCheckPoints = generateVelocityCheckpoints(path);
+        LinkedMap<Double, VelocityLock> velocityCheckPoints = generateVelocityCheckpoints(path);
         ArrayList<MotionSegment> profile = new ArrayList<>();
 
         // start from the back and generate forwards to make sure we can end where we want to
@@ -239,8 +173,8 @@ public class MotionProfile {
         return profile;
     }
 
-    private LinkedHashMap<Double, VelocityLock> generateVelocityCheckpoints(WayPoint[] path) {
-        LinkedHashMap<Double, VelocityLock> velocityCheckPoints = new LinkedHashMap<>();
+    private LinkedMap<Double, VelocityLock> generateVelocityCheckpoints(WayPoint[] path) {
+        LinkedMap<Double, VelocityLock> velocityCheckPoints = new LinkedMap<>();
 
         double dist = 0;
 
@@ -249,10 +183,10 @@ public class MotionProfile {
         } else {
             // starting velocity can't be 0 or else the robot will never start moving
             // can look into using lookahead instead
-            velocityCheckPoints.put(0., new VelocityLock(5));
+            velocityCheckPoints.put(0., new VelocityLock(5, true));
         }
 
-        for (int i = 0; i < path.length; i++) {
+        for (int i = 0; i < path.length - 1; i++) {
             WayPoint start = path[i];
             WayPoint end = path[i + 1];
 
@@ -260,6 +194,10 @@ public class MotionProfile {
 
             if (end.getVelocityLock().targetVelocity) {
                 velocityCheckPoints.put(dist, end.getVelocityLock());
+            } else if (i == path.length - 2) {
+                // if this is the last segment and there's no lock specified
+                // assume we carry on the last lock given
+                velocityCheckPoints.put(dist, velocityCheckPoints.get(velocityCheckPoints.lastKey()));
             }
         }
 
@@ -276,31 +214,47 @@ public class MotionProfile {
         throw new Error("Trying to interpolate to a distance outside of generated profile!");
     }
 
-    public AngleLock interpolateTargetHeading(int pathIndex, Point clippedPosition) {
-        WayPoint start = angleProfile[pathIndex];
-        WayPoint end = angleProfile[pathIndex + 1];
+    public AngleLock interpolateTargetAngleLock(int pathIndex, Point clippedPosition) {
+        // the last passed lock command
+        double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
 
-        if (end.getAngleLock().type == AngleLock.AngleLockType.NO_LOCK) {
-            return end.getAngleLock();
-        } else if (end.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
-            if (start.getAngleLock().type == AngleLock.AngleLockType.LOCK) {
-                double startHeading = start.getAngleLock().heading;
-                double endHeading = end.getAngleLock().heading;
+        // find the last passed profile and the next
+        OrderedMapIterator<Double, AngleLock> i = angleLockProfile.mapIterator();
+        while (i.hasNext()) {
+            i.next();
 
-                double distAlong = start.distance(clippedPosition);
-                double totalDist = start.distance(end);
+            double dist = i.getKey();
 
-                if (distAlong > totalDist) {
-                    throw new IllegalArgumentException("Clipped position isn't within profiled bounds!");
+            if (distAlongPath <= dist) {
+                double lastLockDist = i.previous();
+                AngleLock lastLock = angleLockProfile.get(lastLockDist);
+
+                if (lastLock == null) {
+                    throw new Error("Calculated distance along path is before the first profiled angleLock!");
                 }
 
-                return new AngleLock(((distAlong / totalDist) * (endHeading - startHeading)) + startHeading);
-            } else {
-                return end.getAngleLock();
+                AngleLock nextLock = i.getValue();
+
+                switch (nextLock.type) {
+                    case NO_LOCK:
+                        return nextLock;
+                    case LOCK:
+                        if (lastLock.type != AngleLock.AngleLockType.LOCK) {
+                            return nextLock;
+                        } else {
+                            double distAlong = distAlongPath - lastLockDist;
+                            double totalDist = dist - lastLockDist;
+                            double headingChange = nextLock.heading - lastLock.heading;
+
+                            return new AngleLock(((distAlong / totalDist) * headingChange) + lastLock.heading);
+                        }
+                    default:
+                        throw new Error("Profiled angleLocks contain an angleLock of type that is not LOCK or NO_LOCK! This should be guaranteed by generateAngleLockProfile() in MotionProfile");
+                }
             }
-        } else {
-            throw new IllegalArgumentException("Each point of a MotionPathSegment should either be angle locked or unlocked! (e.g. no CONTINUE) This should be guaranteed by interpolatePath() in MotionProfile.");
         }
+
+        throw new Error("No angleLock was found in the profile!");
     }
 
     public double distanceAlongPath(int pathIndex, Point clippedPosition) {

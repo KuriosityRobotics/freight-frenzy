@@ -33,6 +33,7 @@ public class PurePursuit implements Telemeter {
 
     // motion magic
     private final MotionProfile profile;
+    // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
     private final FeedForwardPID yPID = new FeedForwardPID(0.020, 0.0165, 0, 0);
     private final FeedForwardPID xPID = new FeedForwardPID(0.022, 0.03, 0, 0);
     private final ClassicalPID headingPID = new ClassicalPID(0.9, 0.000075, 0);
@@ -125,7 +126,7 @@ public class PurePursuit implements Telemeter {
         Point clipped = clipToPath(robotPose);
 
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
-        AngleLock targetAngleLock = profile.interpolateTargetHeading(closestIndex, clipped);
+        AngleLock targetAngleLock = profile.interpolateTargetAngleLock(closestIndex, clipped);
 
         double headingToPoint = robotPose.relativeHeadingToPoint(target);
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
@@ -141,6 +142,8 @@ public class PurePursuit implements Telemeter {
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
         if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK && robot.drivetrain.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD) {
+            // TODO do we need this?
+            // i don't recall why this is here
             angPow = 0;
         } else {
             double targHeading;
