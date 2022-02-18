@@ -44,7 +44,6 @@ public class TeleOp extends LinearOpMode {
             throw new RuntimeException(e);
         }
 
-        robot.visionThread.managedCamera.activateCamera(robot.frontCamera);
         waitForStart();
 
         while (opModeIsActive()) {

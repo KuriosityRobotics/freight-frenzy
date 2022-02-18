@@ -2,8 +2,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_FRONT_LOCATION_ON_ROBOT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LOCATION_ON_ROBOT;
+
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_PER_INCH;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_TARGET_HEIGHT;
@@ -12,11 +11,6 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAM
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_LEFT_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_LEFT_VERTICAL_DISPLACEMENT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
@@ -33,7 +27,6 @@ import com.kuriosityrobotics.firstforward.robot.vision.SingleManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.kuriosityrobotics.firstforward.robot.util.Constants;
-import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
