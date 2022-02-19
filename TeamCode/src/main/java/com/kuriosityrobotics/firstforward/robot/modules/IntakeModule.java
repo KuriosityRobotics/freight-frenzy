@@ -74,7 +74,11 @@ public class IntakeModule implements Module, Telemeter {
             // if last 10 are all positives it's a go
             Object[] queueArray = queue.toArray();
             for (int i = queueArray.length - 1; i > queueArray.length - 10; i--) {
-                if (((double) queueArray[i]) > FAR_THRESHOLD) {
+                try {
+                    if (((double) queueArray[i]) > FAR_THRESHOLD) {
+                        return false;
+                    }
+                } catch (ArrayIndexOutOfBoundsException e) {
                     return false;
                 }
             }

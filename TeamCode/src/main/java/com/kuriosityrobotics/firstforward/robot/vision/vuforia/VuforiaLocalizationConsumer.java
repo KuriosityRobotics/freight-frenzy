@@ -59,7 +59,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     // In radians, this is used to determine if the angle is good enough for an accurate reading. THIS HAS TO BE POSITIVE
     // TODO: tune, currently at 60 degrees
-    private static final double CAM_THRESHOLD = Math.toRadians(60);
+    private static final double CAM_MAX_ROTATION = Math.toRadians(15);
 
     private final WebcamName cameraName;
 
@@ -70,7 +70,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     // change states here
     private final Servo rotator;
-    public boolean doCamerarotation = true;
+    public boolean doCamerarotation = false;
 
     private final Robot robot;
 
@@ -132,11 +132,20 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
                         .min(Comparator.naturalOrder())
                         .orElse(0.);
-                setCameraAngle(cameraAngle);
-                cameraLoc = OpenGLMatrix
-                        .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) cameraAngle, 0f));
+                if (isInRange(cameraAngle)) {
+                    setCameraAngle(cameraAngle);
+                    cameraLoc = OpenGLMatrix
+                            .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) cameraAngle, 0f));
+                }
+                else {
+                    rotator.setPosition(TURRET_180);
+                    cameraLoc = OpenGLMatrix
+                            .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), 0f));
+                }
             } else { // the else condition is for kf verification
+                rotator.setPosition(TURRET_180);
                 cameraLoc = OpenGLMatrix
                         .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
                         .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), 0f));
@@ -199,7 +208,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
-            if (!robot.visionThread.managedCamera.vuforiaActive || detectedLocation == null) {
+            if (!robot.visionThread.getManagedCamera().vuforiaActive || detectedLocation == null) {
                 return null;
             }
 
@@ -212,12 +221,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
             double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-            Point trackableFTCSysCoords = new Point(detectedTrackable.getLocation().getTranslation().get(0), detectedTrackable.getLocation().getTranslation().get(1));
 //            logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
-
-            if (!goodVuforiaReading(new Point(robotXOurs, robotYOurs), trackableFTCSysCoords)) {
-                return null;
-            }
 
             return MatrixUtils.createRealMatrix(new double[][]{
                     {robotXOurs},
@@ -227,10 +231,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-    private boolean goodVuforiaReading(Point robotLoc, Point vumark) {
-        Line connection = new Line(robotLoc, vumark);
-
-        return (Math.atan(connection.getSlope()) >= CAM_THRESHOLD || Math.atan(connection.getSlope()) <= -CAM_THRESHOLD);
+    private boolean isInRange(double angle) {
+        return -CAM_MAX_ROTATION <= angle && angle <= CAM_MAX_ROTATION;
     }
 
     // for debug
