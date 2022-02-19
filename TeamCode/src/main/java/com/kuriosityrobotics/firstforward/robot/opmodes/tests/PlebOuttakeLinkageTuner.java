@@ -5,7 +5,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Disabled
 @TeleOp
 public class PlebOuttakeLinkageTuner extends LinearOpMode {
     Servo linkage;
@@ -17,8 +16,6 @@ public class PlebOuttakeLinkageTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         linkage = hardwareMap.get(Servo.class, "outtakeLinkage");
-        dump = hardwareMap.get(Servo.class, "hopper");
-        pivot = hardwareMap.get(Servo.class, "pivot");
 
         waitForStart();
 

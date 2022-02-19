@@ -1,19 +1,18 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
-public class PlebOuttakePivotTuner extends LinearOpMode {
+public class OuttakeTurretTuner extends LinearOpMode {
     Servo pivot;
 
     double pivotPos = 0.906181;
 
     @Override
     public void runOpMode() {
-        pivot = hardwareMap.get(Servo.class, "outtakePivot");
+        pivot = hardwareMap.get(Servo.class, "outtakeTurret");
 
         waitForStart();
 
@@ -23,7 +22,7 @@ public class PlebOuttakePivotTuner extends LinearOpMode {
             pivotPos += gamepad1.right_stick_y * 0.00005;
             pivot.setPosition(pivotPos);
 
-            telemetry.addData("pivot pos: ", pivotPos);
+            telemetry.addData("turret pos: ", pivotPos);
             telemetry.update();
         }
     }
