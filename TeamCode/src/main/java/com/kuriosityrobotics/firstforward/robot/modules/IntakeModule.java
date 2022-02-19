@@ -1,16 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.GOBILDA_1620_PPR;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RETRACT_TIME;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RPM_EPSILON;
 
 import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.MathUtil;
 import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,7 +29,6 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
 
     private static final double HOLD_POWER = 1;
-    public volatile double lastSd = 0;
 
     private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
 
@@ -54,20 +50,6 @@ public class IntakeModule implements Module, Telemeter {
     private boolean started = false;
 
     List<Double> avgRPMs;
-
-    private boolean hasOccupationStatusChanged() {
-        if (getRPM() < 500 || intakePower < 0.1 || intakeRpmRingBuffer.isEmpty())
-            return false;
-
-        avgRPMs = new ArrayList<>(RING_BUFFER_CAPACITY / 10);
-        for (int i = 0; i < RING_BUFFER_CAPACITY; i += 10)
-            avgRPMs.add(MathUtil.mean(intakeRpmRingBuffer, i, 10));
-
-        double sd = MathUtil.sd(avgRPMs);
-        lastSd = sd;
-//        return sd > INTAKE_OCCUPIED_SD;
-        return false;
-    }
 
     Queue<Boolean> queue = new CircularFifoQueue<>(10);
 
@@ -127,12 +109,6 @@ public class IntakeModule implements Module, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
     }
 
-    public double getRPM() {
-        synchronized (intakeRpmRingBuffer) {
-            return intakeRpmRingBuffer.get(intakeRpmRingBuffer.size() - 1); // hopefully this is the most, not least, recent element
-        }
-    }
-
     public void setIntakePosition(IntakePosition intakePosition) {
         synchronized (extenderLeft) {
             synchronized (extenderRight) {
@@ -189,7 +165,6 @@ public class IntakeModule implements Module, Telemeter {
     private void startIntakeRetraction() {
         setIntakePosition(IntakePosition.RETRACTED);
         intakerRetractionStartTime = SystemClock.elapsedRealtime();
-
     }
 
     private boolean doneRetracting() {
@@ -197,21 +172,9 @@ public class IntakeModule implements Module, Telemeter {
                 >= INTAKE_RETRACT_TIME;
     }
 
-    private void doOccupationStatusProcessing() {
-        intakeRpmRingBuffer.add(intakeMotor.getVelocity() * 60 / GOBILDA_1620_PPR);
-
-        // since it's a ring buffer we could make the following more efficient
-        // but it's literally ten elements so it doesn't matter
-        if (getRPM() < RPM_EPSILON) {
-            intakeOccupied = false;
-        } else if (hasOccupationStatusChanged()) {
-            intakeOccupied = hasDecelerated();
-            fill(intakeRpmRingBuffer, getRPM()); // heinous hackery to set the stddev to 0
-        }
-    }
-
     private synchronized void startIntakeExtension() {
         if (robot != null) {
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
         intakeOccupied = false;
@@ -235,7 +198,6 @@ public class IntakeModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format(Locale.US, "Intake speed (RPM): %f", getRPM()));
 //        data.add("retract: " + inRetractionState());
         data.add(String.format(Locale.US, "Intake position:  %s", intakePosition));
         data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));

@@ -18,7 +18,7 @@ public class Constants {
         public static final double INTAKE_DEACCEL_SD = 100;
 
         public static final double INTAKE_EXTEND_TIME = 1500;
-        public static final double INTAKE_RETRACT_TIME = 1500;
+        public static final double INTAKE_RETRACT_TIME = 1000;
 
         public static final int RING_BUFFER_CAPACITY = 100;
     }

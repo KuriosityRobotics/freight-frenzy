@@ -55,6 +55,8 @@ public class TeleOp extends LinearOpMode {
 
         if (retractButton.isSelected(gamepad2.a)) {
             robot.intakeModule.requestRetraction();
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
     }
 
@@ -77,22 +79,36 @@ public class TeleOp extends LinearOpMode {
             }
         } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
+
+            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
+                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
+            }
         } else if (gamepad2.dpad_down) {
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
             robot.outtakeModule.skipToCollapse();
         }
 
-         if (gamepad2.y) {
+        boolean y = gamepad2.y,
+                x = gamepad2.x,
+                b = gamepad2.b;
+
+        if (x || b) {
+            if (x) {
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.LEFT;
+            }
+            if (b) {
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
+            }
+
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+        }
+
+        if (y) {
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-        } else if (gamepad2.x) {
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.LEFT;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-        } else if (gamepad2.b) {
-             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
-             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-         }
+        }
     }
 
     private void updateCarouselStates() {

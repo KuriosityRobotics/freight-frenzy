@@ -19,7 +19,7 @@ public class OuttakeModule implements Module, Telemeter {
     private static final long TURRET_TIME = 250; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = .814367,
-            CLAMP_CLAMP = .7082708,
+            CLAMP_CLAMP = .7282708,
             CLAMP_RELEASE = 0.890738;
     private static final double LINKAGE_IN = .140102,
             LINKAGE_EXTENDED = .8777921;
@@ -80,6 +80,12 @@ public class OuttakeModule implements Module, Telemeter {
         boolean slidesAtTarget = abs(slide.getCurrentPosition() - slide.getTargetPosition()) < 50;
 
         switch (currentState) {
+            case RAISE:
+                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP) {
+                    return slidesAtTarget;
+                } else {
+                    return true;
+                }
             case COLLAPSE:
                 return timerComplete && slidesAtTarget;
             case EXTEND:
