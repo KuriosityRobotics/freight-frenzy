@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.RETURN_TURRET;
+import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.TURRET_IN;
 import static java.lang.Math.abs;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -14,33 +14,26 @@ import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
     //time constants
-    private static final long EXTEND_TIME = 1000;
-    private static final long DUMP_TIME = 1000;
-    private static final long TURRET_TIME = 750; // if the turret isn't already straight
+    private static final long EXTEND_TIME = 500;
+    private static final long DUMP_TIME = 500;
+    private static final long TURRET_TIME = 250; // if the turret isn't already straight
 
-    // intake clamp pos:  .82761
-    // clamp clamp pos:  .5277
-    // clamp release pos:  .9025
-    private static final double CLAMP_INTAKE = .82761,
-            CLAMP_CLAMP = .5277,
-            CLAMP_RELEASE = .9025;
-    // linkage in = .77067
-    // linkage extended:  .167304
-    private static final double LINKAGE_IN = .77067,
-            LINKAGE_EXTENDED = .167304;
+    private static final double CLAMP_INTAKE = .814367,
+            CLAMP_CLAMP = .7082708,
+            CLAMP_RELEASE = 0.890738;
+    private static final double LINKAGE_IN = .140102,
+            LINKAGE_EXTENDED = .8777921;
     // pivot down:  .993
     // pivot in:  .0060539
     private static final double PIVOT_OUT = .993,
+            PIVOT_UP = 0.5,
             PIVOT_IN = .0060539;
 
-    // turret @ -pi/2:  .78988
-    // turret @ pi:  .4896
-    // turret @ pi/2 .1906
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
-        STRAIGHT(.4896),
-        RIGHT(.1906),
-        LEFT(.78988);
+        STRAIGHT(.482746),
+        RIGHT(.78988),
+        LEFT(.186781);
 
         private final double position;
 
@@ -50,9 +43,9 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        TOP_TOP(-1535),
-        TOP(-1275),
-        MID(-575),
+        TOP_TOP(-1150),
+        TOP(-900),
+        MID(-350),
         DOWN(-2);
 
         private final int position;
@@ -70,7 +63,8 @@ public class OuttakeModule implements Module, Telemeter {
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),
-        RETURN_TURRET(0),
+        RETRACT(EXTEND_TIME),
+        TURRET_IN(0),
         COLLAPSE(0);
 
         public final long completionTime;
@@ -82,22 +76,32 @@ public class OuttakeModule implements Module, Telemeter {
 
     private boolean phaseComplete() {
         long currentTime = System.currentTimeMillis();
-        boolean timerComplete = currentTime > transitionTime + currentState.completionTime;
+        boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
         boolean slidesAtTarget = abs(slide.getCurrentPosition() - slide.getTargetPosition()) < 50;
 
-        if (currentState == COLLAPSE) {
-            return timerComplete && slidesAtTarget;
-        } else if (currentState == EXTEND) {
-            if (targetTurret == TurretPosition.STRAIGHT) {
+        switch (currentState) {
+            case COLLAPSE:
                 return timerComplete && slidesAtTarget;
-            } else {
-                return currentTime >= (transitionTime + currentState.completionTime + TURRET_TIME) && slidesAtTarget;
-            }
-        } else if (currentState == RETURN_TURRET) {
-            if (targetTurret == TurretPosition.STRAIGHT)
-                return currentTime >= (transitionTime + currentState.completionTime + TURRET_TIME);
+            case EXTEND:
+                if (targetTurret == TurretPosition.STRAIGHT) {
+                    return timerComplete && slidesAtTarget;
+                } else {
+                    return currentTime >= (transitionTime + currentState.completionTime + TURRET_TIME) && slidesAtTarget;
+                }
+            case RETRACT:
+                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP) {
+                    return true;
+                } else {
+                    return timerComplete;
+                }
+            case TURRET_IN:
+                if (targetTurret == TurretPosition.STRAIGHT)
+                    return timerComplete;
+                else
+                    return currentTime >= (transitionTime + currentState.completionTime + TURRET_TIME);
+            default:
+                return timerComplete;
         }
-        return timerComplete;
     }
 
     private final Robot robot;
@@ -129,7 +133,7 @@ public class OuttakeModule implements Module, Telemeter {
         linkage = robot.getServo("outtakeLinkage");
         pivot = robot.getServo("outtakePivot");
         clamp = robot.getServo("outtakeClamp");
-        turret = robot.getServo("turret");
+        turret = robot.getServo("outtakeTurret");
 
         slide = robot.getDcMotor("lift");
 
@@ -141,13 +145,16 @@ public class OuttakeModule implements Module, Telemeter {
         pivot.setPosition(PIVOT_IN);
         linkage.setPosition(LINKAGE_IN);
 
-        targetSlideLevel = VerticalSlideLevel.DOWN;
-        currentState = OuttakeState.COLLAPSE;
+        this.targetSlideLevel = VerticalSlideLevel.DOWN;
+        this.targetState = COLLAPSE;
+        this.targetTurret = TurretPosition.STRAIGHT;
+
+        this.currentState = OuttakeState.COLLAPSE;
     }
 
     public void skipToCollapse() {
         this.targetState = COLLAPSE;
-        this.currentState = RETURN_TURRET;
+        this.currentState = TURRET_IN;
     }
 
     String lastRan = "";
@@ -156,7 +163,7 @@ public class OuttakeModule implements Module, Telemeter {
         if (phaseComplete() && currentState != targetState) {
             lastRan = currentState.name();
 
-            currentState = OuttakeState.values()[currentState.ordinal() + 1];
+            currentState = OuttakeState.values()[currentState.ordinal() + 1 >= OuttakeState.values().length ? 0 : currentState.ordinal() + 1];
 
             switch (this.currentState) {
                 case RAISE:
@@ -170,7 +177,11 @@ public class OuttakeModule implements Module, Telemeter {
                 case DUMP:
                     clamp.setPosition(CLAMP_RELEASE);
                     break;
-                case RETURN_TURRET:
+                case RETRACT:
+                    linkage.setPosition(LINKAGE_IN);
+                    break;
+                case TURRET_IN:
+                    pivot.setPosition(PIVOT_UP);
                     turret.setPosition(TurretPosition.STRAIGHT.position);
                     break;
                 case COLLAPSE:
@@ -190,16 +201,22 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setPower(1);
         }
 
-        if (currentState == EXTEND && phaseComplete()) {
+        if (currentState != COLLAPSE) {
             slide.setTargetPosition(targetSlideLevel.position);
-            pivot.setPosition(targetTurret.position);
+        }
+
+        if (currentState == EXTEND && atTargetState()) {
+            turret.setPosition(targetTurret.position);
         }
     }
 
     @Override
     public void onClose() {
         // set servo outside of PWM limit to disable them
-        turret.setPosition(1.5);
+//        linkage.getController().pwmDisable();
+//        turret.setPosition(1.5);
+//        linkage.setPosition(4000);
+//        pivot.setPosition(1.5);
     }
 
     public boolean atTargetState() {

@@ -62,10 +62,10 @@ public class TeleOp extends LinearOpMode {
 
     private void updateOuttakeStates() {
         if ((gamepad2.left_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.DUMP;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
 
         if (dpad_up.isSelected(gamepad2.dpad_up)) {
-            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE) {
+            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
                 robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
                 robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
             } else {
@@ -79,18 +79,19 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
         } else if (gamepad2.dpad_down) {
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
             robot.outtakeModule.skipToCollapse();
         }
 
          if (gamepad2.y) {
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         } else if (gamepad2.x) {
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.LEFT;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         } else if (gamepad2.b) {
              robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
-             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
          }
     }
 

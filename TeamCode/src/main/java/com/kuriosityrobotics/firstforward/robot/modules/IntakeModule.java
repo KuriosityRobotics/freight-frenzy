@@ -1,11 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.GOBILDA_1620_PPR;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_LEFT_EXTENDED_POS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_LEFT_RETRACTED_POS;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RETRACT_TIME;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RIGHT_EXTENDED_POS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RIGHT_RETRACTED_POS;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RPM_EPSILON;
 
@@ -28,9 +24,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class IntakeModule implements Module, Telemeter {
+    public static final double INTAKE_RIGHT_EXTENDED_POS = 0.0168;
+    public static final double INTAKE_RIGHT_RETRACTED_POS = 0.6860951;
+    public static final double INTAKE_LEFT_EXTENDED_POS = 0.949761;
+    public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
+
     private static final double HOLD_POWER = 1;
     public volatile double lastSd = 0;
 
@@ -119,9 +119,10 @@ public class IntakeModule implements Module, Telemeter {
         this.extenderLeft = robot.hardwareMap.servo.get("extenderLeft");
         this.extenderRight = robot.hardwareMap.servo.get("extenderRight");
         this.intakeMotor = (DcMotorEx) robot.hardwareMap.dcMotor.get("intake");
-        this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
 
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
 
         robot.telemetryDump.registerTelemeter(this);
     }

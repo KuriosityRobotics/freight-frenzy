@@ -20,11 +20,6 @@ public class Constants {
         public static final double INTAKE_EXTEND_TIME = 1500;
         public static final double INTAKE_RETRACT_TIME = 1500;
 
-        public static final double INTAKE_RIGHT_EXTENDED_POS = 0.046138;
-        public static final double INTAKE_RIGHT_RETRACTED_POS = 0.71301;
-        public static final double INTAKE_LEFT_EXTENDED_POS = 0.6901468;
-        public static final double INTAKE_LEFT_RETRACTED_POS = 0.00;
-
         public static final int RING_BUFFER_CAPACITY = 100;
     }
 
