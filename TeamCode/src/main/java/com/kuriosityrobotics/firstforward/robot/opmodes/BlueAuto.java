@@ -2,13 +2,12 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ExtendOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -57,8 +56,8 @@ public class BlueAuto extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         ArrayList<Action> other = new ArrayList<>();
-        other.add(new RaiseOuttakeAction(robot.visionThread.teamMarkerDetector.getLocation().slideLevel()));
-        wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
+        other.add(new ExtendOuttakeAction(robot.visionThread.teamMarkerDetector.getLocation().slideLevel()));
+        wobbleActions.add(new DumpOuttakeAction());
         PurePursuit toWobble = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
                 new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),

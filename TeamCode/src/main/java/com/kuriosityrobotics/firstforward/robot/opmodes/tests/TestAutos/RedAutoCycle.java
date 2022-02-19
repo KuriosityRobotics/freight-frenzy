@@ -9,7 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ExtendOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -61,9 +61,9 @@ public class RedAutoCycle extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
+        wobbleActions.add(new DumpOuttakeAction());
         PurePursuit carouselToWobble = new PurePursuit(robot, new WayPoint[]{
-                new WayPoint(CAROUSEL, new RaiseOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
+                new WayPoint(CAROUSEL, new ExtendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
@@ -130,8 +130,8 @@ public class RedAutoCycle extends LinearOpMode {
 
     public PurePursuit createOutTakeAction(OuttakeModule.VerticalSlideLevel level, Robot robot) {
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new RaiseOuttakeAction(level));
-        wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
+        wobbleActions.add(new ExtendOuttakeAction(level));
+        wobbleActions.add(new DumpOuttakeAction());
         return new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(WOBBLE, 0, wobbleActions),
         }, 4);

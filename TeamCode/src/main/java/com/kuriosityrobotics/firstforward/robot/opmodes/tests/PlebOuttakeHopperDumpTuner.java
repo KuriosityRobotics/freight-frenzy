@@ -14,7 +14,7 @@ public class PlebOuttakeHopperDumpTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        dump = hardwareMap.get(Servo.class, "hopper");
+        dump = hardwareMap.get(Servo.class, "outtakeClamp");
 
         waitForStart();
 

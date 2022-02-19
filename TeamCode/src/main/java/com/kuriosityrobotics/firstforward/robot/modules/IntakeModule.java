@@ -1,21 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.GOBILDA_1620_PPR;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_DEACCEL_SD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_LEFT_EXTENDED_POS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_LEFT_RETRACTED_POS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_OCCUPIED_SD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RETRACT_TIME;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RIGHT_EXTENDED_POS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RIGHT_RETRACTED_POS;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RPM_EPSILON;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.MathUtil;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -26,16 +20,23 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Queue;
 
 public class IntakeModule implements Module, Telemeter {
+    public static final double INTAKE_RIGHT_EXTENDED_POS = 0.0168;
+    public static final double INTAKE_RIGHT_RETRACTED_POS = 0.6860951;
+    public static final double INTAKE_LEFT_EXTENDED_POS = 0.949761;
+    public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
+
     private static final double HOLD_POWER = 1;
-    public volatile double lastSd = 0;
 
     private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
 
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
+
+    private final AnalogDistance distanceSensor;
 
     private Robot robot;
 
@@ -45,21 +46,40 @@ public class IntakeModule implements Module, Telemeter {
 
     private Long intakerRetractionStartTime;
     private volatile boolean intakeOccupied = false;
+    private volatile boolean newIntakeOccupied = false;
     private boolean started = false;
 
     List<Double> avgRPMs;
 
-    private boolean hasOccupationStatusChanged() {
-        if (getRPM() < 500 || intakePower < 0.1 || intakeRpmRingBuffer.isEmpty())
-            return false;
+    private static final double CLOSE_THRESHOLD = 42;
+    private static final double FAR_THRESHOLD = 70;
 
-        avgRPMs = new ArrayList<>(RING_BUFFER_CAPACITY / 10);
-        for (int i = 0; i < RING_BUFFER_CAPACITY; i += 10)
-            avgRPMs.add(MathUtil.mean(intakeRpmRingBuffer, i, 10));
+    Queue<Double> queue = new CircularFifoQueue<>(15);
 
-        double sd = MathUtil.sd(avgRPMs);
-        lastSd = sd;
-//        return sd > INTAKE_OCCUPIED_SD;
+    private boolean mineralInIntake() {
+        double reading = getDistanceSensorReading();
+        queue.add(reading);
+
+        // needs to be tuned
+        if (reading < CLOSE_THRESHOLD) {
+            // if last 4 are all positives it's a go
+            Object[] queueArray = queue.toArray();
+            for (int i = queueArray.length - 1; i > queueArray.length - 5; i--) {
+                if (((double) queueArray[i]) > CLOSE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (reading < FAR_THRESHOLD) {
+            // if last 10 are all positives it's a go
+            Object[] queueArray = queue.toArray();
+            for (int i = queueArray.length - 1; i > queueArray.length - 10; i--) {
+                if (((double) queueArray[i]) > FAR_THRESHOLD) {
+                    return false;
+                }
+            }
+            return true;
+        }
         return false;
     }
 
@@ -91,15 +111,11 @@ public class IntakeModule implements Module, Telemeter {
         this.extenderRight = robot.hardwareMap.servo.get("extenderRight");
         this.intakeMotor = (DcMotorEx) robot.hardwareMap.dcMotor.get("intake");
 
-        intakeMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
 
         robot.telemetryDump.registerTelemeter(this);
-    }
-
-    public double getRPM() {
-        synchronized (intakeRpmRingBuffer) {
-            return intakeRpmRingBuffer.get(intakeRpmRingBuffer.size() - 1); // hopefully this is the most, not least, recent element
-        }
     }
 
     public void setIntakePosition(IntakePosition intakePosition) {
@@ -129,7 +145,7 @@ public class IntakeModule implements Module, Telemeter {
                 started = true;
             }
 
-            doOccupationStatusProcessing();
+//            doOccupationStatusProcessing();
 
             // If we're done retracting (or the driver has pushed
             // the intake joystick up, we should re-extend
@@ -139,11 +155,10 @@ public class IntakeModule implements Module, Telemeter {
 
             // If the intake is occupied and we haven't
             // started retracting yet, we should do that.
-            if (intakeOccupied && !inRetractionState())
-                if (robot.outtakeModule.readyForIntake())
+            newIntakeOccupied = mineralInIntake();
+            if (newIntakeOccupied && !inRetractionState())
+                if (robot.outtakeModule.collapsed())
                     startIntakeRetraction();
-                else
-                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
 
             intakeMotor.setPower(
                     inRetractionState() ? HOLD_POWER : intakePower
@@ -159,7 +174,6 @@ public class IntakeModule implements Module, Telemeter {
     private void startIntakeRetraction() {
         setIntakePosition(IntakePosition.RETRACTED);
         intakerRetractionStartTime = SystemClock.elapsedRealtime();
-
     }
 
     private boolean doneRetracting() {
@@ -167,23 +181,10 @@ public class IntakeModule implements Module, Telemeter {
                 >= INTAKE_RETRACT_TIME;
     }
 
-    private void doOccupationStatusProcessing() {
-        intakeRpmRingBuffer.add(intakeMotor.getVelocity() * 60 / GOBILDA_1620_PPR);
-
-        // since it's a ring buffer we could make the following more efficient
-        // but it's literally ten elements so it doesn't matter
-        if (getRPM() < RPM_EPSILON) {
-            intakeOccupied = false;
-        } else if (hasOccupationStatusChanged()) {
-            intakeOccupied = hasDecelerated();
-            fill(intakeRpmRingBuffer, getRPM()); // heinous hackery to set the stddev to 0
-        }
-    }
-
     private synchronized void startIntakeExtension() {
         if (robot != null) {
-            robot.outtakeModule.hopperOccupied();
-            robot.outtakeModule.raise();
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
         intakeOccupied = false;
         intakerRetractionStartTime = null;
@@ -194,6 +195,10 @@ public class IntakeModule implements Module, Telemeter {
         return intakerRetractionStartTime != null;
     }
 
+    public double getDistanceSensorReading() {
+        return distanceSensor.getSensorReading();
+    }
+
     public boolean isOn() {
         return isOn;
     }
@@ -202,12 +207,15 @@ public class IntakeModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format(Locale.US, "Intake speed (RPM): %f", getRPM()));
 //        data.add("retract: " + inRetractionState());
         data.add(String.format(Locale.US, "Intake position:  %s", intakePosition));
         data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));
 //        data.add(String.format(Locale.US, "sd:  %f", lastSd));
 //        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
+
+        data.add("--");
+        data.add(String.format(Locale.US, "Distance sensor reading: %s", getDistanceSensorReading()));
+        data.add(String.format(Locale.US, "Mineral is in intake: %b", newIntakeOccupied));
 
         return data;
     }

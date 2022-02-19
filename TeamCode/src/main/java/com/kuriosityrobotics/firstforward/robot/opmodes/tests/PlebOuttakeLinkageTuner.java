@@ -17,8 +17,6 @@ public class PlebOuttakeLinkageTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         linkage = hardwareMap.get(Servo.class, "outtakeLinkage");
-        dump = hardwareMap.get(Servo.class, "hopper");
-        pivot = hardwareMap.get(Servo.class, "pivot");
 
         waitForStart();
 
