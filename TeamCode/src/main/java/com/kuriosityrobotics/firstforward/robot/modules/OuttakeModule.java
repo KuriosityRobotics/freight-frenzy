@@ -196,6 +196,12 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
+    @Override
+    public void onClose() {
+        // set servo outside of PWM limit to disable them
+        turret.setPosition(1.5);
+    }
+
     public boolean atTargetState() {
         return atState(targetState);
     }

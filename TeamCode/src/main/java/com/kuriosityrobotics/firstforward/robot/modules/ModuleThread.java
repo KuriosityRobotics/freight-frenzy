@@ -58,6 +58,12 @@ public class ModuleThread implements Runnable, Telemeter {
             timeOfLastUpdate = currentTime;
         }
 
+        for (Module module : modules) {
+            if (module.isOn()) {
+                module.onClose();
+            }
+        }
+
         Log.v("ModuleThread", "Exited due to opMode no longer being active.");
     }
 
