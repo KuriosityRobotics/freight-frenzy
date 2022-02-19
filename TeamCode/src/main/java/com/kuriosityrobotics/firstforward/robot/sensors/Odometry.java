@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -229,7 +227,7 @@ public class Odometry implements Telemeter {
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
+        data.add("worldHeading: " + Math.toDegrees((worldHeadingRad)));
 
         return data;
     }
