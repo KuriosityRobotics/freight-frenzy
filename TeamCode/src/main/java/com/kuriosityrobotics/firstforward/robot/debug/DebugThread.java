@@ -18,7 +18,9 @@ public class DebugThread implements Runnable, Telemeter {
         this.robot = robot;
         this.isOn = isOn;
 
-        FileDump.activate();
+        if (this.isOn) {
+            FileDump.activate();
+        }
     }
 
     @Override

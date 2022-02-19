@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
@@ -61,7 +60,7 @@ public class Odometry implements Telemeter {
 
     // Constants
     private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
-    private static final double LR_ENCODER_DIST_FROM_CENTER = ((4.75 / 2) / 1.005555) * 0.99805556;
+    private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double M_ENCODER_DIST_FROM_CENTER = 3;
 
     public Odometry(Robot robot, Pose pose) {
@@ -247,7 +246,7 @@ public class Odometry implements Telemeter {
 
     /**
      * Get the robot's current pose, containing x, y, and heading.
-     *
+     * <p>
      * There is only one getter method to reduce the likelihood of values changing between getters.
      *
      * @return
