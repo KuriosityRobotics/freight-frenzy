@@ -5,7 +5,6 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
@@ -33,7 +32,7 @@ public class VisionThread implements Runnable, Telemeter {
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> telemetryData = new ArrayList<>();
-        telemetryData.addAll(vuforiaLocalizationConsumer.logPositionandDetection());
+        telemetryData.addAll(vuforiaLocalizationConsumer.logPositionAndDetection());
         telemetryData.add("Team marker location: " + teamMarkerDetector.getLocation());
         telemetryData.add("Update time: " + updateTime);
         return telemetryData;
@@ -53,18 +52,18 @@ public class VisionThread implements Runnable, Telemeter {
     public void run() {
         try {
             OpenCVDumper openCVDumper = new OpenCVDumper(robot.isDebug());
-            CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot.sensorThread);
+            //CargoDetectorConsumer cargoDetector = new CargoDetectorConsumer(robot.sensorThread);
 
             this.managedCamera = new ManagedCamera(
                     robot.camera,
                     vuforiaLocalizationConsumer,
                     openCVDumper,
-                    teamMarkerDetector,
-                    cargoDetector
+                    teamMarkerDetector
+                    //cargoDetector
             );
 
             robot.telemetryDump.registerTelemeter(this);
-            robot.telemetryDump.registerTelemeter(cargoDetector);
+            //robot.telemetryDump.registerTelemeter(cargoDetector);
 
             Log.v("VisionThread", "Done initing camera");
 
