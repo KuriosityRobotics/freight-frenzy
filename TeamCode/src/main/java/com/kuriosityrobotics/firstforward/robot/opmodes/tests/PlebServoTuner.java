@@ -15,7 +15,6 @@ public class PlebServoTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Orientation.getRotationMatrix()
 //        servo = hardwareMap.servo.get("extenderRight");
         // turret -/ pivot
         var a = hardwareMap.servo.get("0");

@@ -7,7 +7,6 @@ import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -59,47 +58,40 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
-    Button extendMode = new Button();
+    Button dpad_up = new Button();
 
     private void updateOuttakeStates() {
+        if ((gamepad2.left_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.DUMP;
 
-        if (gamepad2.left_bumper)
-            robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_INWARDS);
-        else if (gamepad2.right_bumper)
-            robot.outtakeModule.dump(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS);
-
-        boolean dpad_up = extendMode.isToggled(gamepad2.dpad_up);
-        if (gamepad2.dpad_up) {
-            robot.outtakeModule.raise();
-
-            if(robot.outtakeModule.getSlideLevel() == OuttakeModule.VerticalSlideLevel.TOP || robot.outtakeModule.getSlideLevel() == OuttakeModule.VerticalSlideLevel.TOP_TOP) {
-//                maxExtend = !maxExtend;
-
-                if (!dpad_up)
-                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP_TOP);
-                else
-                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
+        if (dpad_up.isSelected(gamepad2.dpad_up)) {
+            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE) {
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
             } else {
-                extendMode = new Button();
-                robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.TOP);
+                if (robot.outtakeModule.targetSlideLevel == OuttakeModule.VerticalSlideLevel.TOP) {
+                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP_TOP;
+                } else {
+                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                }
             }
-
         } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
-            robot.outtakeModule.raise();
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.MID);
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
         } else if (gamepad2.dpad_down) {
-            robot.outtakeModule.raise();
-            robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
+            robot.outtakeModule.skipToCollapse();
         }
-        if (gamepad2.x)
-            robot.outtakeModule.pivot270();
-        else if (gamepad2.y)
-            robot.outtakeModule.pivotStraight();
-        else if (gamepad2.b)
-            robot.outtakeModule.pivotRight();
-//        else if (gamepad2.b)
-//            robot.outtakeModule.pivot270();
 
+         if (gamepad2.y) {
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+        } else if (gamepad2.x) {
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.LEFT;
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+        } else if (gamepad2.b) {
+             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
+             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.WAITING_DUMP;
+         }
     }
 
     private void updateCarouselStates() {

@@ -171,10 +171,8 @@ public class IntakeModule implements Module, Telemeter {
             // started retracting yet, we should do that.
             newIntakeOccupied = mineralInIntake();
             if (newIntakeOccupied && !inRetractionState())
-                if (robot.outtakeModule.readyForIntake())
+                if (robot.outtakeModule.collapsed())
                     startIntakeRetraction();
-                else
-                    robot.outtakeModule.setSlideLevel(OuttakeModule.VerticalSlideLevel.DOWN);
 
             intakeMotor.setPower(
                     inRetractionState() ? HOLD_POWER : intakePower
@@ -213,8 +211,7 @@ public class IntakeModule implements Module, Telemeter {
 
     private synchronized void startIntakeExtension() {
         if (robot != null) {
-            robot.outtakeModule.hopperOccupied();
-            robot.outtakeModule.raise();
+            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
         intakeOccupied = false;
         intakerRetractionStartTime = null;

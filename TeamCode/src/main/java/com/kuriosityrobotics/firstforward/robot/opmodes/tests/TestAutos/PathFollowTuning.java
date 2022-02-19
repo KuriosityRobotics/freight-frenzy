@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
@@ -10,7 +9,6 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.RaiseOuttakeAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -53,7 +51,7 @@ public class PathFollowTuning extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
+        wobbleActions.add(new DumpOuttakeAction());
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(new IntakeAction());
