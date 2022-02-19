@@ -13,6 +13,10 @@ public abstract class Action {
      */
     @SuppressWarnings("unused")
     public void execute() {
+        if (isCompleted()) {
+            isStarted = false;
+            completed = false;
+        }
         while (!this.isCompleted()) {
             this.tick();
         }
