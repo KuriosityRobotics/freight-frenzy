@@ -63,8 +63,8 @@ public class OuttakeModule implements Module, Telemeter {
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),
-        RETRACT(EXTEND_TIME),
         TURRET_IN(0),
+        RETRACT(EXTEND_TIME),
         COLLAPSE(0);
 
         public final long completionTime;
@@ -214,15 +214,6 @@ public class OuttakeModule implements Module, Telemeter {
         if (currentState == EXTEND && atTargetState()) {
             turret.setPosition(targetTurret.position);
         }
-    }
-
-    @Override
-    public void onClose() {
-        // set servo outside of PWM limit to disable them
-//        linkage.getController().pwmDisable();
-//        turret.setPosition(1.5);
-//        linkage.setPosition(4000);
-//        pivot.setPosition(1.5);
     }
 
     public boolean atTargetState() {

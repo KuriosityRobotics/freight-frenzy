@@ -51,26 +51,35 @@ public class IntakeModule implements Module, Telemeter {
 
     List<Double> avgRPMs;
 
-    Queue<Boolean> queue = new CircularFifoQueue<>(10);
+    private static final double CLOSE_THRESHOLD = 42;
+    private static final double FAR_THRESHOLD = 70;
+
+    Queue<Double> queue = new CircularFifoQueue<>(15);
 
     private boolean mineralInIntake() {
-        // needs to be tuned
-        if (getDistanceSensorReading() < 42) {
-            Log.v("intake", "true");
-            queue.add(true);
-            return true;
-        } else if (getDistanceSensorReading() < 70) {
-            queue.add(true);
+        double reading = getDistanceSensorReading();
+        queue.add(reading);
 
-            Boolean[] queueArray = queue.toArray(new Boolean[]{});
-            for (int i = 0; i < queueArray.length; i++) {
-                if (!queueArray[i]) {
+        // needs to be tuned
+        if (reading < CLOSE_THRESHOLD) {
+            // if last 4 are all positives it's a go
+            Object[] queueArray = queue.toArray();
+            for (int i = queueArray.length - 1; i > queueArray.length - 5; i--) {
+                if (((double) queueArray[i]) > CLOSE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (reading < FAR_THRESHOLD) {
+            // if last 10 are all positives it's a go
+            Object[] queueArray = queue.toArray();
+            for (int i = queueArray.length - 1; i > queueArray.length - 10; i--) {
+                if (((double) queueArray[i]) > FAR_THRESHOLD) {
                     return false;
                 }
             }
             return true;
         }
-        queue.add(false);
         return false;
     }
 
