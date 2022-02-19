@@ -237,7 +237,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     @Override
     public boolean isOn() {
-        return true;
+        return false;
     }
 
     @Override

@@ -78,5 +78,4 @@ public class CarouselModule implements Module, Telemeter {
 
         return data;
     }
-
 }

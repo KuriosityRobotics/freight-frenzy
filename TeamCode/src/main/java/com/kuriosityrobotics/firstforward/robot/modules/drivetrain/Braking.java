@@ -23,6 +23,8 @@ final class Braking {
     }
 
     Pose getBrakeMovement(Pose currentPose, Pose velocity) {
+        return new Pose(0, 0, 0);
+        /*
         // we stop braking when the velocity is low (brake is a synonym for 'stop')
         // TODO:  tune this constant
         if (Math.hypot(velocity.x, velocity.y) < 0.1 && velocity.heading < Math.PI / 12) {
@@ -46,6 +48,8 @@ final class Braking {
         double rotationSpeed = angularBrakeController.calculateSpeed(angleWrap(brakePose.heading - currentPose.heading)) * 0.65;
 
         return new Pose(translationSpeed, rotationSpeed);
+
+         */
     }
 
     Pose getBrakePose() {
