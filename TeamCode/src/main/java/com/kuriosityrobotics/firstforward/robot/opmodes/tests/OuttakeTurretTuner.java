@@ -8,23 +8,24 @@ import com.qualcomm.robotcore.hardware.Servo;
 @Disabled
 @TeleOp
 public class OuttakeTurretTuner extends LinearOpMode {
-    Servo pivot;
+    Servo servo;
 
-    double pivotPos = 0.906181;
+    double servoPos = 0.5;
 
     @Override
     public void runOpMode() {
-        pivot = hardwareMap.get(Servo.class, "outtakeTurret");
+//        servo = hardwareMap.servo.get("extenderRight");
+        servo = hardwareMap.servo.get("webcamPivot");
 
         waitForStart();
 
-        pivot.setPosition(pivotPos);
+        servo.setPosition(servoPos);
 
         while (opModeIsActive()) {
-            pivotPos += gamepad1.right_stick_y * 0.00005;
-            pivot.setPosition(pivotPos);
+            servoPos += gamepad1.right_stick_y * 0.0003;
+            servo.setPosition(servoPos);
 
-            telemetry.addData("turret pos: ", pivotPos);
+            telemetry.addData("extender pos: ", servoPos);
             telemetry.update();
         }
     }
