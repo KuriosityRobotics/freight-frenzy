@@ -24,6 +24,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoControllerEx;
@@ -59,9 +60,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD),
             new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE)
     };
-
-    // Max viable camera rotation
-    private static final double CAM_MAX_ROTATION = Math.toRadians(15);
 
     private final WebcamName cameraName;
 
@@ -152,10 +150,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
 
                     Orientation rot = Orientation.getOrientation(vuMarkPoseRelativeToCamera, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+                    VectorF trans = vuMarkPoseRelativeToCamera.getTranslation();
 
                     if (robotLocationTransform != null && vuMarkPoseRelativeToCamera != null) {
                         this.detectedData = robotLocationTransform;
-                        this.detectedPeripheralAngle = (double)rot.secondAngle;
+
+                        double tX = trans.get(0);
+                        double tZ = trans.get(2);
+                        this.detectedPeripheralAngle = angleWrap(Math.abs(Math.PI/2 + Math.atan2(-tZ, tX)));
                     } else {
                         Log.d("Vision", "Cannot detect robot location although trackable is visible");
                     }
@@ -188,8 +190,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("No trackables detected");
             } else {
                 data.add("Detected Trackable: " + detectedTrackable.getName());
-                data.add("Peripheral Angle: " + detectedPeripheralAngle);
-                data.add("Actual Peripheral Angle: " + Math.toDegrees(Math.abs(angleWrap(Math.toRadians(detectedPeripheralAngle) - Math.PI))));
+                data.add("Peripheral Angle: " + Math.toDegrees(detectedPeripheralAngle));
             }
 
             return data;
@@ -206,11 +207,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
             try {
-                if (!robot.visionThread.getManagedCamera().vuforiaActive || detectedData == null) {
+                if (!robot.visionThread.getManagedCamera().vuforiaActive) {
                     return null;
                 }
 
-                if (Math.abs(angleWrap(Math.toRadians(detectedPeripheralAngle) - Math.PI)) >= Math.toRadians(15)){
+                if (detectedData == null) {
+                    return null;
+                }
+
+                if (detectedPeripheralAngle >= Math.toRadians(15)){
+                    return null;
+                }
+
+                if (Math.abs(robot.sensorThread.getVelocity().heading) > 0.2){
                     return null;
                 }
 

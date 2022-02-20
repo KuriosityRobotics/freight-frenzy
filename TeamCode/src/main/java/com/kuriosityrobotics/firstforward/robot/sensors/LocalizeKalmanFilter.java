@@ -27,8 +27,10 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
             {Math.pow(4, 2), 0, 0},
             {0, Math.pow(4, 2), 0},
-            {0, 0, Math.pow(Math.toRadians(4), 2)}
+            {0, 0, Math.pow(Math.toRadians(15), 2)}
     });
+
+    String strat = "";
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
         this.matrixPose = new RealMatrix[]{matrixPose, STARTING_COVARIANCE};
@@ -47,9 +49,16 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      */
     void update(RealMatrix update, RealMatrix obs) {
         synchronized (this) {
-            if (update != null && obs == null) matrixPose = prediction(matrixPose, update);
-            else if (update == null && obs != null) matrixPose = correction(matrixPose, obs);
-            else if (update != null && obs != null) matrixPose = fuse(matrixPose, update, obs);
+            if (update != null && obs == null){
+                matrixPose = prediction(matrixPose, update);
+                strat = "prediction";
+            } else if (update == null && obs != null){
+                matrixPose = correction(matrixPose, obs);
+                strat = "correction";
+            }  else if (update != null && obs != null) {
+                matrixPose = fuse(matrixPose, update, obs);
+                strat = "fuse";
+            }
         }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -180,6 +189,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     @Override
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+
+        data.add("strat: " + strat);
 
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
         data.add("covar: " + MatrixUtil.toCovarianceString(matrixPose[1]));
