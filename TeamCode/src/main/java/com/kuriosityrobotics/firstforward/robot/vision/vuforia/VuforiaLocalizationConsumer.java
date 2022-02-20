@@ -26,6 +26,7 @@ import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoControllerEx;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -101,16 +102,20 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     private void setCameraAngle(double angle) {
+        Log.v("rotatecam", "angle " + angle);
         double rotationAngle = angle / (2 * Math.PI);
-        rotator.setPosition(rotationAngle * ((TURRET_270 - TURRET_90) / Math.PI));
+        rotator.setPosition(TURRET_90 + (rotationAngle * (TURRET_270 - TURRET_90)));
+        Log.v("rotatecam", "rotator pos " + (TURRET_180 + rotationAngle * (TURRET_270 - TURRET_90)));
     }
 
     private double getCamAngleTo(Point target) {
         Pose currentPosition = robot.sensorThread.getPose();
-        return Math.atan2(
+        double ret = Math.atan2(
                 currentPosition.x - target.x,
                 currentPosition.y - target.y
-        );
+        ) - Math.PI - robot.sensorThread.getPose().heading;
+        Log.v("rotatecam", "calculated angle " + ret);
+        return ret;
     }
 
     @Override
@@ -131,9 +136,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                         .min(Comparator.naturalOrder())
                         .orElse(0.);
                 if (isInRange(cameraAngle)) {
-                    setCameraAngle(cameraAngle);
+                    setCameraAngle(cameraAngle + robot.sensorThread.getPose().heading);
                     cameraLoc = OpenGLMatrix
-                            .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT + ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
+                            .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT - ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
                             .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(cameraAngle), (float) Math.toRadians(30)));
                 }
                 else {
@@ -191,6 +196,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("No trackables detected");
             } else {
                 data.add("Detected Trackable: " + detectedTrackable.getName());
+//                data.add("Detected Location: " + new Pose(getLocationRealMatrix().getEntry(0,0),
+//                        getLocationRealMatrix().getEntry(1,0),
+//                        getLocationRealMatrix().getEntry(2,0)));
             }
 
             return data;
@@ -234,7 +242,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     private boolean isInRange(double angle) {
-        return -CAM_MAX_ROTATION <= angle && angle <= CAM_MAX_ROTATION;
+        double difference = angle - robot.sensorThread.getPose().heading;
+        return -CAM_MAX_ROTATION <= difference || difference <= CAM_MAX_ROTATION;
     }
 
     // for debug

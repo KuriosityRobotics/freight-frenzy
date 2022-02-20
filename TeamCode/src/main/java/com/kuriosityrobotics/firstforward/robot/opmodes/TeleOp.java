@@ -20,7 +20,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         try {
             robot = new Robot(hardwareMap, telemetry, this, true);
-            robot.sensorThread.resetPose(new Pose(28, 64, Math.toRadians(-90)));
+            robot.sensorThread.resetPose(new Pose(28, 60, Math.toRadians(-90)));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
