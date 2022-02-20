@@ -38,7 +38,7 @@ public class PathFollowTuning extends LinearOpMode {
         Robot robot = null;
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-            robot.resetPose(RED_START_W);
+            robot.resetPose(BLUE_START_W);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
@@ -61,6 +61,12 @@ public class PathFollowTuning extends LinearOpMode {
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(new PauseAction());
         //intakeActions.add(new IntakeAction());
+        PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
+                new WayPoint(RED_START_W),
+                new WayPoint(RED_START_W.between(RED_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
+        }, 4, "start to wobble");
+
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W),
                 new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
@@ -75,25 +81,49 @@ public class PathFollowTuning extends LinearOpMode {
                 new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
         }, 4, "warehouse to wobble");
 
-        PurePursuit startwToWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(RED_START_W),
-                new WayPoint(RED_START_W.between(RED_WOBBLE_W), 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
+
+        PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
+                new WayPoint(BLUE_START_W),
+                new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WOBBLE_W, 0, wobbleActions)
         }, 4, "start to wobble");
 
-        PurePursuit carouselToStorage = new PurePursuit(new WayPoint[]{
+        PurePursuit blueWobbleToWarehouse = new PurePursuit(new WayPoint[]{
+                new WayPoint(BLUE_WOBBLE_W),
+                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WALL_GAP, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WAREHOUSE, 0, intakeActions)
+        }, 4, "wobble to warehouse");
+
+        PurePursuit blueWarehouseToWobble = new PurePursuit(new WayPoint[]{
+                new WayPoint(BLUE_WAREHOUSE),
+                new WayPoint(BLUE_WALL_GAP,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WOBBLE_W, 0, wobbleActions)
+        }, 4, "warehouse to wobble");
+
+        PurePursuit carouselToStorage  = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(CAROUSEL.between(STORAGE), 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(STORAGE, 0, new ArrayList<>())
         }, 5, "carousel to storage");
 
         waitForStart();
-
+        /*
         robot.followPath(startwToWobble);
 
         for (int  i = 0; i < 3; i++){
             robot.followPath(wobbleToWarehouse);
             robot.followPath(warehouseToWobble);
+        }
+
+         */
+
+        robot.followPath(blueStartwToWobble);
+
+        for (int i = 0; i < 3; i++){
+            robot.followPath(blueWobbleToWarehouse);
+            robot.followPath(blueWarehouseToWobble);
         }
     }
 }
