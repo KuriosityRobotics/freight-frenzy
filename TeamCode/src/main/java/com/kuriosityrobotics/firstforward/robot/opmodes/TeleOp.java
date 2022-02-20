@@ -29,9 +29,9 @@ public class TeleOp extends LinearOpMode {
         while (opModeIsActive()) {
             // yeet
             updateDrivetrainStates();
-            //updateIntakeStates();
-            //updateOuttakeStates();
-            //updateCarouselStates();
+            updateIntakeStates();
+            updateOuttakeStates();
+            updateCarouselStates();
         }
     }
 
