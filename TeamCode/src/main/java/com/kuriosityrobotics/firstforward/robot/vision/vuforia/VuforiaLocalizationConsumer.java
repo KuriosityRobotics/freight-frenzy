@@ -69,7 +69,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     // change states here
     private final Servo rotator;
-    public boolean doCameraRotation = true;
 
     private final Robot robot;
 
@@ -101,11 +100,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(180));
     }
 
+    // TODO: do rotate cam stuff
     private void setCameraAngle(double angle) {
-        Log.v("rotatecam", "angle " + angle);
         double rotationAngle = angle / (2 * Math.PI);
         rotator.setPosition(TURRET_90 + (rotationAngle * (TURRET_270 - TURRET_90)));
-        Log.v("rotatecam", "rotator pos " + (TURRET_180 + rotationAngle * (TURRET_270 - TURRET_90)));
     }
 
     private double getCamAngleTo(Point target) {
@@ -114,7 +112,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 currentPosition.x - target.x,
                 currentPosition.y - target.y
         ) - Math.PI - robot.sensorThread.getPose().heading;
-        Log.v("rotatecam", "calculated angle " + ret);
         return ret;
     }
 
@@ -129,30 +126,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 return;
             }
 
-            OpenGLMatrix cameraLoc;
-            if (doCameraRotation) {
-                // we do turret stuff
-                double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
-                        .min(Comparator.naturalOrder())
-                        .orElse(0.);
-                if (isInRange(cameraAngle)) {
-                    setCameraAngle(cameraAngle + robot.sensorThread.getPose().heading);
-                    cameraLoc = OpenGLMatrix
-                            .translation(SERVO_FORWARD_DISPLACEMENT + ((float) Math.sin(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_LEFT_DISPLACEMENT - ((float) Math.cos(cameraAngle) * CAMERA_VARIABLE_DISPLACEMENT), SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(cameraAngle), (float) Math.toRadians(30)));
-                }
-                else {
-                    rotator.setPosition(TURRET_180);
-                    cameraLoc = OpenGLMatrix
-                            .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), (float) Math.toRadians(30)));
-                }
-            } else { // the else condition is for kf verification
-                rotator.setPosition(TURRET_180);
-                cameraLoc = OpenGLMatrix
-                        .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                        .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), (float) Math.toRadians(30)));
-            }
+            OpenGLMatrix cameraLoc = OpenGLMatrix
+                    .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
+                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.toRadians(90), (float) Math.toRadians(90), (float) Math.toRadians(30)));;
 
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
                 VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
@@ -196,9 +172,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("No trackables detected");
             } else {
                 data.add("Detected Trackable: " + detectedTrackable.getName());
-//                data.add("Detected Location: " + new Pose(getLocationRealMatrix().getEntry(0,0),
-//                        getLocationRealMatrix().getEntry(1,0),
-//                        getLocationRealMatrix().getEntry(2,0)));
             }
 
             return data;
@@ -228,7 +201,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
                 double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-                logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
+//                logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
 
                 return MatrixUtils.createRealMatrix(new double[][]{
                         {robotXOurs},
