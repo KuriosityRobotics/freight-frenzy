@@ -11,7 +11,7 @@ public class StallDetector {
     // constants
     private static final int STALL_DETECTOR_CAPACITY = 300;
     // TODO: tune (should be mostly accurate)
-    private static final double STALL_EPSILON = 5;
+    private static final double STALL_EPSILON = 50;
 
     // data structures
     private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);

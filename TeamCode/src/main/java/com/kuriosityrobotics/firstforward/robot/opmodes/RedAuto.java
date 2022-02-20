@@ -75,11 +75,11 @@ public class RedAuto extends LinearOpMode {
         // DETECT the THING
 
         // go to carousel
-        toCarousel.follow();
+        toCarousel.follow(true);
 
         // to wobble
-        toWobble.follow();
+        toWobble.follow(false);
 
-        toPark.follow();
+        toPark.follow(false);
     }
 }

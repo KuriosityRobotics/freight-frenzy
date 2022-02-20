@@ -83,7 +83,7 @@ public class PathFollowTuning extends LinearOpMode {
 
         waitForStart();
 
-        startwToWobble.follow();
+        startwToWobble.follow(false);
 
     }
 }

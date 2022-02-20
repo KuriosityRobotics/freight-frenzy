@@ -35,7 +35,7 @@ public class SimpleAuto extends LinearOpMode {
         waitForStart();
 
         // go to carousel
-        park.follow();
+        park.follow(false);
 //        long startTime = SystemClock.elapsedRealtime();
 //        while (SystemClock.elapsedRealtime() < startTime + 1500) {
 //            robot.drivetrain.setMovements(0, 0.5, 0);

@@ -87,6 +87,10 @@ public class Drivetrain implements Module, Telemeter {
         return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
     }
 
+    public StallDetector getStallDetector() {
+        return this.stallDetector;
+    }
+
     @Override
     public boolean isOn() {
         return isOn;

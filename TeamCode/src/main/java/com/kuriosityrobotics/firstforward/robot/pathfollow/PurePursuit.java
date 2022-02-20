@@ -66,7 +66,38 @@ public class PurePursuit implements Telemeter {
         this(robot, path, false, followRadius);
     }
 
-    public void follow() {
+    public void follow(boolean flag) {
+        if (flag) {
+            followWithStallDetection();
+        } else {
+            followWithOutStallDetection();
+        }
+    }
+
+    private void followWithStallDetection() {
+        robot.telemetryDump.registerTelemeter(this);
+
+        while (robot.isOpModeActive()) {
+            if (robot.drivetrain.getStallDetector().isStalled()) { // if we're stalled, we're going to get out of this loop
+                break;
+            }
+
+            boolean atEnd = atEnd();
+            if (atEnd && !executedLastAction) {
+                actionExecutor.execute(path[path.length - 1]);
+                executedLastAction = true;
+            } else if (atEnd && executedLastAction && actionExecutor.doneExecuting()) {
+                robot.drivetrain.setMovements(0, 0, 0);
+                break;
+            }
+
+            this.update();
+        }
+
+        robot.telemetryDump.removeTelemeter(this);
+    }
+
+    private void followWithOutStallDetection() {
         robot.telemetryDump.registerTelemeter(this);
 
         while (robot.isOpModeActive()) {
