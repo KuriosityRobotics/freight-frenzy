@@ -89,9 +89,9 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         });
 
         RealMatrix M = MatrixUtils.createRealMatrix(new double[][]{
-                {0.0015 * Math.pow(odoDX, 2), 0, 0},
-                {0, 0.0015 * Math.pow(odoDY, 2), 0},
-                {0, 0, 0.00017 * Math.pow(odoDTheta, 2)}
+                {Math.pow(0.8 * odoDX, 2), 0, 0},
+                {0, Math.pow(0.8 * odoDY, 2), 0},
+                {0, 0, Math.pow(0.8 * odoDTheta, 2)}
         }); // plugged in random values for now, would want to make acceleration (slip) based, this is basically error per update
 
         // calculate
