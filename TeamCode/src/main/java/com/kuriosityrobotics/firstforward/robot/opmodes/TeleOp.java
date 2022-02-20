@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -18,7 +19,8 @@ public class TeleOp extends LinearOpMode {
     @Override
     public void runOpMode() {
         try {
-            robot = new Robot(hardwareMap, telemetry, this, false);
+            robot = new Robot(hardwareMap, telemetry, this, true);
+            robot.sensorThread.resetPose(new Pose(28, 60, Math.toRadians(-90)));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);

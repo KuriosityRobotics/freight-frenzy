@@ -40,7 +40,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
     private volatile TeamMarkerLocation location;
     // remember to set in auto!!!!!!!!!!!!!!!
-    public static AutoStartLocation startLocation;
+    public static AutoStartLocation startLocation = AutoStartLocation.RED_CYCLE; // default
 
     public TeamMarkerLocation getLocation() {
         return location == null ? TeamMarkerLocation.LEVEL_3 : location;

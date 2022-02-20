@@ -10,33 +10,28 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.CameraName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.SwitchableCamera;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.internal.camera.delegating.SwitchableCameraName;
 import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
 import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
-public final class SingleManagedCamera {
+public final class ManagedCamera {
     private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
-    public static boolean vuforiaActive = true;
+    public boolean vuforiaActive = true;
     private final List<OpenCvConsumer> openCvConsumers;
     private final WebcamName cameraName;
     private VuforiaLocalizer vuforia;
 
-    public SingleManagedCamera(WebcamName cameraName, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(WebcamName cameraName, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
 
@@ -82,7 +77,7 @@ public final class SingleManagedCamera {
                 try {
                     openCvCamera.startStreaming(800, 448);
                 } catch(Exception e) {
-                    e.printStackTrace();
+                    Log.e("Managed Camera", "An error occured! " + e);
                 }
             }
 
@@ -93,13 +88,13 @@ public final class SingleManagedCamera {
         });
     }
 
+    public ManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
+        this(webcamName, null, openCvConsumers);
+    }
+
     public void close() {
         this.vuforia.close();
         this.openCvCamera.closeCameraDevice();
-    }
-
-    public SingleManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
-        this(webcamName, null, openCvConsumers);
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {

@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import java.util.Locale;
 
 @TeleOp
+@Disabled
 public class PlebMotorTest extends LinearOpMode {
     private DcMotor motor;
     private AnalogInput distanceSensor;
