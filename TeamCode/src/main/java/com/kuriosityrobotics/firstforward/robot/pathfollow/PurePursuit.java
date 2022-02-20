@@ -22,6 +22,7 @@ public class PurePursuit implements Telemeter {
     private static final double STOP_THRESHOLD = 3;
     private static final double ANGLE_THRESHOLD = Math.toRadians(2);
 
+    private String name = "";
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
     // params
@@ -57,6 +58,11 @@ public class PurePursuit implements Telemeter {
 
     public PurePursuit(WayPoint[] path, double followRadius) {
         this(path, false, followRadius);
+    }
+
+    public PurePursuit(WayPoint[] path, double followRadius, String name) {
+        this(path, false, followRadius);
+        this.name = name;
     }
 
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
