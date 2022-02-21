@@ -1,10 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RETRACT_TIME;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
-
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -14,11 +10,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.collections4.BoundedCollection;
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 
@@ -28,76 +22,36 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_EXTENDED_POS = 0.949761;
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
 
+    private static final double CLOSE_DISTANCE_THRESHOLD = 42;
+    private static final double FAR_DISTANCE_THRESHOLD = 70;
+
+    public static final long INTAKE_EXTEND_TIME = 1500;
+    public static final long INTAKE_RETRACT_TIME = 1000;
+
     private static final double HOLD_POWER = 1;
 
-    private final CircularFifoQueue<Double> intakeRpmRingBuffer = new CircularFifoQueue<>(RING_BUFFER_CAPACITY);
+    // states
+    private volatile double intakePower;
+    public volatile IntakePosition intakePosition;
 
+    // hardware
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
 
     private final AnalogDistance distanceSensor;
 
-    private Robot robot;
+    private final Robot robot;
 
-    // states
-    public volatile IntakePosition intakePosition = IntakePosition.EXTENDED;
-    public volatile double intakePower;
-
-    private Long intakerRetractionStartTime;
-    private volatile boolean intakeOccupied = false;
-    private volatile boolean newIntakeOccupied = false;
+    // helpers
+    private long lastTransitionTime;
+    private IntakePosition lastPosition;
+    private boolean hasMineral = false;
     private boolean started = false;
 
-    List<Double> avgRPMs;
+    Queue<Double> distanceReadings = new CircularFifoQueue<>(15);
 
-    private static final double CLOSE_THRESHOLD = 42;
-    private static final double FAR_THRESHOLD = 70;
-
-    Queue<Double> queue = new CircularFifoQueue<>(15);
-
-    private boolean mineralInIntake() {
-        double reading = getDistanceSensorReading();
-        queue.add(reading);
-
-        // needs to be tuned
-        if (reading < CLOSE_THRESHOLD) {
-            // if last 4 are all positives it's a go
-            Object[] queueArray = queue.toArray();
-            for (int i = queueArray.length - 1; i > queueArray.length - 5; i--) {
-                if (((double) queueArray[i]) > CLOSE_THRESHOLD) {
-                    return false;
-                }
-            }
-            return true;
-        } else if (reading < FAR_THRESHOLD) {
-            // if last 10 are all positives it's a go
-            Object[] queueArray = queue.toArray();
-            int start = Math.max(queueArray.length - 1, 0);
-            int limit = Math.max(queueArray.length - 10, 0);
-            for (int i = start; i > limit; i--) {
-                if (((double) queueArray[i]) > FAR_THRESHOLD) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean hasDecelerated() {
-        if (avgRPMs.size() < 2)
-            return false;
-        return avgRPMs.get(avgRPMs.size() - 1) < avgRPMs.get(0);
-    }
-
-    public static <T> void fill(BoundedCollection<T> collection, T value) {
-        for (int i = 0; i < collection.maxSize(); i++) {
-            collection.add(value);
-        }
-    }
-
-    private boolean isOn;
+    private final boolean isOn;
 
     public enum IntakePosition {
         EXTENDED,
@@ -117,88 +71,119 @@ public class IntakeModule implements Module, Telemeter {
 
         this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
 
+        this.intakePosition = IntakePosition.RETRACTED;
+        this.lastPosition = intakePosition;
+
         robot.telemetryDump.registerTelemeter(this);
     }
 
-    public void setIntakePosition(IntakePosition intakePosition) {
-        synchronized (extenderLeft) {
-            synchronized (extenderRight) {
-                this.intakePosition = intakePosition;
-                switch (intakePosition) {
-                    case EXTENDED:
-                        extenderLeft.setPosition(INTAKE_LEFT_EXTENDED_POS);
-                        extenderRight.setPosition(INTAKE_RIGHT_EXTENDED_POS);
-                        break;
-                    case RETRACTED:
-                        extenderLeft.setPosition(INTAKE_LEFT_RETRACTED_POS);
-                        extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
-                        break;
-                }
+    /**
+     * Sets intake power and extends the intake if that power is less than 0.
+     * <p>
+     * Positive power is outtake, negative is intake.
+     *
+     * @param power
+     */
+    public void setIntakePower(double power) {
+        if (power < 0) {
+            intakePosition = IntakePosition.EXTENDED;
+        }
+
+        intakePower = power;
+    }
+
+    public void update() {
+        if (!robot.isOpModeActive() && !started) {
+            intakePosition = IntakePosition.RETRACTED;
+        } else if (!started) {
+            intakePosition = IntakePosition.EXTENDED;
+            started = true;
+        }
+
+        if (started) {
+            // If the intake is occupied and we haven't
+            // started retracting yet, we should do that.
+            hasMineral = mineralInIntake();
+            if (hasMineral && !atTargetPosition())
+                if (robot.outtakeModule.collapsed())
+                    intakePosition = IntakePosition.RETRACTED;
+
+            if (lastPosition != intakePosition) {
+                lastTransitionTime = SystemClock.elapsedRealtime();
             }
+        }
+
+        if (intakePosition == IntakePosition.RETRACTED && !atTargetPosition()) {
+            intakeMotor.setPower(HOLD_POWER);
+        } else {
+            intakeMotor.setPower(intakePower);
+        }
+
+        switch (intakePosition) {
+            case EXTENDED:
+                extenderLeft.setPosition(INTAKE_LEFT_EXTENDED_POS);
+                extenderRight.setPosition(INTAKE_RIGHT_EXTENDED_POS);
+                break;
+            case RETRACTED:
+                extenderLeft.setPosition(INTAKE_LEFT_RETRACTED_POS);
+                extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
+                break;
         }
     }
 
     public void update() {
         synchronized (intakeRpmRingBuffer) {
-            if (!robot.isOpModeActive() && !started) {
+            if (!robot.isOpModeActive()) {
                 setIntakePosition(IntakePosition.RETRACTED);
             } else if (!started) {
                 setIntakePosition(IntakePosition.EXTENDED);
                 started = true;
             }
 
-//            doOccupationStatusProcessing();
+    public boolean atPosition(IntakePosition position) {
+        boolean rightPosition = position == intakePosition;
 
-            // If we're done retracting (or the driver has pushed
-            // the intake joystick up, we should re-extend
-            if (inRetractionState() &&
-                    (intakePower < 0 || doneRetracting()))
-                startIntakeExtension();
+        long transitionTime = position == IntakePosition.EXTENDED ? INTAKE_EXTEND_TIME : INTAKE_RETRACT_TIME;
+        boolean transitioned = lastTransitionTime + transitionTime > SystemClock.elapsedRealtime();
 
-            // If the intake is occupied and we haven't
-            // started retracting yet, we should do that.
-            newIntakeOccupied = mineralInIntake();
-            if (newIntakeOccupied && !inRetractionState())
-                if (robot.outtakeModule.collapsed())
-                    startIntakeRetraction();
+        return rightPosition && transitioned;
+    }
 
-            intakeMotor.setPower(
-                    inRetractionState() ? HOLD_POWER : intakePower
-            );
+    public boolean atTargetPosition() {
+        return atPosition(intakePosition);
+    }
+
+    public boolean hasMineral() {
+        return hasMineral;
+    }
+
+    private boolean mineralInIntake() {
+        double reading = distanceSensor.getSensorReading();
+        distanceReadings.add(reading);
+
+        // needs to be tuned
+        if (reading < CLOSE_DISTANCE_THRESHOLD) {
+            // if last 4 are all positives it's a go
+            Object[] queueArray = distanceReadings.toArray();
+            for (int i = queueArray.length - 1; i > queueArray.length - 5; i--) {
+                if (((double) queueArray[i]) > CLOSE_DISTANCE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return true;
+        } else if (reading < FAR_DISTANCE_THRESHOLD) {
+            // if last 10 are all positives it's a go
+            Object[] queueArray = distanceReadings.toArray();
+            int start = Math.max(queueArray.length - 1, 0);
+            int limit = Math.max(queueArray.length - 10, 0);
+            for (int i = start; i > limit; i--) {
+                if (((double) queueArray[i]) > FAR_DISTANCE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return true;
         }
-    }
-
-    public void requestRetraction() {
-        if (!inRetractionState())
-            startIntakeRetraction();
-    }
-
-    private void startIntakeRetraction() {
-        setIntakePosition(IntakePosition.RETRACTED);
-        intakerRetractionStartTime = SystemClock.elapsedRealtime();
-    }
-
-    private boolean doneRetracting() {
-        return SystemClock.elapsedRealtime() - intakerRetractionStartTime
-                >= INTAKE_RETRACT_TIME;
-    }
-
-    private synchronized void startIntakeExtension() {
-        if (robot != null) {
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-        }
-        intakeOccupied = false;
-        intakerRetractionStartTime = null;
-        setIntakePosition(IntakePosition.EXTENDED);
-    }
-
-    public boolean inRetractionState() {
-        return intakerRetractionStartTime != null;
-    }
-
-    public double getDistanceSensorReading() {
-        return distanceSensor.getSensorReading();
+        return false;
     }
 
     public boolean isOn() {
@@ -211,13 +196,11 @@ public class IntakeModule implements Module, Telemeter {
 
 //        data.add("retract: " + inRetractionState());
         data.add(String.format(Locale.US, "Intake position:  %s", intakePosition));
-        data.add(String.format(Locale.US, "Intake occupied:  %b", intakeOccupied));
 //        data.add(String.format(Locale.US, "sd:  %f", lastSd));
 //        data.add(String.format(Locale.US, "buf len:  %d", intakeRpmRingBuffer.size()));
 
         data.add("--");
-        data.add(String.format(Locale.US, "Distance sensor reading: %s", getDistanceSensorReading()));
-        data.add(String.format(Locale.US, "Mineral is in intake: %b", newIntakeOccupied));
+        data.add(String.format(Locale.US, "Mineral is in intake: %b", hasMineral));
 
         return data;
     }

@@ -8,24 +8,19 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 public class IntakeAction extends Action {
     private static final long END_DELAY = 750;
 
-    boolean startedRetracting = false;
-    long startRetractionTime;
+    Long gotMineralTime;
 
     @Override
     public void tick(Robot robot) {
         super.tick(robot);
 
-        long currentTime = SystemClock.elapsedRealtime();
-        if (startedRetracting && currentTime > startRetractionTime + END_DELAY) {
-            robot.intakeModule.intakePower = 0;
-            this.completed = true;
-        } else {
-            if (robot.intakeModule.inRetractionState()) {
-                startedRetracting = true;
-                startRetractionTime = currentTime;
-            }
+        robot.intakeModule.setIntakePower(-1);
 
-            robot.intakeModule.intakePower = 1;
+        // if we've got the goods
+        if (robot.intakeModule.hasMineral()) {
+            this.gotMineralTime = SystemClock.elapsedRealtime();
         }
+
+        this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= SystemClock.elapsedRealtime();
     }
 }

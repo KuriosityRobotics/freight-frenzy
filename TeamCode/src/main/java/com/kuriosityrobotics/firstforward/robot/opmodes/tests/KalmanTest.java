@@ -1,15 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
-
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 @Disabled
 public class KalmanTest extends LinearOpMode {
@@ -51,12 +51,12 @@ public class KalmanTest extends LinearOpMode {
     }
 
     private void updateIntakeStates() {
-        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
+        robot.intakeModule.setIntakePower(Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
                 ? Math.signum(gamepad2.left_stick_y)
-                : 0;
+                : 0);
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.requestRetraction();
+            robot.intakeModule.intakePosition = IntakeModule.IntakePosition.RETRACTED;
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
