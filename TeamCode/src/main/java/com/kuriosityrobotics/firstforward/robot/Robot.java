@@ -5,6 +5,7 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
 import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.LEDModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
@@ -36,6 +37,8 @@ public class Robot {
 
     public final OuttakeModule outtakeModule;
     public final CarouselModule carouselModule;
+
+    public final LEDModule ledModule;
 
     public TelemetryDump telemetryDump;
 
@@ -76,12 +79,14 @@ public class Robot {
         intakeModule = new IntakeModule(this, true);
         outtakeModule = new OuttakeModule(this);
         carouselModule = new CarouselModule(this);
+        ledModule = new LEDModule(this);
 
         modules = new Module[]{
                 drivetrain,
                 intakeModule,
                 outtakeModule,
-                carouselModule
+                carouselModule,
+                ledModule
         };
 
         // threads
