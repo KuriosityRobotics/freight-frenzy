@@ -22,7 +22,7 @@ public class PurePursuit implements Telemeter {
     private final Robot robot;
 
     // constants
-    private static final double STOP_THRESHOLD = 3;
+    private static final double STOP_THRESHOLD = 5;
     private static final double ANGLE_THRESHOLD = Math.toRadians(2);
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
@@ -294,6 +294,7 @@ public class PurePursuit implements Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
+        data.add("current segment: " + pathIndex);
         data.add("target point: " + target.toString());
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);

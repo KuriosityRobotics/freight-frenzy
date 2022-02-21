@@ -30,6 +30,10 @@ public class WayPoint extends Point {
         this(x, y, new AngleLock(), new VelocityLock(velo), actions);
     }
 
+    public WayPoint(double x, double y, double velo) {
+        this(x, y, new AngleLock(), new VelocityLock(velo), new ArrayList<>());
+    }
+
     public WayPoint(Point point, double velo, ArrayList<Action> actions) {
         this(point.x, point.y, velo, actions);
     }

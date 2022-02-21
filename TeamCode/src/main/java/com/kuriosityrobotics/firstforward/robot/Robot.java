@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.LEDModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.opmodes.TeleOp;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -147,6 +148,16 @@ public class Robot {
 
     public boolean running() {
         return (!linearOpMode.isStopRequested() && !linearOpMode.isStarted()) || isOpModeActive();
+    }
+
+    public boolean isTeleOp() {
+        return linearOpMode.getClass().isAnnotationPresent(com.qualcomm.robotcore.eventloop.opmode.TeleOp.class);
+    }
+
+    public boolean isWallRide() {
+        return isTeleOp() &&
+                linearOpMode instanceof TeleOp &&
+                ((TeleOp) linearOpMode).isFollowingWall();
     }
 
     public boolean started() {

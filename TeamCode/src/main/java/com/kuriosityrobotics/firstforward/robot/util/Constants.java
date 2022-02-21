@@ -3,6 +3,15 @@ package com.kuriosityrobotics.firstforward.robot.util;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 public class Constants {
+    public static final float MM_PER_INCH = 25.4f;
+    public static final float ONE_TILE = 23.5f * MM_PER_INCH;
+    public static final float HALF_TILE = ONE_TILE * 0.5f;
+    public static final float ONE_AND_HALF_TILE = ONE_TILE * 1.5f;
+    public static final float FULL_FIELD = 140;
+
+    // Constants for perimeter targets
+    public static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
+
     public static class Intake {
         public static final double RPM_EPSILON = 60;
 
@@ -26,7 +35,6 @@ public class Constants {
     }
 
     public static class Webcam {
-        public static final float MM_PER_INCH = 25.4f;
 
         // Camera positions on robot (both front and left)
         // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)

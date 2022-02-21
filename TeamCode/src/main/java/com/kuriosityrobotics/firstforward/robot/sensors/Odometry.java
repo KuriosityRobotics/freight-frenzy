@@ -64,6 +64,7 @@ public class Odometry implements Telemeter {
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
 
+
     public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
 

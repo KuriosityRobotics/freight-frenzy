@@ -2,13 +2,14 @@ package com.kuriosityrobotics.firstforward.robot.math;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.MM_PER_INCH;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
+import com.kuriosityrobotics.firstforward.robot.util.Constants;
 
 import java.util.Locale;
 
