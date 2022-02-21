@@ -12,7 +12,7 @@ public class PlebIntakeLinkagesTuner extends LinearOpMode {
     Servo right;
 
     double leftPos = 0.5;
-    double rightPos = 0.5;
+    double rightPos = 0.6860951;
 
     @Override
     public void runOpMode() {

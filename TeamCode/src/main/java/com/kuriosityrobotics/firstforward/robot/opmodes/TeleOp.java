@@ -56,6 +56,7 @@ public class TeleOp extends LinearOpMode {
 
         if (retractButton.isSelected(gamepad2.a)) {
             robot.intakeModule.intakePosition = IntakeModule.IntakePosition.RETRACTED;
+
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
