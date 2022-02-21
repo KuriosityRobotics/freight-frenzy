@@ -131,10 +131,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             }
 
             // we do stuff
-            double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
-                    .min(Comparator.naturalOrder())
-                    .orElse(0.);
-            setCameraAngle(cameraAngle);
+//            double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
+//                    .min(Comparator.naturalOrder())
+//                    .orElse(0.);
+//            setCameraAngle(cameraAngle);
 
             for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
                 VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
@@ -142,8 +142,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     detectedTrackable = trackable;
 
                     OpenGLMatrix cameraLoc = OpenGLMatrix
-                            .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.PI / 2, (float) Math.toRadians(90), 0));
+                            .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
+                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.PI / 2, (float) Math.toRadians(90), (float) Math.toRadians(30)));
                     listener.setCameraLocationOnRobot(cameraName, cameraLoc);
 
                     OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
@@ -157,7 +157,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                         double tX = trans.get(0);
                         double tZ = trans.get(2);
-                        this.detectedPeripheralAngle = angleWrap(Math.abs(Math.PI/2 + Math.atan2(-tZ, tX)));
+                        this.detectedPeripheralAngle = angleWrap(Math.abs(Math.PI / 2 + Math.atan2(-tZ, tX)));
                     } else {
                         Log.d("Vision", "Cannot detect robot location although trackable is visible");
                     }
@@ -232,7 +232,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
                 double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
 
-//                logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
+                logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
 
                 return MatrixUtils.createRealMatrix(new double[][]{
                         {robotXOurs},
