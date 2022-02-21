@@ -28,6 +28,6 @@ public class SimpleCurve extends LinearOpMode {
 
         waitForStart();
 
-        pp.follow();
+        pp.follow(false);
     }
 }

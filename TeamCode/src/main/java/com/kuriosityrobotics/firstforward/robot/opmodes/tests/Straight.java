@@ -28,7 +28,7 @@ public class Straight extends LinearOpMode {
 
         waitForStart();
 
-        pp.follow();
+        pp.follow(false);
 
         while (opModeIsActive()) {
             // yeet

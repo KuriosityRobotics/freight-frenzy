@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -24,10 +25,10 @@ public class Drivetrain implements Module, Telemeter {
     private Braking brake = new Braking(); // whether or not to actively brake
     private boolean opmodeStarted = false;
 
-    //braking controller
+    // stalling states
+    private StallDetector stallDetector = new StallDetector();
 
-
-    public Drivetrain(Robot robot, Pose brakePose) {
+    public Drivetrain(Robot robot) {
         this.robot = robot;
         drivetrainModule = new DrivetrainModule(robot);
         robot.telemetryDump.registerTelemeter(this);
@@ -64,6 +65,7 @@ public class Drivetrain implements Module, Telemeter {
                 drivetrainModule.setMovements(xMov, yMov, turnMov);
             }
 
+            stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
         }
     }
@@ -83,6 +85,10 @@ public class Drivetrain implements Module, Telemeter {
     public double getOrthVelocity() {
         Pose velo = getVelocity();
         return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
+    }
+
+    public StallDetector getStallDetector() {
+        return this.stallDetector;
     }
 
     @Override
@@ -105,6 +111,9 @@ public class Drivetrain implements Module, Telemeter {
 
         data.add("Braking: " + brake.isBraking());
         data.add("Brake Pose: " + brake.getBrakePose());
+
+        data.add("--");
+        data.add("Stall Status: " + stallDetector.isStalled());
 
         return data;
     }

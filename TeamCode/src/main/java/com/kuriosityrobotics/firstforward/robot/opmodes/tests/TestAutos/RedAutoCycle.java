@@ -96,34 +96,34 @@ public class RedAutoCycle extends LinearOpMode {
 
         switch (state) {
             case START:
-                toWobble.follow();
+                toWobble.follow(false);
                 state = RedAutoCycleState.DEPOSIT;
             case DEPOSIT:
                 switch (Objects.requireNonNull(robot).visionThread.teamMarkerDetector.getLocation()) { // please java shut the GELL up
                     case LEVEL_1:
                         // level 1 action
-                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.DOWN, robot).follow();
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.DOWN, robot).follow(false);
                         state = RedAutoCycleState.CYCLE;
                         break;
                     case LEVEL_2:
                         // level 2 action
-                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.MID, robot).follow();
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.MID, robot).follow(false);
                         state = RedAutoCycleState.CYCLE;
                         break;
                     case LEVEL_3:
                         // level 3 action
-                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.TOP, robot).follow();
+                        createOutTakeAction(OuttakeModule.VerticalSlideLevel.TOP, robot).follow(false);
                         state = RedAutoCycleState.CYCLE;
                         break;
                 }
             case CYCLE:
                 for (int i = 0; i < 4; i++) {
-                    toWarehouse.follow();
-                    warehouseToWobble.follow();
+                    toWarehouse.follow(false);
+                    warehouseToWobble.follow(false);
                 }
                 state = RedAutoCycleState.PARK;
             case PARK:
-                toPark.follow();
+                toPark.follow(false);
                 break;
         }
     }

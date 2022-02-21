@@ -79,12 +79,12 @@ public class RedAutoDucks extends LinearOpMode {
 //                }
 //
 //                state = RedAutoDucksState.CAROUSEL;
-                toWobble.follow();
+                toWobble.follow(false);
             case CAROUSEL:
-                wobbleToCarousel.follow();
+                wobbleToCarousel.follow(true);
                 state = RedAutoDucksState.PARK;
             case PARK:
-                toPark.follow();
+                toPark.follow(false);
                 break;
         }
     }
