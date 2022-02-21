@@ -1,12 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -54,9 +55,7 @@ public class TeleOp extends LinearOpMode {
                 : 0;
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.requestRetraction();
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
         }
     }
 
@@ -105,9 +104,7 @@ public class TeleOp extends LinearOpMode {
         }
 
         if (y) {
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            robot.outtakeModule.defaultFullExtend();
         }
     }
 

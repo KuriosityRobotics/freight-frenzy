@@ -3,20 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.util;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 public class Constants {
-    public static class Intake {
-        public static final double RPM_EPSILON = 60;
-
-        // PPR = Ticks per Revolution(abrv different but doesn't matter)
-        public static final double GOBILDA_1620_PPR = 103.8;
-        public static final double INTAKE_OCCUPIED_SD = 100;
-        public static final double INTAKE_DEACCEL_SD = 100;
-
-        public static final double INTAKE_EXTEND_TIME = 1500;
-        public static final double INTAKE_RETRACT_TIME = 1000;
-
-        public static final int RING_BUFFER_CAPACITY = 100;
-    }
-
     public static class OpModes {
         public static final double JOYSTICK_EPSILON = 0.1;
     }

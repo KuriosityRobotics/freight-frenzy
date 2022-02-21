@@ -5,14 +5,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
-@Disabled
+//@Disabled
 @TeleOp
 public class PlebIntakeLinkagesTuner extends LinearOpMode {
     Servo left;
     Servo right;
 
     double leftPos = 0.5;
-    double rightPos = 0.5;
+    double rightPos = 0.6860951;
 
     @Override
     public void runOpMode() {

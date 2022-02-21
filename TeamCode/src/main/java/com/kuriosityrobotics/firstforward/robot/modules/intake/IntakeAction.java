@@ -4,12 +4,12 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
-class IntakeAction extends Action {
+public class IntakeAction extends Action {
     private static final long END_DELAY = 750;
 
+    Long gotMineralTime;
+
     private final IntakeModule intakeModule;
-    boolean startedRetracting = false;
-    long startRetractionTime;
 
     public IntakeAction(IntakeModule intakeModule) {
         this.intakeModule = intakeModule;
@@ -19,17 +19,13 @@ class IntakeAction extends Action {
     public void tick() {
         super.tick();
 
-        long currentTime = SystemClock.elapsedRealtime();
-        if (startedRetracting && currentTime > startRetractionTime + END_DELAY) {
-            intakeModule.intakePower = 0;
-            this.completed = true;
-        } else {
-            if (intakeModule.inRetractionState()) {
-                startedRetracting = true;
-                startRetractionTime = currentTime;
-            }
+        intakeModule.intakePower = 1;
 
-            intakeModule.intakePower = 1;
+        // if we've got the goods
+        if (intakeModule.hasMineral()) {
+            this.gotMineralTime = SystemClock.elapsedRealtime();
         }
+
+        this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= SystemClock.elapsedRealtime();
     }
 }
