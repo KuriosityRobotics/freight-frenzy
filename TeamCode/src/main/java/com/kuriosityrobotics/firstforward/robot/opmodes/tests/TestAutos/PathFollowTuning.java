@@ -20,13 +20,13 @@ public class PathFollowTuning extends LinearOpMode {
     public static final Pose RED_START_W = new Pose(6.75, 64.5, Math.toRadians(90)); //start near warehouse
     public static final Pose RED_WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(240));
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(10, 66., Math.toRadians(200));
-    public static final Pose RED_WALL_GAP = new Pose(5.8, 47.25, Math.toRadians(180));
-    public static final Pose RED_WAREHOUSE = new Pose(5.85, 20, Math.toRadians(180));
+    public static final Pose RED_WALL_GAP = new Pose(5.8, 46.5, Math.toRadians(180));
+    public static final Pose RED_WAREHOUSE = new Pose(5.85, 23, Math.toRadians(180));
 
     public static final Pose BLUE_START_W = new Pose(140.5-6.75, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose BLUE_WOBBLE_W = new Pose(140.5-25.5, 70.5, Math.toRadians(-240));
-    public static final Pose BLUE_BETWEEN_WOBBLE_WALLGAP = new Pose(140.5-10, 66., Math.toRadians(-200));
-    public static final Pose BLUE_WALL_GAP = new Pose(140.5-5.8, 47.25, Math.toRadians(-180));
+    public static final Pose BLUE_BETWEEN_WOBBLE_WALLGAP = new Pose(10, 66., Math.toRadians(-200));
+    public static final Pose BLUE_WALL_GAP = new Pose(140.5-5.8, 46.5, Math.toRadians(-180));
     public static final Pose BLUE_WAREHOUSE = new Pose(140.5-5.85, 20, Math.toRadians(-180));
     //public static final Pose WAREHOUSE_IN_RIDE = new Pose(4.5, 35, Math.toRadians(-180));
     //public static final Pose WAREHOUSE_OUT_RIDE = new Pose(6.5, 54.25, Math.toRadians(-180));
@@ -38,7 +38,7 @@ public class PathFollowTuning extends LinearOpMode {
         Robot robot = null;
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-            robot.resetPose(BLUE_START_W);
+            robot.resetPose(RED_START_W);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
@@ -109,6 +109,7 @@ public class PathFollowTuning extends LinearOpMode {
         }, 5, "carousel to storage");
 
         waitForStart();
+
         /*
         robot.followPath(startwToWobble);
 
@@ -117,13 +118,13 @@ public class PathFollowTuning extends LinearOpMode {
             robot.followPath(warehouseToWobble);
         }
 
-         */
-
+        /*
         robot.followPath(blueStartwToWobble);
 
         for (int i = 0; i < 3; i++){
             robot.followPath(blueWobbleToWarehouse);
             robot.followPath(blueWarehouseToWobble);
         }
+        */
     }
 }
