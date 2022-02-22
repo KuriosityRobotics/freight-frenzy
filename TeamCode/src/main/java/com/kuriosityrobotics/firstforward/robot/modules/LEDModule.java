@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -24,21 +25,21 @@ public class LEDModule implements Module, Telemeter {
     private final Robot robot;
 
     // states
-    public LEDModule.Color color;
+    public LEDModule.Color color = Color.RED;
 
     //servos
-    private final Servo LED;
+    private final RevBlinkinLedDriver LED;
 
     public LEDModule(Robot robot) {
         this.robot = robot;
 
         robot.telemetryDump.registerTelemeter(this);
 
-        LED = robot.getServo("LED");
+        LED = robot.hardwareMap.get(RevBlinkinLedDriver.class, "LED");
     }
 
     public void update() {
-        this.LED.setPosition(color.pwm);
+//        this.LED.setPosition(color.pwm);
     }
 
     public LEDModule.Color getCurrentColor() {
