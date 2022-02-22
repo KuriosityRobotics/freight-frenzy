@@ -17,7 +17,8 @@ public class Odometry implements Telemeter {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
-    private final DcMotor mecanumEncoder;
+    private final DcMotor mecanumBackEncoder;
+    private final DcMotor mecanumFrontEncoder;
 
     // Position of the robot, can be changed through constructor
     private double worldX;
@@ -47,7 +48,8 @@ public class Odometry implements Telemeter {
     // For position calculation
     private double lastLeftPosition = 0;
     private double lastRightPosition = 0;
-    private double lastMecanumPosition = 0;
+    private double lastMecanumBackPosition = 0;
+    private double lastMecanumFrontPosition = 0;
 
     // For velocity calculation
     private double oldX = 0;
@@ -59,7 +61,8 @@ public class Odometry implements Telemeter {
     // Constants
     private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
-    private static final double M_ENCODER_DIST_FROM_CENTER = 3;
+    private static final double B_ENCODER_DIST_FROM_CENTER = 3;
+    private static final double F_ENCODER_DIST_FROM_CENTER = 1; //TODO: find real
 
     public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
@@ -70,7 +73,8 @@ public class Odometry implements Telemeter {
 
         yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
         yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+        mecanumBackEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
+        mecanumFrontEncoder = robot.hardwareMap.get(DcMotor.class, "bRight");
 
         resetEncoders();
 
@@ -94,17 +98,20 @@ public class Odometry implements Telemeter {
         // if odometry output is wrong, no worries, just find out which one needs to be reversed
         double newLeftPosition = yLeftEncoder.getCurrentPosition();
         double newRightPosition = yRightEncoder.getCurrentPosition();
-        double newMecanumPosition = mecanumEncoder.getCurrentPosition();
+        double newMecanumBackPosition = mecanumBackEncoder.getCurrentPosition();
+        double newMecanumFrontPosition = mecanumFrontEncoder.getCurrentPosition();
 
         double deltaLeftPosition = newLeftPosition - lastLeftPosition;
         double deltaRightPosition = newRightPosition - lastRightPosition;
-        double deltaMecanumPosition = newMecanumPosition - lastMecanumPosition;
+        double deltaMecanumBackPosition = newMecanumBackPosition - lastMecanumBackPosition;
+        double deltaMecanumFrontPosition = newMecanumFrontPosition - lastMecanumFrontPosition;
 
-        updateWorldPosition(deltaLeftPosition, deltaRightPosition, deltaMecanumPosition);
+        updateWorldPosition(deltaLeftPosition, deltaRightPosition, deltaMecanumBackPosition, deltaMecanumFrontPosition);
 
         lastLeftPosition = newLeftPosition;
         lastRightPosition = newRightPosition;
-        lastMecanumPosition = newMecanumPosition;
+        lastMecanumBackPosition = newMecanumBackPosition;
+        lastMecanumFrontPosition = newMecanumFrontPosition;
     }
 
     private void calculateInstantaneousVelocity() {
@@ -131,33 +138,39 @@ public class Odometry implements Telemeter {
         lastUpdateTime = currentUpdateTime;
     }
 
-    private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumPod) {
+    private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumBackPod, double dMecanumFrontPod) {
         // convert all inputs to inches
         double dLeftPodInches = dLeftPod * INCHES_PER_ENCODER_TICK;
         double dRightPodInches = dRightPod * INCHES_PER_ENCODER_TICK;
-        double dMecanumPodInches = dMecanumPod * INCHES_PER_ENCODER_TICK;
+        double dMecanumBackPodInches = dMecanumBackPod * INCHES_PER_ENCODER_TICK;
+        double dMecanumFrontPodInches = dMecanumBackPodInches * INCHES_PER_ENCODER_TICK;
 
         // so its easier to type
         double L = dLeftPodInches;
         double R = dRightPodInches;
-        double M = dMecanumPodInches;
+        double B = dMecanumBackPodInches;
+        double F = dMecanumFrontPodInches;
         double P = LR_ENCODER_DIST_FROM_CENTER;
-        double Q = M_ENCODER_DIST_FROM_CENTER;
+        double Q = B_ENCODER_DIST_FROM_CENTER;
+        double S = F_ENCODER_DIST_FROM_CENTER;
 
         // find robot relative deltas
-        double dTheta = (L - R) / (2 * P);
-        double dRobotX = M * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
-        double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + M * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
+        double dThetaLR = (L - R) / (2 * P);
+        double dThetaFB = (F - B) / (Q + S);
+
+        // TODO: implement adaptive rolling average based on direction of motion for dTheta
+
+        double dRobotX = B * sinXOverX(dThetaLR) + Q * Math.sin(dThetaLR) - L * cosXMinusOneOverX(dThetaLR) + P * (Math.cos(dThetaLR) - 1);
+        double dRobotY = L * sinXOverX(dThetaLR) - P * Math.sin(dThetaLR) + B * cosXMinusOneOverX(dThetaLR) + Q * (Math.cos(dThetaLR) - 1);
 
         // change global variables so they can be used in the kalman filter
         dx = dRobotX;
         dy = dRobotY;
-        dHeading = dTheta;
+        dHeading = dThetaLR;
 
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
-        //worldAngleRad =  (leftPodNewPosition - rightPodNewPosition) * INCHES_PER_ENCODER_TICK / (2 * P);
-        worldHeadingRad = worldHeadingRad + dTheta;
+        worldHeadingRad = worldHeadingRad + dThetaLR;
     }
 
     /*
@@ -201,15 +214,18 @@ public class Odometry implements Telemeter {
     private void resetEncoders() {
         yLeftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         yRightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        mecanumEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        mecanumBackEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        mecanumFrontEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         yLeftEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         yRightEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        mecanumEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        mecanumBackEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        mecanumFrontEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         lastLeftPosition = 0;
         lastRightPosition = 0;
-        lastMecanumPosition = 0;
+        lastMecanumBackPosition = 0;
+        lastMecanumFrontPosition = 0;
     }
 
     public RealMatrix getDeltaMatrix() {
