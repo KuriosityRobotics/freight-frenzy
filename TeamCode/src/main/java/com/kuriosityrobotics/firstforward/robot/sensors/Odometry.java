@@ -62,7 +62,6 @@ public class Odometry implements Telemeter {
     private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double B_ENCODER_DIST_FROM_CENTER = 3;
-    private static final double F_ENCODER_DIST_FROM_CENTER = 1; //TODO: find real
 
     public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
@@ -152,13 +151,16 @@ public class Odometry implements Telemeter {
         double F = dMecanumFrontPodInches;
         double P = LR_ENCODER_DIST_FROM_CENTER;
         double Q = B_ENCODER_DIST_FROM_CENTER;
-        double S = F_ENCODER_DIST_FROM_CENTER;
 
         // find robot relative deltas
         double dThetaLR = (L - R) / (2 * P);
-        double dThetaFB = (F - B) / (Q + S);
+        double dThetaFB = (F - B) / (2 * Q);
 
-        // TODO: implement adaptive rolling average based on direction of motion for dTheta
+        double X = L + R;
+        double Y = F + B;
+        double weightLR = X/(X+Y);
+        double weightFB = Y/(X+Y);
+        double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
 
         double dRobotX = B * sinXOverX(dThetaLR) + Q * Math.sin(dThetaLR) - L * cosXMinusOneOverX(dThetaLR) + P * (Math.cos(dThetaLR) - 1);
         double dRobotY = L * sinXOverX(dThetaLR) - P * Math.sin(dThetaLR) + B * cosXMinusOneOverX(dThetaLR) + Q * (Math.cos(dThetaLR) - 1);
