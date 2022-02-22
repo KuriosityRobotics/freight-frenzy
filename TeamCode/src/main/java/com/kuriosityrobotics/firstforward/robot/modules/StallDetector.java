@@ -24,24 +24,24 @@ public class StallDetector {
     private boolean isStalled;
 
     public void update(Pose pose, double xMov, double yMov, double turnMov) {
-        // add stuff
-        poseXSD.add(pose.x);
-        poseYSD.add(pose.y);
-        poseHeadingSD.add(pose.heading);
-
-        // do calculations
-        // we strive for readability here
-        boolean movementsSet = !(doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0)); // demorgan's laws are overrated
-
-        boolean isXStalled = sd(poseXSD) <= STALL_EPSILON;
-        boolean isYStalled = sd(poseYSD) <= STALL_EPSILON;
-        boolean isHeadingStalled = sd(poseHeadingSD) <= STALL_EPSILON;
-        Log.v("stall", "x sd: " + sd(poseXSD));
-        Log.v("stall", "y sd: " + sd(poseYSD));
-        Log.v("stall", "heading sd: " + sd(poseHeadingSD));
-        boolean movementsStalled = isXStalled && isYStalled && isHeadingStalled;
-
-        isStalled = movementsSet && movementsStalled;
+//        // add stuff
+//        poseXSD.add(pose.x);
+//        poseYSD.add(pose.y);
+//        poseHeadingSD.add(pose.heading);
+//
+//        // do calculations
+//        // we strive for readability here
+//        boolean movementsSet = !(doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0)); // demorgan's laws are overrated
+//
+//        boolean isXStalled = sd(poseXSD) <= STALL_EPSILON;
+//        boolean isYStalled = sd(poseYSD) <= STALL_EPSILON;
+//        boolean isHeadingStalled = sd(poseHeadingSD) <= STALL_EPSILON;
+////        Log.v("stall", "x sd: " + sd(poseXSD));
+////        Log.v("stall", "y sd: " + sd(poseYSD));
+////        Log.v("stall", "heading sd: " + sd(poseHeadingSD));
+//        boolean movementsStalled = isXStalled && isYStalled && isHeadingStalled;
+//
+//        isStalled = movementsSet && movementsStalled;
     }
 
     public boolean isStalled() {

@@ -4,6 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
@@ -49,7 +50,7 @@ public class BlueAuto extends LinearOpMode {
         carouselActions.add(new CarouselAction());
         PurePursuit toCarousel = new PurePursuit(robot, new WayPoint[]{
                 new WayPoint(START),
-                new WayPoint(START.x - 20, START.y + 4, 0.5 * MotionProfile.ROBOT_MAX_VEL),
+                new WayPoint(START.x - 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y, CAROUSEL.heading, 0, carouselActions)
         }, 4);
@@ -79,11 +80,11 @@ public class BlueAuto extends LinearOpMode {
         // DETECT the THING
 
         // go to carousel
-        toCarousel.follow(true);
+        toCarousel.follow(false);
 
         // to wobble
-        toWobble.follow(false);
-
-        toPark.follow(false);
+//        toWobble.follow(false);
+//
+//        toPark.follow(false);
     }
 }
