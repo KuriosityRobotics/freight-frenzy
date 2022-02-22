@@ -11,7 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @Disabled
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
-@Disabled
 public class KalmanTest extends LinearOpMode {
     Robot robot = null;
 
@@ -51,12 +50,12 @@ public class KalmanTest extends LinearOpMode {
     }
 
     private void updateIntakeStates() {
-        robot.intakeModule.setIntakePower(Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
+        robot.intakeModule.intakePower = (Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0);
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.intakePosition = IntakeModule.IntakePosition.RETRACTED;
+            robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }

@@ -50,16 +50,12 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateIntakeStates() {
-        robot.intakeModule.setIntakePower(Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
+        robot.intakeModule.intakePower = (Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0);
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.intakePosition = IntakeModule.IntakePosition.RETRACTED;
-
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
         }
     }
 
@@ -108,9 +104,7 @@ public class TeleOp extends LinearOpMode {
         }
 
         if (y) {
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            robot.outtakeModule.defaultFullExtend();
         }
     }
 

@@ -14,7 +14,7 @@ public class IntakeAction extends Action {
     public void tick(Robot robot) {
         super.tick(robot);
 
-        robot.intakeModule.setIntakePower(-1);
+        robot.intakeModule.intakePower = 1;
 
         // if we've got the goods
         if (robot.intakeModule.hasMineral()) {

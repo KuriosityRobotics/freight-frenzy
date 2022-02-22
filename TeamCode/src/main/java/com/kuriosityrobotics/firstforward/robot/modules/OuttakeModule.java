@@ -6,6 +6,7 @@ import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.Out
 import static java.lang.Math.abs;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -161,9 +162,15 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public void skipToCollapse() {
+        transitionTime = SystemClock.elapsedRealtime();
         this.targetState = COLLAPSE;
         this.currentState = TURRET_IN;
-        transitionTime = SystemClock.elapsedRealtime();
+    }
+
+    public void defaultFullExtend() {
+        this.targetTurret = TurretPosition.STRAIGHT;
+        this.targetSlideLevel = VerticalSlideLevel.TOP;
+        this.targetState = EXTEND;
     }
 
     String lastRan = "";

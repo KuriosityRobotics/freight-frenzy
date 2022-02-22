@@ -309,4 +309,18 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         cameraEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         cameraEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
+    // for debug
+    private void logValues(Pose ftcLocation, Pose ourSystem) {
+        // Fancy formatting :sunglas:
+
+        Log.v("Vision", "FTC Coordinate System");
+        Log.v("Vision", "FTC x: " + ftcLocation.x);
+        Log.v("Vision", "FTC y: " + ftcLocation.y);
+        Log.v("Vision", "FTC heading: " + Math.toDegrees(ftcLocation.heading));
+
+        Log.v("Vision", "Our Coordinate System");
+        Log.v("Vision", "Our x: " + ourSystem.x);
+        Log.v("Vision", "Our y: " + ourSystem.y);
+        Log.v("Vision", "Our heading: " + Math.toDegrees(ourSystem.heading));
+    }
 }
