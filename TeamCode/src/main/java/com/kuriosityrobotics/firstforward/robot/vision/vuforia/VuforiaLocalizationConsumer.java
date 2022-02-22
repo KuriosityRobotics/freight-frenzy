@@ -191,8 +191,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             if (listener.isVisible()) {
 
-                Log.v("kalman", "camera position: " + Orientation.getOrientation(listener.getCameraLocationOnRobot(cameraName), EXTRINSIC, XYZ, DEGREES).thirdAngle);
-
                 detectedTrackable = trackable;
 
                 OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
@@ -296,15 +294,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 double robotXOurs = robotLocation.y + (HALF_FIELD_MM / MM_PER_INCH);
                 double robotYOurs = -robotLocation.x + (HALF_FIELD_MM / MM_PER_INCH);
 
-                RealMatrix retVal = MatrixUtils.createRealMatrix(new double[][]{
+                return MatrixUtils.createRealMatrix(new double[][]{
                         {robotXOurs},
                         {robotYOurs},
                         {robotHeadingOurs}
                 });
-
-                Log.v("kalman", "VLC: " + MatrixUtil.toPoseString(retVal));
-
-                return retVal;
             } catch (Exception e) {
                 return null;
             }
