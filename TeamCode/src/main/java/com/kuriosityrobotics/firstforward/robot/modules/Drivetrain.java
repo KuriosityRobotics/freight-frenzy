@@ -65,7 +65,7 @@ public class Drivetrain implements Module, Telemeter {
                 drivetrainModule.setMovements(xMov, yMov, turnMov);
             }
 
-            stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
+            //stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
         }
     }

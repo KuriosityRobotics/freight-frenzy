@@ -5,11 +5,13 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
+@Disabled
 public class KalmanTest extends LinearOpMode {
     Robot robot = null;
 

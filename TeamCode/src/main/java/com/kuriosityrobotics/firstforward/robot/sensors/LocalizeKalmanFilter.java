@@ -107,6 +107,10 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         double predX = prevX + odoDX * Math.cos(prevHeading) + odoDY * Math.sin(prevHeading);
         double predY = prevY - odoDX * Math.sin(prevHeading) + odoDY * Math.cos(prevHeading);
         double predHeading = angleWrap(prevHeading + odoDTheta);
+
+        //Log.v("kalman", "prediction -- x: " + predX + ", y: " + predY + ", heading: " + predHeading);
+
+
         RealMatrix predCov = G.multiply(prevCov).multiply(G.transpose()).add(V.multiply(M.multiply(V.transpose())));
 
         return new RealMatrix[]{
@@ -155,6 +159,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         RealMatrix correct = pred[0].add(K.multiply(error));
         correct.setEntry(2, 0, angleWrap(correct.getEntry(2, 0)));
         RealMatrix correctCov = predCov.subtract(K.multiply(H).multiply(predCov));
+
+        //Log.v("kalman", "correction -- x: " + correct.getEntry(0,0) + ", y: " + correct.getEntry(1,0) + ", heading: " + correct.getEntry(2,0));
 
         return new RealMatrix[]{correct, correctCov};
     }
