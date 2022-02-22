@@ -1,10 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
-import com.kuriosityrobotics.firstforward.robot.math.Line;
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.qualcomm.robotcore.util.Range;
 
 import org.apache.commons.collections4.OrderedMapIterator;
 import org.apache.commons.collections4.map.LinkedMap;
@@ -17,7 +19,7 @@ import java.util.Map;
 public class MotionProfile {
     public static final double ROBOT_MAX_VEL = 35;
     public static final double ROBOT_MAX_ACCEL = 90;
-    public static final double ROBOT_MAX_DECCEL = 45;
+    public static final double ROBOT_MAX_DECCEL = 35;
 
     private final double maxVel, maxAccel, maxDeccel;
 
@@ -45,8 +47,15 @@ public class MotionProfile {
 
         double dist = 0;
 
-        profile.put(dist, in[0].getAngleLock());
-        AngleLock lastLock = in[0].getAngleLock();
+        AngleLock lastLock;
+        if (in[0].getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
+            AngleLock lock = new AngleLock(AngleLock.AngleLockType.NO_LOCK, 0);
+            profile.put(dist, lock);
+            lastLock = lock;
+        } else {
+            profile.put(dist, in[0].getAngleLock());
+            lastLock = in[0].getAngleLock();
+        }
         for (int i = 1; i < in.length; i++) {
             WayPoint start = in[i - 1];
             WayPoint end = in[i];
@@ -133,12 +142,12 @@ public class MotionProfile {
                         // we'll just accelerate to the max vel and back down
                         if (highestVel > maxVel) {
                             double up = (Math.pow(maxVel, 2) - Math.pow(currentVel, 2)) / (2 * maxAccel);
-                            double down = (Math.pow(nextVel, 2) - Math.pow(maxVel, 2)) / (2 * maxDeccel);
+                            double down = (Math.pow(nextVel, 2) - Math.pow(maxVel, 2)) / (2 * -maxDeccel);
 
-                            profile.add(new MotionSegment(maxVel, deltaDist - down,
+                            profile.add(new MotionSegment(maxVel, nextDistAlongPath - down,
                                     nextVel, nextDistAlongPath));
                             profile.add(new MotionSegment(maxVel, currentDist + up,
-                                    maxVel, distanceNeeded - down));
+                                    maxVel, nextDistAlongPath - down));
                             profile.add(new MotionSegment(currentVel, currentDist,
                                     maxVel, currentDist + up));
                         } else {
@@ -208,6 +217,7 @@ public class MotionProfile {
         double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
         for (MotionSegment segment : velocityProfile) {
             if (distAlongPath >= segment.startDistanceAlongPath && distAlongPath <= segment.endDistanceAlongPath) {
+                Log.v("MP", ""+segment.interpolateTargetVelocity(distAlongPath));
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
@@ -220,19 +230,14 @@ public class MotionProfile {
 
         // find the last passed profile and the next
         OrderedMapIterator<Double, AngleLock> i = angleLockProfile.mapIterator();
+        double lastDist = i.next();
+        AngleLock lastLock = i.getValue();
         while (i.hasNext()) {
             i.next();
 
             double dist = i.getKey();
 
             if (distAlongPath <= dist) {
-                double lastLockDist = i.previous();
-                AngleLock lastLock = angleLockProfile.get(lastLockDist);
-
-                if (lastLock == null) {
-                    throw new Error("Calculated distance along path is before the first profiled angleLock!");
-                }
-
                 AngleLock nextLock = i.getValue();
 
                 switch (nextLock.type) {
@@ -242,11 +247,15 @@ public class MotionProfile {
                         if (lastLock.type != AngleLock.AngleLockType.LOCK) {
                             return nextLock;
                         } else {
-                            double distAlong = distAlongPath - lastLockDist;
-                            double totalDist = dist - lastLockDist;
+                            double distAlong = distAlongPath - lastDist;
+                            double totalDist = dist - lastDist;
                             double headingChange = nextLock.heading - lastLock.heading;
 
-                            return new AngleLock(((distAlong / totalDist) * headingChange) + lastLock.heading);
+                            if (!i.hasPrevious()) {
+                                return nextLock;
+                            } else {
+                                return new AngleLock(((distAlong / totalDist) * headingChange) + lastLock.heading);
+                            }
                         }
                     default:
                         throw new Error("Profiled angleLocks contain an angleLock of type that is not LOCK or NO_LOCK! This should be guaranteed by generateAngleLockProfile() in MotionProfile");
@@ -257,17 +266,23 @@ public class MotionProfile {
         throw new Error("No angleLock was found in the profile!");
     }
 
+    public AngleLock getLastAngleLock() {
+        return angleLockProfile.get(angleLockProfile.lastKey());
+    }
+
     public double distanceAlongPath(int pathIndex, Point clippedPosition) {
         double dist = 0;
         // add up all the paths prior to the one we're on
-        for (int i = 0; i < pathIndex - 1; i++) {
+        for (int i = 0; i < pathIndex; i++) {
             WayPoint start = path[i];
             WayPoint end = path[i + 1];
 
             dist += start.distance(end);
         }
 
-        dist += path[pathIndex].distance(clippedPosition);
+        // sketchy
+        // relies on path index always being less than the last point which ig is fine
+        dist += Range.clip(path[pathIndex].distance(clippedPosition), 0, path[pathIndex].distance(path[pathIndex + 1]));
 
         return dist;
     }

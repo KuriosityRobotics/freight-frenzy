@@ -80,11 +80,11 @@ public class BlueAuto extends LinearOpMode {
         // DETECT the THING
 
         // go to carousel
-        toCarousel.follow(true);
+        toCarousel.follow(false);
 
         // to wobble
-        toWobble.follow(false);
-
-        toPark.follow(false);
+//        toWobble.follow(false);
+//
+//        toPark.follow(false);
     }
 }

@@ -21,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     private Thread[] threads;

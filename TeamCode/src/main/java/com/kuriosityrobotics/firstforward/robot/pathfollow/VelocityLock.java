@@ -20,4 +20,13 @@ public class VelocityLock {
         this.velocity = 0;
         this.allowAccel = false;
     }
+
+    @Override
+    public String toString() {
+        return "VelocityLock{" +
+                "targetVelocity=" + targetVelocity +
+                ", velocity=" + velocity +
+                ", allowAccel=" + allowAccel +
+                '}';
+    }
 }

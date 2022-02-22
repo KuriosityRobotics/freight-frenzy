@@ -140,7 +140,7 @@ public class IntakeModule implements Module, Telemeter {
 
     public void update() {
         synchronized (intakeRpmRingBuffer) {
-            if (!robot.isOpModeActive()) {
+            if (!robot.isOpModeActive() && !started) {
                 setIntakePosition(IntakePosition.RETRACTED);
             } else if (!started) {
                 setIntakePosition(IntakePosition.EXTENDED);
