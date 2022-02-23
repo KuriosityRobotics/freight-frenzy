@@ -168,10 +168,6 @@ public class Odometry implements Telemeter {
             weightFB = Y/(X+Y);
         }
 
-
-        Log.v("odo", "LR weight: " + weightLR);
-        Log.v("odo", "FB weight: " + weightFB);
-
         double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
 
         double dRobotX = B * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
