@@ -1,12 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
-import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
-import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
-
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Constants {
     public static class Intake {
@@ -36,21 +30,21 @@ public class Constants {
 
         // Camera positions on robot (both front and left)
         // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)
-        public static final float SERVO_FORWARD_DISPLACEMENT = 4.821f * MM_PER_INCH;
-        public static final float SERVO_VERTICAL_DISPLACEMENT = 16.519f * MM_PER_INCH;
-        public static final float SERVO_LEFT_DISPLACEMENT = 0.318f * MM_PER_INCH;
+        public static final float SERVO_FORWARD_DISPLACEMENT_MM = 4.821f * MM_PER_INCH;
+        public static final float SERVO_VERTICAL_DISPLACEMENT_MM = 16.519f * MM_PER_INCH;
+        public static final float SERVO_LEFT_DISPLACEMENT_MM = 0.318f * MM_PER_INCH;
 
         // camera pos relative to the turret servo
-        public static final float CAMERA_VARIABLE_DISPLACEMENT = 3.382f * MM_PER_INCH;
-        public static final float CAMERA_VERTICAL_DISPLACEMENT = 0f * MM_PER_INCH;
+        public static final float CAMERA_VARIABLE_DISPLACEMENT_MM = 3.382f * MM_PER_INCH;
+        public static final float CAMERA_VERTICAL_DISPLACEMENT_MM = 0f * MM_PER_INCH;
 
         // Constants for perimeter targets
-        public static final float MM_TARGET_HEIGHT = 6f * MM_PER_INCH;
-        public static final float HALF_FIELD = 70.5f * MM_PER_INCH;
-        public static final float ONE_TILE = 23.375f * MM_PER_INCH;
-        public static final float FULL_FIELD = HALF_FIELD * 2f;
-        public static final float ONE_AND_HALF_TILE = 35f * MM_PER_INCH;
-        public static final float HALF_TILE = 11.625f * MM_PER_INCH;
+        public static final float TARGET_HEIGHT_MM = 6f * MM_PER_INCH;
+        public static final float HALF_FIELD_MM = 70.5f * MM_PER_INCH;
+        public static final float ONE_TILE_MM = 23.375f * MM_PER_INCH;
+        public static final float FULL_FIELD_MM = HALF_FIELD_MM * 2f;
+        public static final float ONE_AND_HALF_TILE_MM = 35f * MM_PER_INCH;
+        public static final float HALF_TILE_MM = 11.625f * MM_PER_INCH;
 
         public static final String VUFORIA_LICENCE_KEY =
                 "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +

@@ -2,28 +2,32 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_TARGET_HEIGHT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TARGET_HEIGHT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE_MM;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -51,10 +55,10 @@ import java.util.ArrayList;
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final Point[] TARGETS = {
             // all in our coordinate system
-            new Point(0, ONE_AND_HALF_TILE + ONE_TILE),
-            new Point(ONE_AND_HALF_TILE, FULL_FIELD),
-            new Point(FULL_FIELD - ONE_AND_HALF_TILE, FULL_FIELD),
-            new Point(FULL_FIELD, ONE_AND_HALF_TILE + ONE_TILE)
+            new Point(0, (ONE_AND_HALF_TILE_MM + ONE_TILE_MM)/25.4),
+            new Point(ONE_AND_HALF_TILE_MM /25.4, FULL_FIELD_MM /25.4),
+            new Point((FULL_FIELD_MM - ONE_AND_HALF_TILE_MM)/25.4, FULL_FIELD_MM /25.4),
+            new Point(FULL_FIELD_MM /25.4, (ONE_AND_HALF_TILE_MM + ONE_TILE_MM)/25.4)
     };
 
     private final WebcamName cameraName;
@@ -68,6 +72,20 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     // change states here
     private final Servo rotator;
+    private final DcMotor cameraEncoder;
+
+    private double oldCameraAngle = 0.0;
+    private double cameraAngle = 0.0;
+    private double cameraAngleVelocity = 0.0;
+    private final double CAMERA_ENCODER_TO_RADIAN = 2.0 * Math.PI / 8192.0;
+    private Point targetVuMark = new Point(0,0);
+
+    private final double ROTATOR_LEFT_POS = 0.15745917129498305;
+    private final double ROTATOR_RIGHT_POS = 0.8217672476721208;
+    private final double ROTATOR_CENTER_POS = 0.48961320987;
+    private double ROTATOR_ANGLE_RANGE = Math.PI/4;
+
+    private long lastUpdateTime = 0;
 
     private final Robot robot;
 
@@ -75,12 +93,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.robot = robot;
         this.cameraName = cameraName;
         rotator = hwMap.get(Servo.class, "webcamPivot");
-        rotator.setPosition(TURRET_180);
-    }
+        cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
+        rotator.setPosition(ROTATOR_CENTER_POS);
 
-    private static final double TURRET_270 = .78988,
-            TURRET_180 = .5,
-            TURRET_90 = .0229;
+        resetEncoders();
+    }
 
     @Override
     public void setup(VuforiaLocalizer vuforia) {
@@ -93,79 +110,112 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage", -HALF_FIELD, ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
-        identifyTarget(1, "Blue Alliance Wall", HALF_TILE, HALF_FIELD, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, 0f);
-        identifyTarget(2, "Red Storage", -HALF_FIELD, -ONE_AND_HALF_TILE, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
-        identifyTarget(3, "Red Alliance Wall", HALF_TILE, -HALF_FIELD, MM_TARGET_HEIGHT, (float) Math.toRadians(90), 0f, (float) Math.toRadians(180));
-    }
-
-    // TODO: do rotate cam stuff
-    private void setCameraAngle(double angle) {
-        double rotationAngle = angle / (2 * Math.PI);
-//        rotator.setPosition(ROTATOR_LEFT_POS + rotationAngle * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS));
-        //stub
-    }
-
-    private double getCamAngleTo(Point target) {
-        Pose currentPosition = robot.sensorThread.getPose();
-        double ret = Math.atan2(
-                currentPosition.x - target.x,
-                currentPosition.y - target.y
-        ) - Math.PI - robot.sensorThread.getPose().heading;
-        return ret;
+        identifyTarget(0, "Blue Storage", -HALF_FIELD_MM, ONE_AND_HALF_TILE_MM, TARGET_HEIGHT_MM, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
+        identifyTarget(1, "Blue Alliance Wall", HALF_TILE_MM, HALF_FIELD_MM, TARGET_HEIGHT_MM, (float) Math.toRadians(90), 0f, 0f);
+        identifyTarget(2, "Red Storage", -HALF_FIELD_MM, -ONE_AND_HALF_TILE_MM, TARGET_HEIGHT_MM, (float) Math.toRadians(90), 0f, (float) Math.toRadians(90));
+        identifyTarget(3, "Red Alliance Wall", HALF_TILE_MM, -HALF_FIELD_MM, TARGET_HEIGHT_MM, (float) Math.toRadians(90), 0f, (float) Math.toRadians(180));
     }
 
     @Override
     public void update() {
         synchronized (this) {
-            this.detectedData = null;
-            this.detectedHorizPeripheralAngle = null;
-            this.detectedVertPeripheralAngle = null;
-            this.detectedTrackable = null;
+            setCameraAngle(calculateOptimalCameraAngle());
+            updateCameraAngleAndVelocity();
+            trackVuforiaTargets();
+        }
+    }
 
-            // if a trackable isn't detected, there isn't a need to continue
-            if (this.freightFrenzyTargets == null) {
-                return;
-            }
+    /**
+     * Chooses which VuMark for camera to face based on current robot position
+     * @return target camera heading in radians
+     */
+    private double calculateOptimalCameraAngle(){
+        double robotX = robot.sensorThread.getPose().x;
+        double robotY = robot.sensorThread.getPose().y;
+        double robotHeading = robot.sensorThread.getPose().heading;
 
-            // we do stuff
-//            double cameraAngle = Arrays.stream(TARGETS).map(this::getCamAngleTo)
-//                    .min(Comparator.naturalOrder())
-//                    .orElse(0.);
-//            setCameraAngle(cameraAngle);
+        double pivotX = robotX + SERVO_FORWARD_DISPLACEMENT_MM /25.4 * Math.sin(robotHeading) + SERVO_LEFT_DISPLACEMENT_MM /25.4 * Math.cos(robotHeading);
+        double pivotY = robotY + SERVO_FORWARD_DISPLACEMENT_MM /25.4 * Math.cos(robotHeading) - SERVO_LEFT_DISPLACEMENT_MM /25.4 * Math.sin(robotHeading);
+        double pivotHeading = robotHeading;
 
-            for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
-                VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-                if (listener.isVisible()) {
-                    detectedTrackable = trackable;
+        Pose cameraPose = new Pose(pivotX, pivotY, pivotHeading);
+        ArrayList<Point> possibilities = new ArrayList<>();
 
-                    OpenGLMatrix cameraLoc = OpenGLMatrix
-                            .translation(SERVO_FORWARD_DISPLACEMENT + CAMERA_VARIABLE_DISPLACEMENT, SERVO_LEFT_DISPLACEMENT, SERVO_VERTICAL_DISPLACEMENT + CAMERA_VERTICAL_DISPLACEMENT)
-                            .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) Math.PI / 2, (float) Math.toRadians(90), (float) Math.toRadians(33)));
-                    listener.setCameraLocationOnRobot(cameraName, cameraLoc);
-
-                    OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
-                    OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
-
-                    Orientation rot = Orientation.getOrientation(vuMarkPoseRelativeToCamera, AxesReference.EXTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
-                    VectorF trans = vuMarkPoseRelativeToCamera.getTranslation();
-
-                    if (robotLocationTransform != null && vuMarkPoseRelativeToCamera != null) {
-                        this.detectedData = robotLocationTransform;
-
-                        double tX = trans.get(0);
-                        double tY = trans.get(1);
-                        double tZ = trans.get(2);
-                        this.detectedHorizPeripheralAngle = angleWrap(Math.abs(Math.PI / 2 + Math.atan2(-tZ, tX)));
-                        this.detectedVertPeripheralAngle = Math.abs(angleWrap(Math.atan2(tZ, tY))-Math.PI/2);
-                    } else {
-                        Log.d("Vision", "Cannot detect robot location although trackable is visible");
-                    }
-
-                    break;
-                }
+        for (Point target : TARGETS){
+            double relHeading = cameraPose.relativeHeadingToPoint(target);
+            if (Math.abs(relHeading) < ROTATOR_ANGLE_RANGE){
+                possibilities.add(target);
             }
         }
+
+        if (possibilities.size() == 0) {
+            targetVuMark = new Point(0,0);
+            return ROTATOR_CENTER_POS;
+        }
+
+        targetVuMark = cameraPose.nearestPoint(possibilities);
+        return cameraPose.relativeHeadingToPoint(targetVuMark);
+    }
+
+    private void setCameraAngle(double angle) {
+        rotator.setPosition(angleToCameraPos(angle));
+    }
+
+    private void updateCameraAngleAndVelocity(){
+        long currentUpdateTime = SystemClock.elapsedRealtime();
+        double dTime = (currentUpdateTime - lastUpdateTime) / 1000.0;
+
+        cameraAngle = -(double)cameraEncoder.getCurrentPosition() * CAMERA_ENCODER_TO_RADIAN;
+
+        cameraAngleVelocity = (cameraAngle - oldCameraAngle) / dTime;
+
+        oldCameraAngle = cameraAngle;
+        lastUpdateTime = currentUpdateTime;
+    }
+
+    private void trackVuforiaTargets(){
+
+        this.detectedData = null;
+        this.detectedHorizPeripheralAngle = null;
+        this.detectedVertPeripheralAngle = null;
+        this.detectedTrackable = null;
+
+        for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
+            OpenGLMatrix cameraLoc = OpenGLMatrix
+                    .translation(SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(cameraAngle), SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(cameraAngle), SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM)
+                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float)(Math.PI/2 + Math.toRadians(33)), (float)(Math.PI/2 - cameraAngle), 0));
+            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, cameraLoc);
+        }
+
+        for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
+            VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
+            if (listener.isVisible()) {
+
+                detectedTrackable = trackable;
+
+                OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
+                OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
+
+                if (robotLocationTransform != null) {
+                    VectorF trans = vuMarkPoseRelativeToCamera.getTranslation();
+
+                    this.detectedData = robotLocationTransform;
+                    double tX = trans.get(0);
+                    double tY = trans.get(1);
+                    double tZ = trans.get(2);
+                    this.detectedHorizPeripheralAngle = angleWrap(Math.PI / 2 + Math.atan2(-tZ, tX));
+                    this.detectedVertPeripheralAngle = angleWrap(Math.atan2(tZ, tY)-Math.PI/2);
+                } else {
+                    Log.d("Vision", "Cannot detect robot location although trackable is visible");
+                }
+
+                break;
+            }
+        }
+    }
+
+    private double angleToCameraPos(double a){
+        return a * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS) / (Math.PI) + ROTATOR_CENTER_POS;
     }
 
     /**
@@ -185,6 +235,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public ArrayList<String> logPositionAndDetection() {
         synchronized (this) {
             ArrayList<String> data = new ArrayList<>();
+
+            data.add("Camera Angle: " + Math.toDegrees(cameraAngle));
+            data.add("Camera Angle Velocity: " + cameraAngleVelocity);
+            data.add("Target VuMark x: " + targetVuMark.x + ", y: " + targetVuMark.y + ")");
 
             if (detectedTrackable == null) {
                 data.add("No trackables detected");
@@ -216,16 +270,18 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     return null;
                 }
 
-                if (detectedHorizPeripheralAngle >= Math.toRadians(15)){
+                // filter out by peripherals
+                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(15) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(10)){
                     return null;
                 }
-                if (detectedVertPeripheralAngle >= Math.toRadians(10)){
-                    return null;
-                }
+
+                // filter out by translational speed
                 if (Math.hypot(robot.sensorThread.getVelocity().x, robot.sensorThread.getVelocity().y) > 2){
                     return null;
                 }
-                if (Math.abs(robot.sensorThread.getVelocity().heading) > 0.2){
+
+                // filter out by angle speeds
+                if (Math.abs(robot.sensorThread.getVelocity().heading) > 0.15 || Math.abs(cameraAngleVelocity) > 0.05){
                     return null;
                 }
 
@@ -235,10 +291,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 // Convert from FTC coordinate system to ours
                 double robotHeadingOurs = angleWrap(Math.PI - heading);
-                double robotXOurs = robotLocation.y + (HALF_FIELD / MM_PER_INCH);
-                double robotYOurs = -robotLocation.x + (HALF_FIELD / MM_PER_INCH);
-
-                logValues(new Pose(robotLocation, heading), new Pose(robotXOurs, robotYOurs, robotHeadingOurs));
+                double robotXOurs = robotLocation.y + (HALF_FIELD_MM / MM_PER_INCH);
+                double robotYOurs = -robotLocation.x + (HALF_FIELD_MM / MM_PER_INCH);
 
                 return MatrixUtils.createRealMatrix(new double[][]{
                         {robotXOurs},
@@ -251,18 +305,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-    // for debug
-    private void logValues(Pose ftcLocation, Pose ourSystem) {
-        // Fancy formatting :sunglas:
-
-        Log.e("Vision", "FTC Coordinate System");
-        Log.v("Vision", "FTC x: " + ftcLocation.x);
-        Log.v("Vision", "FTC y: " + ftcLocation.y);
-        Log.v("Vision", "FTC heading: " + Math.toDegrees(ftcLocation.heading));
-
-        Log.e("Vision", "Our Coordinate System");
-        Log.v("Vision", "Our x: " + ourSystem.x);
-        Log.v("Vision", "Our y: " + ourSystem.y);
-        Log.v("Vision", "Our heading: " + Math.toDegrees(ourSystem.heading));
+    private void resetEncoders() {
+        cameraEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        cameraEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 }
