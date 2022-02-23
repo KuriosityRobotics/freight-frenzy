@@ -47,12 +47,12 @@ public class IntakeModule implements Module, Telemeter {
     private final Robot robot;
 
     // helpers
-    private long lastTransitionTime;
-    private IntakePosition lastPosition;
-    private boolean hasMineral = false;
-    private boolean started = false;
-    private boolean doneTransitioning = false;
-    private IntakePosition currentPosition;
+    private IntakePosition transitionTo;
+    private long transitionTime;
+    private IntakePosition lastTargetPosition;
+    private boolean hasMineral;
+    private boolean started;
+    private boolean wasDoneTransitioning;
 
     Queue<Double> distanceReadings = new CircularFifoQueue<>(15);
 
@@ -77,8 +77,13 @@ public class IntakeModule implements Module, Telemeter {
         this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
 
         this.targetIntakePosition = IntakePosition.RETRACTED;
-        this.lastPosition = targetIntakePosition;
-        this.lastTransitionTime = 0;
+        this.transitionTo = targetIntakePosition;
+        this.transitionTime = 0;
+        this.wasDoneTransitioning = true;
+        this.lastTargetPosition = targetIntakePosition;
+
+        this.started = false;
+        this.hasMineral = false;
 
         robot.telemetryDump.registerTelemeter(this);
     }
@@ -91,39 +96,46 @@ public class IntakeModule implements Module, Telemeter {
             started = true;
         }
 
-        if (started) {
-            checkForStateChange();
-
-            if (atTargetPosition() && !doneTransitioning) {
-                if (targetIntakePosition == IntakePosition.RETRACTED) {
-                    robot.outtakeModule.defaultFullExtend();
-                }
-                doneTransitioning = true;
+        // listen for when we just finished retracting to command the outtake to extend.
+        if (atTargetPosition() && !wasDoneTransitioning) {
+            if (transitionTo == IntakePosition.RETRACTED) {
+                robot.outtakeModule.defaultFullExtend();
             }
+            wasDoneTransitioning = true;
+        }
 
-            if (intakePower > 0 && atPosition(IntakePosition.RETRACTED)) {
+        // listen for state change
+        if (targetIntakePosition != transitionTo) {
+            transitionIntake(targetIntakePosition);
+        }
+
+        // if we're done transitioning, there are a handful of listeners that apply
+        if (!transitioning()) {
+            // if we're done retracting but trying to intake
+            if (intakePower > 0 && transitionTo == IntakePosition.RETRACTED) {
                 targetIntakePosition = IntakePosition.EXTENDED;
+                transitionIntake(targetIntakePosition);
             }
 
-            // If the intake is occupied and we haven't
-            // started retracting yet, we should do that.
+            // if we're done extending and there's a mineral in the intake
             hasMineral = mineralInIntake();
-            if (hasMineral && atPosition(IntakePosition.EXTENDED)) {
+            if (hasMineral && transitionTo == IntakePosition.EXTENDED) {
                 if (robot.outtakeModule.collapsed()) {
                     targetIntakePosition = IntakePosition.RETRACTED;
+                    transitionIntake(targetIntakePosition);
                 }
-            }
-
-            checkForStateChange();
-
-            if (targetIntakePosition == IntakePosition.RETRACTED && !atTargetPosition()) {
-                intakeMotor.setPower(HOLD_POWER);
-            } else {
-                intakeMotor.setPower(intakePower);
             }
         }
 
-        switch (targetIntakePosition) {
+        // set motor power
+        if (transitionTo == IntakePosition.RETRACTED && !atTargetPosition()) {
+            intakeMotor.setPower(HOLD_POWER);
+        } else {
+            intakeMotor.setPower(intakePower);
+        }
+
+        // set intake position
+        switch (transitionTo) {
             case EXTENDED:
                 extenderLeft.setPosition(INTAKE_LEFT_EXTENDED_POS);
                 extenderRight.setPosition(INTAKE_RIGHT_EXTENDED_POS);
@@ -140,34 +152,25 @@ public class IntakeModule implements Module, Telemeter {
         }
     }
 
-    private void checkForStateChange() {
-        if (lastPosition != targetIntakePosition) {
-            lastTransitionTime = SystemClock.elapsedRealtime();
-            doneTransitioning = false;
-        }
-        this.lastPosition = targetIntakePosition;
+    private void transitionIntake(IntakePosition position) {
+        this.transitionTo = position;
+        this.transitionTime = SystemClock.elapsedRealtime();
+        this.wasDoneTransitioning = false;
+    }
+
+    public boolean transitioning() {
+        long transitionDuration = transitionTo == IntakePosition.EXTENDED ? INTAKE_EXTEND_TIME : INTAKE_RETRACT_TIME;
+        return this.transitionTime + transitionDuration > SystemClock.elapsedRealtime();
     }
 
     public boolean atPosition(IntakePosition position) {
-        boolean rightPosition = position == targetIntakePosition;
+        boolean rightPosition = position == transitionTo;
 
         return rightPosition && !transitioning();
     }
 
     public boolean atTargetPosition() {
         return atPosition(targetIntakePosition);
-    }
-
-    public boolean transitioning() {
-        long transitionTime = targetIntakePosition == IntakePosition.EXTENDED ? INTAKE_EXTEND_TIME : INTAKE_RETRACT_TIME;
-        boolean transitioning = lastTransitionTime + transitionTime > SystemClock.elapsedRealtime();
-        return transitioning;
-    }
-
-    public boolean retracting() {
-        Log.v("in", "pos: " + targetIntakePosition);
-        Log.v("in", "trans: " + transitioning());
-        return targetIntakePosition == IntakePosition.RETRACTED && transitioning();
     }
 
     public boolean hasMineral() {
