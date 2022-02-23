@@ -4,6 +4,8 @@ import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqua
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+
 /**
  * Used to define a point in space. Has two field variables, x and y to define a point (x,y) on an
  * euclidean plane.
@@ -19,6 +21,20 @@ public class Point {
 
     public double distance(Point other) {
         return Math.hypot(other.x - x, other.y - y);
+    }
+
+    public Point nearestPoint(ArrayList<Point> points){
+        Point nearest = points.get(0);
+        double minDis = Double.MAX_VALUE;
+
+        for (Point other : points){
+            if (this.distance(other) < minDis){
+                minDis = this.distance(other);
+                nearest = other;
+            }
+        }
+
+        return nearest;
     }
 
     public Point projectToLine(Line line) {

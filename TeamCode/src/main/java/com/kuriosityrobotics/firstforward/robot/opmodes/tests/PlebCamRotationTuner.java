@@ -1,8 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
+@Disabled
 public class PlebCamRotationTuner extends LinearOpMode {
     private Servo camRotator;
 
