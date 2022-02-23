@@ -36,26 +36,7 @@ import java.util.PriorityQueue;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-
-/**
- * Wrapper for frozen detection models trained using the Tensorflow Object Detection API:
- * - https://github.com/tensorflow/models/tree/master/research/object_detection
- * where you can find the training code.
- * <p>
- * To use pretrained models in the API or convert to TF Lite models, please see docs for details:
- * - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
- * - https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/running_on_mobile_tensorflowlite.md#running-our-model-on-android
- */
 public class YoloV5Classifier implements Classifier {
-
-    /**
-     * Initializes a native TensorFlow session for classifying images.
-     *
-     * @param assetManager  The asset manager to be used to load assets.
-     * @param modelFilename The filepath of the model GraphDef protocol buffer.
-     * @param labelFilename The filepath of label file for classes.
-     * @param isQuantized   Boolean representing model is quantized or not
-     */
     public static YoloV5Classifier create(
             final AssetManager assetManager,
             final String modelFilename,
@@ -72,7 +53,6 @@ public class YoloV5Classifier implements Classifier {
         BufferedReader br = new BufferedReader(new InputStreamReader(labelsInput));
         String line;
         while ((line = br.readLine()) != null) {
-            LOGGER.w(line);
             d.labels.add(line);
         }
         br.close();
@@ -206,8 +186,6 @@ public class YoloV5Classifier implements Classifier {
         return .1f;
     }
 
-    private static final Logger LOGGER = new Logger();
-
     // Float model
     private final float IMAGE_MEAN = 0;
 
@@ -340,9 +318,6 @@ public class YoloV5Classifier implements Classifier {
     protected static final int BATCH_SIZE = 1;
     protected static final int PIXEL_SIZE = 3;
 
-    /**
-     * Writes Image data into a {@code ByteBuffer}.
-     */
     protected ByteBuffer convertBitmapToByteBuffer(Bitmap bitmap) {
 //        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * BATCH_SIZE * INPUT_SIZE * INPUT_SIZE * PIXEL_SIZE);
 //        byteBuffer.order(ByteOrder.nativeOrder());
