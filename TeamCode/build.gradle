@@ -27,6 +27,7 @@ dependencies {
 
     // vision
     implementation 'org.openftc:easyopencv:1.5.1'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0' // tensorflow for game element detection
 
     // fancy stuff for FileDump
     // https://mvnrepository.com/artifact/org.reflections/reflections

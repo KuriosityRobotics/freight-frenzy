@@ -185,11 +185,12 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public Pose getPose() {
-        double x = matrixPose[0].getEntry(0, 0);
-        double y = matrixPose[0].getEntry(1, 0);
-        double heading = matrixPose[0].getEntry(2, 0);
-
-        return new Pose(x, y, heading);
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = matrixPose[0].getEntry(2, 0);
+            return new Pose(x, y, heading);
+        }
     }
 
     @Override

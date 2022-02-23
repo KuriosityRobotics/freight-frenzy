@@ -5,6 +5,7 @@ import static java.lang.Math.PI;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.sensors.PoseProvider;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
@@ -12,6 +13,9 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,17 +35,17 @@ public class CargoDetectorConsumer implements OpenCvConsumer, Telemeter {
     private final PinholeCamera pinholeCamera = new PinholeCamera(FOCAL_LENGTH, O_X, O_Y, FRAME_WIDTH, FRAME_HEIGHT, SENSOR_DIAGONAL, CAMERA_ROTATION, CAMERA_POSITION);
     private final HashMap<Point, CargoDetector.GameElement> detectedGameElements = new HashMap<>();
 
-    private final SensorThread sensorThread;
+    private final PoseProvider poseProvider;
 
-    public CargoDetectorConsumer(SensorThread sensorThread) {
-        this.sensorThread = sensorThread;
+    public CargoDetectorConsumer(PoseProvider poseProvider) {
+        this.poseProvider = poseProvider;
     }
 
     @Override
     public void processFrame(Mat frame) {
         var detections = CargoDetector.getInstance().findGameElementsOnMat(frame);
 
-        var robotPose = sensorThread.getPose();
+        var robotPose = poseProvider.getPose();
         var fieldToRobotRotation = new Rotation(new Vector3D(0, 1, 0), robotPose.heading, RotationConvention.VECTOR_OPERATOR);
         var fieldToRobotTranslate = new Vector3D(robotPose.x, 0, robotPose.y);
 
@@ -49,14 +53,18 @@ public class CargoDetectorConsumer implements OpenCvConsumer, Telemeter {
             detectedGameElements.clear();
 
             for (var detection : detections) {
-                var u = detection.cx();
-                var v = detection.cy() + (detection.h() / 2); // go to bottom of bounding box bc we want the bit that's touching the field
+                var loc = detection.getLocation();
+                Imgproc.rectangle(frame,
+                        new Rect((int)loc.left, (int)loc.top, (int)loc.width(), (int)loc.height()), new Scalar(0, 0, 0), 3);
+
+                var u = detection.getLocation().centerX();
+                var v = detection.getLocation().bottom;
 
                 var fieldAbsolutePosition = fieldToRobotRotation
                         .applyInverseTo(pinholeCamera.unprojectFramePixelsToRay(u, v))
                         .add(fieldToRobotTranslate);
 
-                detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getY()), detection.type());
+                detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getY()), detection.getTitle().equals("Ball") ? CargoDetector.GameElement.BALL : CargoDetector.GameElement.WAFFLE);
             }
         }
     }
