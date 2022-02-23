@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
@@ -61,7 +62,7 @@ public class Odometry implements Telemeter {
     // Constants
     private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
-    private static final double B_ENCODER_DIST_FROM_CENTER = 3;
+    private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
 
     public Odometry(Robot robot, Pose pose) {
         robot.telemetryDump.registerTelemeter(this);
@@ -142,7 +143,7 @@ public class Odometry implements Telemeter {
         double dLeftPodInches = dLeftPod * INCHES_PER_ENCODER_TICK;
         double dRightPodInches = dRightPod * INCHES_PER_ENCODER_TICK;
         double dMecanumBackPodInches = dMecanumBackPod * INCHES_PER_ENCODER_TICK;
-        double dMecanumFrontPodInches = dMecanumBackPodInches * INCHES_PER_ENCODER_TICK;
+        double dMecanumFrontPodInches = dMecanumFrontPod * INCHES_PER_ENCODER_TICK;
 
         // so its easier to type
         double L = dLeftPodInches;
@@ -156,23 +157,34 @@ public class Odometry implements Telemeter {
         double dThetaLR = (L - R) / (2 * P);
         double dThetaFB = (F - B) / (2 * Q);
 
-        double X = L + R;
-        double Y = F + B;
-        double weightLR = X/(X+Y);
-        double weightFB = Y/(X+Y);
+        double X = Math.abs(L + R);
+        double Y = Math.abs(F + B);
+
+        double weightLR = 0.5;
+        double weightFB = 0.5;
+
+        if (X+Y != 0){
+            weightLR = X/(X+Y);
+            weightFB = Y/(X+Y);
+        }
+
+
+        Log.v("odo", "LR weight: " + weightLR);
+        Log.v("odo", "FB weight: " + weightFB);
+
         double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
 
-        double dRobotX = B * sinXOverX(dThetaLR) + Q * Math.sin(dThetaLR) - L * cosXMinusOneOverX(dThetaLR) + P * (Math.cos(dThetaLR) - 1);
-        double dRobotY = L * sinXOverX(dThetaLR) - P * Math.sin(dThetaLR) + B * cosXMinusOneOverX(dThetaLR) + Q * (Math.cos(dThetaLR) - 1);
+        double dRobotX = B * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
+        double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + B * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
 
         // change global variables so they can be used in the kalman filter
         dx = dRobotX;
         dy = dRobotY;
-        dHeading = dThetaLR;
+        dHeading = dTheta;
 
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
-        worldHeadingRad = worldHeadingRad + dThetaLR;
+        worldHeadingRad = worldHeadingRad + dTheta;
     }
 
     /*
