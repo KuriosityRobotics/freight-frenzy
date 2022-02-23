@@ -1,5 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
+import android.graphics.Bitmap;
+import android.graphics.RectF;
+
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.detector.Classifier;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.detector.YoloV5Classifier;
+
+import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -8,7 +16,9 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
+import org.opencv.imgproc.Imgproc;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -23,14 +33,17 @@ public class CargoDetector {
     private static final String MODEL_FILE_NAME = "cargo.onnx";
     private static CargoDetector theCargoDetector;
 
-    static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }
-
-    private final Net net;
-
+    private final YoloV5Classifier net;
     private CargoDetector() {
-        this.net = Dnn.readNet(MODEL_FILE_NAME);
+        YoloV5Classifier net1;
+        try {
+            net1 = YoloV5Classifier.create(AppUtil.getInstance().getActivity().getAssets(), "best-int8.tflite", "labels.txt", true, 416);
+        } catch (IOException e) {
+            net1 = null;
+            e.printStackTrace();
+        }
+
+        this.net = net1;
     }
 
     public static CargoDetector getInstance() {
@@ -40,109 +53,32 @@ public class CargoDetector {
         return theCargoDetector;
     }
 
-    public synchronized ArrayList<Detection> findGameElementsOnMat(Mat mat) {
-        net.setInput(Dnn.blobFromImage(mat, 1 / 255., new Size(416, 416), new Scalar(0), true));
-        var detectorOutputLayer = net.forward("output");
-        detectorOutputLayer = detectorOutputLayer.reshape(1, (int) detectorOutputLayer.total() / 7);
+    public synchronized ArrayList<Classifier.Recognition> findGameElementsOnMat(Mat frame) {
+        Imgproc.resize(frame, frame, new Size(416, 416));
+        Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
+        var bmp = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(frame, bmp);
 
-        var detections = new ArrayList<Detection>();
+        var detections = net.recognizeImage(bmp);
+        var filtered = new ArrayList<Classifier.Recognition>();
 
-        detections:
-        for (int i = 0; i < detectorOutputLayer.rows(); i++) {
-            var confidence = detectorOutputLayer.get(i, 4)[0];
+        outer: for (var detection : detections) {
+            if (new RectF(0, 0, 416, 416).contains(detection.getLocation()) &&
+                    detection.getConfidence() > .8) {
+                for(var previous : filtered) {
+                    if(Math.hypot(detection.getLocation().centerX() - previous.getLocation().centerX(), detection.getLocation().centerY() - previous.getLocation().centerY()) < CLOSENESS_THRESHOLD)
+                        continue outer;
+                }
 
-            if (confidence > .6) {
-                var cx = detectorOutputLayer.get(i, 0)[0];
-                var cy = detectorOutputLayer.get(i, 1)[0];
-                var w = detectorOutputLayer.get(i, 2)[0];
-                var h = detectorOutputLayer.get(i, 3)[0];
-                var type = GameElement.values()[(int) Math.round(detectorOutputLayer.get(i, 5)[0])];
-
-                for (var previousDetection : detections)
-                    if (Math.hypot(cx - previousDetection.cx, cy - previousDetection.cy) < CLOSENESS_THRESHOLD)
-                        continue detections;
-
-
-                detections.add(new Detection(confidence, cx, cy, w, h, type));
+                filtered.add(detection);
             }
         }
 
-        return detections;
+        return filtered;
     }
 
     enum GameElement {
         WAFFLE, BALL
     }
 
-    static final class Detection {
-        private final double confidence;
-        private final double cx;
-        private final double cy;
-        private final double w;
-        private final double h;
-        private final GameElement type;
-
-        Detection(double confidence, double cx, double cy, double w, double h, GameElement type) {
-            this.confidence = confidence;
-            this.cx = cx;
-            this.cy = cy;
-            this.w = w;
-            this.h = h;
-            this.type = type;
-        }
-
-        public Rect getRect() {
-            return new Rect(new Point(cx - w / 2, cy - h / 2), new Point(cx + w / 2, cy + h / 2));
-        }
-
-        public double confidence() {
-            return confidence;
-        }
-
-        public double cx() {
-            return cx;
-        }
-
-        public double cy() {
-            return cy;
-        }
-
-        public double w() {
-            return w;
-        }
-
-        public double h() {
-            return h;
-        }
-
-        public GameElement type() {
-            return type;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this)
-                return true;
-            if (obj == null || obj.getClass() != this.getClass())
-                return false;
-            var that = (Detection) obj;
-            return Double.doubleToLongBits(this.confidence) == Double.doubleToLongBits(that.confidence) &&
-                    Double.doubleToLongBits(this.cx) == Double.doubleToLongBits(that.cx) &&
-                    Double.doubleToLongBits(this.cy) == Double.doubleToLongBits(that.cy) &&
-                    Double.doubleToLongBits(this.w) == Double.doubleToLongBits(that.w) &&
-                    Double.doubleToLongBits(this.h) == Double.doubleToLongBits(that.h) &&
-                    Objects.equals(this.type, that.type);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(confidence, cx, cy, w, h, type);
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s @ (%d, %d) confidence=%.2f", type, cx, cy, confidence);
-        }
-
-    }
 }
