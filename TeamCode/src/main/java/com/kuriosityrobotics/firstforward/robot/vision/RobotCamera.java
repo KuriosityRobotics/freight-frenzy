@@ -22,7 +22,7 @@ class RobotCamera extends PhysicalCamera {
         this.robot = robot;
     }
 
-    public float cameraAngle() {
+    private float cameraAngle() {
         if(robot.visionThread == null)
             return 0f;
         else
@@ -39,7 +39,7 @@ class RobotCamera extends PhysicalCamera {
     }
 
     @Override
-    public Rotation cameraRotation() {
+    public Rotation robotToCameraRotation() {
         return new Rotation(RotationOrder.XZY, RotationConvention.VECTOR_OPERATOR,  Math.toRadians(33), cameraAngle(), 0);
     }
 }

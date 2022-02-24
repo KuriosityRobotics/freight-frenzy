@@ -16,11 +16,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 
 public abstract class PhysicalCamera {
     public abstract Vector3D robotToCameraTranslation();
-    public abstract Rotation cameraRotation();
+    public abstract Rotation robotToCameraRotation();
 
     public OpenGLMatrix rotationMatrix() {
-        var vec = cameraRotation().getAxis(RotationConvention.VECTOR_OPERATOR);
-        return OpenGLMatrix.rotation(RADIANS, (float) cameraRotation().getAngle(), (float)vec.getX(), (float)vec.getY(), (float)vec.getZ())
+        var vec = robotToCameraRotation().getAxis(RotationConvention.VECTOR_OPERATOR);
+        return OpenGLMatrix.rotation(RADIANS, (float) robotToCameraRotation().getAngle(), (float)vec.getX(), (float)vec.getY(), (float)vec.getZ())
                 .rotated(AxesReference.INTRINSIC, AxesOrder.XZY, RADIANS, (float)PI/2, (float)PI/2, 0);
     }
 
@@ -41,7 +41,7 @@ public abstract class PhysicalCamera {
             }
 
             @Override
-            public Rotation cameraRotation() {
+            public Rotation robotToCameraRotation() {
                 return rotation;
             }
         };
