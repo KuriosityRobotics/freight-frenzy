@@ -34,9 +34,8 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-
-        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot.sensorThread);
-        this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, camera, robot.hardwareMap);
+        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot.sensorThread, PhysicalCamera.of(robot));
+        this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot.sensorThread, PhysicalCamera.of(robot), camera, robot.hardwareMap);
         this.teamMarkerDetector = new TeamMarkerDetector();
     }
 
@@ -100,6 +99,9 @@ public class VisionThread implements Runnable, Telemeter {
     }
 
     public RealMatrix getVuforiaMatrix() {
+        if(managedCamera == null || !managedCamera.vuforiaActive)
+            return null;
+
         return vuforiaLocalizationConsumer.getLocationRealMatrix();
     }
 
@@ -109,5 +111,9 @@ public class VisionThread implements Runnable, Telemeter {
 
     public ConcurrentHashMap<Point, Classifier.Recognition> getDetectedGameElements() {
         return cargoDetectorConsumer.getDetectedGameElements();
+    }
+
+    public double getCameraAngle() {
+        return vuforiaLocalizationConsumer.getCameraAngle();
     }
 }
