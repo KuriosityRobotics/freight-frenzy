@@ -41,7 +41,17 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
 
         this.physicalCamera = physicalCamera;
         this.poseProvider = poseProvider;
-        this.pinholeCamera = new PinholeCamera(FOCAL_LENGTH_X, FOCAL_LENGTH_Y, O_X, O_Y, FRAME_WIDTH, FRAME_HEIGHT, SENSOR_DIAGONAL, physicalCamera.cameraRotation(), physicalCamera.robotToCameraTranslation());
+        this.pinholeCamera = new PinholeCamera(
+                FOCAL_LENGTH_X,
+                FOCAL_LENGTH_Y,
+                O_X,
+                O_Y,
+                FRAME_WIDTH,
+                FRAME_HEIGHT,
+                SENSOR_DIAGONAL,
+                physicalCamera.robotToCameraRotation().applyTo(poseProvider.getRotation()),
+                physicalCamera.robotToCameraTranslation().add(poseProvider.getTranslation())
+        );
     }
 
     public void run() {
@@ -62,9 +72,6 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
         var detections = YoloV5Classifier.getInstance().findGameElementsOnMat(frame);
         lastFrameTime = System.currentTimeMillis() - startTime;
 
-        var fieldToRobotRotation = new Rotation(new Vector3D(0, 1, 0), robotPose.heading, RotationConvention.VECTOR_OPERATOR);
-        var fieldToRobotTranslate = new Vector3D(robotPose.x, 0, robotPose.y);
-
         detectedGameElements.clear();
 
         for (var detection : detections) {
@@ -74,9 +81,7 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
             u = (u / 416) * FRAME_WIDTH;
             v = (v / 416) * FRAME_HEIGHT;
 
-            var fieldAbsolutePosition = fieldToRobotRotation
-                    .applyInverseTo(pinholeCamera.unprojectFramePixelsToRay(u, v))
-                    .add(fieldToRobotTranslate);
+            var fieldAbsolutePosition = pinholeCamera.unprojectFramePixelsToRay(u, v);
 
             detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getZ()), detection);
         }
