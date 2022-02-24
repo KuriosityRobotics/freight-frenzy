@@ -101,6 +101,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
             Imgproc.rectangle(frame, boundingBox3, new Scalar(0, 0, 255), 5);
             location = TeamMarkerLocation.LEVEL_3;
         }
+        Imgproc.cvtColor(frame, frame, Imgproc.COLOR_HSV2RGB);
 
         runCount++;
     }

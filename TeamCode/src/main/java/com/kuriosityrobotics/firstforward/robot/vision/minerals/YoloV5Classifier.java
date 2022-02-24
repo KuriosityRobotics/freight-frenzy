@@ -29,7 +29,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 public class YoloV5Classifier implements Classifier {
-    private static final boolean USE_NON_MAXIUM_SUPPRESSION = true;
+    private static final boolean USE_NON_MAXIUM_SUPPRESSION = false;
     private static final boolean USE_QUANTIZED_MODEL = true;
     public static final int CLOSENESS_THRESHOLD = 20;
     public static final float DETECTION_THRESHOLD = .6f;
@@ -38,7 +38,7 @@ public class YoloV5Classifier implements Classifier {
     private static final float IMAGE_STD = 255.0f;
 
     // Number of threads in the java app
-    private static final int NUM_THREADS = 4;
+    private static final int NUM_THREADS = 1;
     // Pre-allocated buffers.
     private static final String[] labels = {"Ball", "Waffle"};
     private static YoloV5Classifier theCargoDetector;
@@ -91,7 +91,7 @@ public class YoloV5Classifier implements Classifier {
             this.outputZeroPoint = outputTensor.quantizationParams().getZeroPoint();
         }
 
-        interpreter.modifyGraphWithDelegate(new NnApiDelegate());
+        interpreter.modifyGraphWithDelegate(new GpuDelegate());
     }
 
     public static YoloV5Classifier getInstance() {

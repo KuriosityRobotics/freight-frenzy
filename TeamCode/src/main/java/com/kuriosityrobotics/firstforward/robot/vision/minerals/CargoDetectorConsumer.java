@@ -1,25 +1,19 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 
-import static java.lang.Math.PI;
-
 import android.util.Pair;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.sensors.PoseProvider;
+import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,23 +24,24 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     static final double SENSOR_DIAGONAL = 6 * 0.0393700787;
     static final double FRAME_WIDTH = 1920;
     static final double FRAME_HEIGHT = 1080;
-    static final double O_X = 995.588675691456;
-    static final double O_Y = 599.3212928484164;
-    static final double FOCAL_LENGTH = 1394.6027293299926;
+    static final double O_X = 1132.95174  ;
+    static final double O_Y = 692.88525;
+    static final double FOCAL_LENGTH_X = 1803.64953;
+    static final double FOCAL_LENGTH_Y = 1689.62755;
 
-    static final Vector3D CAMERA_POSITION = new Vector3D(8.075, 15.313, 0.185f);
-    static final Rotation CAMERA_ROTATION = new Rotation(new Vector3D(-1, 0, 0), PI / 6, RotationConvention.VECTOR_OPERATOR);
-
-    private final PinholeCamera pinholeCamera = new PinholeCamera(FOCAL_LENGTH, O_X, O_Y, FRAME_WIDTH, FRAME_HEIGHT, SENSOR_DIAGONAL, CAMERA_ROTATION, CAMERA_POSITION);
+    private final PinholeCamera pinholeCamera;
+    private final PhysicalCamera physicalCamera;
     private final ConcurrentHashMap<Point, Classifier.Recognition> detectedGameElements = new ConcurrentHashMap<>();
     private final PoseProvider poseProvider;
     private final AtomicReference<Pair<Mat, Pose>> latestFrame;
     private volatile double lastFrameTime = -1;
 
-    public CargoDetectorConsumer(PoseProvider poseProvider) {
+    public CargoDetectorConsumer(PoseProvider poseProvider, PhysicalCamera physicalCamera) {
         latestFrame = new AtomicReference<>();
 
+        this.physicalCamera = physicalCamera;
         this.poseProvider = poseProvider;
+        this.pinholeCamera = new PinholeCamera(FOCAL_LENGTH_X, FOCAL_LENGTH_Y, O_X, O_Y, FRAME_WIDTH, FRAME_HEIGHT, SENSOR_DIAGONAL, physicalCamera.cameraRotation(), physicalCamera.robotToCameraTranslation());
     }
 
     public void run() {
@@ -73,14 +68,17 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
         detectedGameElements.clear();
 
         for (var detection : detections) {
-            var u = detection.getLocation().centerX();
-            var v = detection.getLocation().bottom;
+            var u = (double)detection.getLocation().centerX();
+            var v =  (double)detection.getLocation().bottom;
+
+            u = (u / 416) * FRAME_WIDTH;
+            v = (v / 416) * FRAME_HEIGHT;
 
             var fieldAbsolutePosition = fieldToRobotRotation
                     .applyInverseTo(pinholeCamera.unprojectFramePixelsToRay(u, v))
                     .add(fieldToRobotTranslate);
 
-            detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getY()), detection);
+            detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getZ()), detection);
         }
 
     }
@@ -94,14 +92,14 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
         if (oldFrame != null)
             oldFrame.first.release();
 
-        Imgproc.resize(frame, frame, new Size(416, 416));
+        /*Imgproc.resize(frame, frame, new Size(416, 416));
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
         for (var recognition : detectedGameElements.values()) {
             var rectF = recognition.getLocation();
             var rect = new Rect((int) rectF.left, (int) rectF.top, (int) rectF.width(), (int) rectF.height());
             Imgproc.rectangle(frame, rect, new Scalar(0, 0, 0));
             Imgproc.putText(frame, recognition.getDetectionType() + " " + recognition.getConfidence(), rect.tl(), Imgproc.FONT_HERSHEY_SIMPLEX, .5, new Scalar(255, 255, 255));
-        }
+        }*/
     }
 
     public ConcurrentHashMap<Point, Classifier.Recognition> getDetectedGameElements() {
