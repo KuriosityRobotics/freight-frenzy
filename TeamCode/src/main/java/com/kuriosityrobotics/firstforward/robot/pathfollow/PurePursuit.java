@@ -42,7 +42,6 @@ public class PurePursuit implements Telemeter {
     private int closestIndex; // which path segment is our robot closest to? updated in clipToPath()
     private boolean executedLastAction;
     private boolean pathEnding;
-    private boolean followingLastPoint = false;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
         this.path = path;
@@ -72,7 +71,7 @@ public class PurePursuit implements Telemeter {
             executedLastAction = true;
         } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
             drivetrain.setMovements(0, 0, 0);
-            followingLastPoint = false;
+            pathIndex = 0;
             return false;
         }
 
