@@ -40,7 +40,7 @@ public class YoloV5Classifier implements Classifier {
     // Number of threads in the java app
     private static final int NUM_THREADS = 4;
     // Pre-allocated buffers.
-    private static final String[] labels = {"Waffle", "Ball"};
+    private static final String[] labels = {"Ball", "Waffle"};
     private static YoloV5Classifier theCargoDetector;
     //config yolo
     private final int inputSize;
