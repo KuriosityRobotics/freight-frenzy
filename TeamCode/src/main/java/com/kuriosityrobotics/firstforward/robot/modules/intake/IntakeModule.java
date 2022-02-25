@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INTAKE_RETRACT_TIME;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
@@ -6,6 +6,8 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RIN
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;

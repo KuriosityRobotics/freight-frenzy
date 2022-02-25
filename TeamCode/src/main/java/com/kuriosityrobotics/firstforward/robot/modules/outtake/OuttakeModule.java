@@ -1,11 +1,12 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.COLLAPSE;
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.TURRET_IN;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.TURRET_IN;
 import static java.lang.Math.abs;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;

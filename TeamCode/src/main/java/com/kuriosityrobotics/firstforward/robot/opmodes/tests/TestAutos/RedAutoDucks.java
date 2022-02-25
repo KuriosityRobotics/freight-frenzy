@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;

@@ -1,10 +1,11 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.carousel;
 
 import static java.lang.Math.PI;
 
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;

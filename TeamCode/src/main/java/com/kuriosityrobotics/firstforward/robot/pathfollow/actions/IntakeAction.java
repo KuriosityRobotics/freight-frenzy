@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class IntakeAction extends Action {

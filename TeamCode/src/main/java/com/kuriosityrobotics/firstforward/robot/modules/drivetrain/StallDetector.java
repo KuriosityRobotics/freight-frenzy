@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 

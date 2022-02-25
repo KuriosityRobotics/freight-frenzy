@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class ExtendOuttakeAction extends Action {

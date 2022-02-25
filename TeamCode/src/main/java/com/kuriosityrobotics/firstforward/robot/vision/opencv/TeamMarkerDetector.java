@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 
 import org.apache.commons.math3.stat.descriptive.rank.Max;
 import org.opencv.core.Core;

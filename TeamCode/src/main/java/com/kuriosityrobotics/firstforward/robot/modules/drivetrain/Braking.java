@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.modules;
+package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
@@ -6,7 +6,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 
-public final class Braking {
+final class Braking {
     private ClassicalPID angularBrakeController;
     private ClassicalPID distanceBrakeController;
 

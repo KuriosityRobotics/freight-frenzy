@@ -8,7 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.util.math.Line;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
+import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
 import com.kuriosityrobotics.firstforward.robot.util.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.FeedForwardPID;

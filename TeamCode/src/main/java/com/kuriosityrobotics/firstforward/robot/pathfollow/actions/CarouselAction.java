@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
-import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
+import com.kuriosityrobotics.firstforward.robot.modules.carousel.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class CarouselAction extends Action {

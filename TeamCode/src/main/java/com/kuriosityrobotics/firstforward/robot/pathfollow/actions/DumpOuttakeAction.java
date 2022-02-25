@@ -1,11 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.COLLAPSE;
-import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.EXTEND;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class DumpOuttakeAction extends Action {
