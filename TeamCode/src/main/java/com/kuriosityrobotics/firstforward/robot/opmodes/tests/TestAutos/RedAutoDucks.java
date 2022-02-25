@@ -38,19 +38,20 @@ public class RedAutoDucks extends LinearOpMode {
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
+            return;
         }
 
-        PurePursuit toWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit toWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
         }, 4);
 
-        PurePursuit wobbleToCarousel = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit wobbleToCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(CAROUSEL)
         }, 4);
 
-        PurePursuit toPark = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit toPark = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 4);
@@ -92,7 +93,7 @@ public class RedAutoDucks extends LinearOpMode {
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.extendOuttakeAction(level));
         wobbleActions.add(robot.dumpOuttakeAction());
-        return new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        return new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, wobbleActions),
         }, 4);

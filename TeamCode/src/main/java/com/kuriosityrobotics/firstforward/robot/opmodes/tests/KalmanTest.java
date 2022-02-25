@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
@@ -15,7 +13,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JO
 public class KalmanTest extends LinearOpMode {
     Robot robot = null;
 
-    Button retractButton = new Button();
+    final Button retractButton = new Button();
 
     @Override
     public void runOpMode() {
@@ -62,7 +60,7 @@ public class KalmanTest extends LinearOpMode {
         }
     }
 
-    Button dpad_up = new Button();
+    final Button dpad_up = new Button();
 
     private void updateOuttakeStates() {
         if ((gamepad2.left_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)

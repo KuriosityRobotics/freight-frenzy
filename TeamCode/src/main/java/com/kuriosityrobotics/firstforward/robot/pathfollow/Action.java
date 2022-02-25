@@ -11,6 +11,7 @@ public abstract class Action {
     /**
      * Executes the action, blocking until the action is completed.
      */
+    @SuppressWarnings("unused")
     public void execute() {
         while (!this.isCompleted()) {
             this.tick();

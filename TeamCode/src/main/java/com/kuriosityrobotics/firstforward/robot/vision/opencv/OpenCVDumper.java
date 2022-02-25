@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
-
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;

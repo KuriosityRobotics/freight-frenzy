@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import java.util.Locale;
-
 @TeleOp
 @Disabled
 public class PlebMotorTest extends LinearOpMode {

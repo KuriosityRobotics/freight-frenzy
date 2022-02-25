@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
-
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.linear.MatrixUtils;

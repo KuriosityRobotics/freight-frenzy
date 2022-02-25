@@ -27,7 +27,6 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     static final double FOCAL_LENGTH_Y = 1689.62755;
 
     private final PinholeCamera pinholeCamera;
-    private final PhysicalCamera physicalCamera;
     private final ConcurrentHashMap<Point, Classifier.Recognition> detectedGameElements = new ConcurrentHashMap<>();
     private final PhysicalRobot physicalRobot;
     private final AtomicReference<Pair<Mat, Pose>> latestFrame;
@@ -36,7 +35,6 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     public CargoDetectorConsumer(PhysicalRobot physicalRobot, PhysicalCamera physicalCamera) {
         latestFrame = new AtomicReference<>();
 
-        this.physicalCamera = physicalCamera;
         this.physicalRobot = physicalRobot;
         this.pinholeCamera = new PinholeCamera(
                 FOCAL_LENGTH_X,

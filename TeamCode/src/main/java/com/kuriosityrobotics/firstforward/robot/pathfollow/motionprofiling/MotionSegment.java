@@ -1,13 +1,16 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
-import android.util.Log;
+import androidx.annotation.NonNull;
 
 /**
  * One segment of a motion profile, e.g. a section with a constant acceleration (ramp up, maintian,
  * or ramp down).
  */
 class MotionSegment {
-    public double startVelocity, startDistanceAlongPath, endVelocity, endDistanceAlongPath;
+    public final double startVelocity;
+    public final double startDistanceAlongPath;
+    public final double endVelocity;
+    public final double endDistanceAlongPath;
 
     public MotionSegment(double startVelocity, double startDistanceAlongPath, double endVelocity, double endDistanceAlongPath) {
         this.startVelocity = startVelocity;
@@ -34,6 +37,7 @@ class MotionSegment {
         return Math.sqrt(Math.pow(this.startVelocity, 2) + (2 * accel * distanceSinceStart));
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "MotionSegment{" +

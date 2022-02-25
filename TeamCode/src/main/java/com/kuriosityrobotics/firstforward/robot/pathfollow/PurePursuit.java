@@ -202,9 +202,7 @@ public class PurePursuit implements Telemeter {
 
             ArrayList<Point> pathIntersections = radius.getSegmentIntersections(pathSegment);
 
-            if (pathIntersections.size() == 0) {
-                continue;
-            } else {
+            if (!pathIntersections.isEmpty()) {
                 //returns point that is closer to the end of the segment
 
                 if (i != pathIndex) {

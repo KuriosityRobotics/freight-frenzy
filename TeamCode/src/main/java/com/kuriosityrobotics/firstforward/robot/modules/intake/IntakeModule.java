@@ -53,7 +53,7 @@ public class IntakeModule implements Module, Telemeter {
     private static final double CLOSE_THRESHOLD = 42;
     private static final double FAR_THRESHOLD = 70;
 
-    Queue<Double> queue = new CircularFifoQueue<>(15);
+    final Queue<Double> queue = new CircularFifoQueue<>(15);
 
     private boolean mineralInIntake() {
         double reading = getDistanceSensorReading();

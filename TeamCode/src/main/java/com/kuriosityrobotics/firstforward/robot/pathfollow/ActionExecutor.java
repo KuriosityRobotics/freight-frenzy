@@ -2,18 +2,13 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import android.util.Log;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class ActionExecutor {
-    private ArrayList<Action> executing = new ArrayList<>();
+    private final ArrayList<Action> executing = new ArrayList<>();
 
-    private final HardwareMap hardwareMap;
-
-    public ActionExecutor(HardwareMap hardwareMap) {
-        this.hardwareMap = hardwareMap;
+    public ActionExecutor() {
     }
 
     public void execute(Action action) {

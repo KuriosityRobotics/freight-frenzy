@@ -41,6 +41,10 @@ public class OuttakeModule implements Module, Telemeter {
         TurretPosition(double position) {
             this.position = position;
         }
+
+        public double getPosition() {
+            return position;
+        }
     }
 
     public enum VerticalSlideLevel {
@@ -169,7 +173,7 @@ public class OuttakeModule implements Module, Telemeter {
             switch (this.currentState) {
                 case RAISE:
                     clamp.setPosition(CLAMP_CLAMP);
-                    slide.setTargetPosition(targetSlideLevel.position);
+                    slide.setTargetPosition(targetSlideLevel.getPosition());
                     break;
                 case EXTEND:
                     linkage.setPosition(LINKAGE_EXTENDED);
@@ -183,7 +187,7 @@ public class OuttakeModule implements Module, Telemeter {
                     break;
                 case TURRET_IN:
                     pivot.setPosition(PIVOT_UP);
-                    turret.setPosition(TurretPosition.STRAIGHT.position);
+                    turret.setPosition(TurretPosition.STRAIGHT.getPosition());
                     break;
                 case COLLAPSE:
                     clamp.setPosition(CLAMP_INTAKE);
@@ -203,11 +207,11 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
         if (currentState != COLLAPSE) {
-            slide.setTargetPosition(targetSlideLevel.position);
+            slide.setTargetPosition(targetSlideLevel.getPosition());
         }
 
         if (currentState == EXTEND && atTargetState()) {
-            turret.setPosition(targetTurret.position);
+            turret.setPosition(targetTurret.getPosition());
         }
     }
 

@@ -1,12 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import androidx.annotation.NonNull;
+
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 
 import java.util.ArrayList;
 
 public class WayPoint extends Point {
-    AngleLock angleLock;
-    VelocityLock velocityLock;
+    final AngleLock angleLock;
+    final VelocityLock velocityLock;
     final ArrayList<Action> actions;
 
     public WayPoint(double x, double y, AngleLock angleLock, VelocityLock velocityLock, ArrayList<Action> actions) {
@@ -75,6 +77,7 @@ public class WayPoint extends Point {
         return this.actions;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "WayPoint{" +

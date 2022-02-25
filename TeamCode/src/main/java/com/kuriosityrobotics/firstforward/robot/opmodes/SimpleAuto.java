@@ -24,11 +24,12 @@ public class SimpleAuto extends LinearOpMode {
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
+            return;
         }
 
         robot.resetPose(START);
 
-        PurePursuit park = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit park = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 5);

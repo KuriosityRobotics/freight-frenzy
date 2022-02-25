@@ -10,8 +10,8 @@ public class MatrixUtil {
 
     public static String toPoseString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
-        appendPoseValue(m, "x", "inches",0, 0, sb);
-        appendPoseValue(m, "y", "inches",1,0, sb);
+        appendPoseValue(m, "x", 0, sb);
+        appendPoseValue(m, "y", 1, sb);
         if (m != null){
             sb.append("heading").append(": ").append(Math.toDegrees(m.getEntry(2, 0))).append(" ").append("degrees").append("\n");
         }
@@ -23,23 +23,19 @@ public class MatrixUtil {
     }
 
     public static String toCovarianceString(RealMatrix m){
-        StringBuilder sb = new StringBuilder();
-
         if (m == null) {
             return "";
         }
 
-        sb.append('x').append(m.getEntry(0, 0));
-        sb.append('y').append(m.getEntry(1, 1));
-        sb.append('t').append(m.getEntry(2, 2));
-
-        return sb.toString();
+        return "x" + m.getEntry(0, 0) +
+                'y' + m.getEntry(1, 1) +
+                't' + m.getEntry(2, 2);
     }
 
     public static String toSTDString(RealMatrix m){
         StringBuilder sb = new StringBuilder();
-        appendCovarianceValue(m, "dx", "inches",0, 0, sb);
-        appendCovarianceValue(m, "dy", "inches",1,0, sb);
+        appendCovarianceValue(m, "dx", 0, sb);
+        appendCovarianceValue(m, "dy", 1, sb);
         if (m != null){
             sb.append("dHeading").append(": ").append(Math.toDegrees(Math.sqrt(m.getEntry(2, 0)))).append(" ").append("degrees").append("\n");
         }
@@ -50,24 +46,24 @@ public class MatrixUtil {
         return sb.toString();
     }
 
-    private static void appendPoseValue(RealMatrix m, String name, String unit, int row, int column, StringBuilder sb) {
+    private static void appendPoseValue(RealMatrix m, String name, int row, StringBuilder sb) {
         sb.append(name).append(": ");
         if (m != null) {
-            sb.append(df.format(m.getEntry(row, column)));
+            sb.append(df.format(m.getEntry(row, 0)));
         } else {
             sb.append("null");
         }
-        sb.append(" ").append(unit).append("\n");
+        sb.append(" ").append("inches").append("\n");
     }
 
-    private static void appendCovarianceValue(RealMatrix m, String name, String unit, int row, int column, StringBuilder sb) {
+    private static void appendCovarianceValue(RealMatrix m, String name, int row, StringBuilder sb) {
         sb.append(name).append(": ");
         if (m != null) {
-            sb.append(df.format(Math.sqrt(m.getEntry(row, column))));
+            sb.append(df.format(Math.sqrt(m.getEntry(row, 0))));
         } else {
             sb.append("null");
         }
-        sb.append(" ").append(unit).append("\n");
+        sb.append(" ").append("inches").append("\n");
     }
 
     public static RealMatrix ZERO_MATRIX = MatrixUtils.createRealMatrix(new double[][]{

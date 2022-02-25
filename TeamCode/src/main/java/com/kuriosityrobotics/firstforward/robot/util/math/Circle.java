@@ -3,8 +3,8 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 import java.util.ArrayList;
 
 public class Circle {
-    public Point center;
-    public double radius;
+    public final Point center;
+    public final double radius;
 
     public Circle(Point center, double radius) {
         this.center = center;

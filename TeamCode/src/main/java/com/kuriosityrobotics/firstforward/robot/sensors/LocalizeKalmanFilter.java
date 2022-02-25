@@ -19,6 +19,7 @@ import java.util.List;
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
+@SuppressWarnings("ALL")
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
     private RealMatrix[] matrixPose; // pose, cov
 

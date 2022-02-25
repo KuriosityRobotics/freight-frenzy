@@ -32,6 +32,7 @@ public class RedAuto extends LinearOpMode {
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
+            return;
         }
 
         robot.resetPose(START);
@@ -42,7 +43,7 @@ public class RedAuto extends LinearOpMode {
 
         ArrayList<Action> carouselActions = new ArrayList<>();
         carouselActions.add(robot.carouselAction());
-        PurePursuit toCarousel = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit toCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
@@ -51,9 +52,9 @@ public class RedAuto extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         ArrayList<Action> other = new ArrayList<>();
-        other.add(robot.extendOuttakeAction(robot.visionThread.teamMarkerDetector.getLocation().slideLevel()));
+        other.add(robot.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel()));
         wobbleActions.add(robot.dumpOuttakeAction());
-        PurePursuit toWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit toWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
                 new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE, 0, wobbleActions)
@@ -65,7 +66,7 @@ public class RedAuto extends LinearOpMode {
 //                new WayPoint(PARK, 0, new ArrayList<>())
 //        }, 4);
 
-        PurePursuit toPark = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit toPark = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(CAROUSEL.between(WAREHOUSE_PARK), 9, new ArrayList<>()),
                 new WayPoint(WAREHOUSE_PARK, 0, new ArrayList<>())

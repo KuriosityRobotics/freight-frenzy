@@ -4,8 +4,6 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
 
-import androidx.annotation.NonNull;
-
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -74,12 +72,6 @@ public class FileDump {
         }
     }
 
-    @NonNull
-    @Override
-    public String toString() {
-        return super.toString();
-    }
-
     public static void update() {
         if (activated) {
             boolean anyUpdated = FileDump.dataFields.stream().anyMatch(n -> {
@@ -90,12 +82,15 @@ public class FileDump {
                 try {
                     field.setAccessible(true);
                     value = field.get(instance);
+                    if(value == null)
+                        return false;
+
                     previousValues.put(field, value);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException("Can't access field " + field.getName() + " of instance " + instance.toString(), e);
                 }
 
-                return previousValue == null || !value.equals(previousValue);
+                return !value.equals(previousValue);
             });
             if (anyUpdated) {
                 long newTime = SystemClock.elapsedRealtime();
@@ -107,6 +102,8 @@ public class FileDump {
                             try {
                                 field.setAccessible(true);
                                 Object value = field.get(instance);
+                                if(value == null)
+                                    return "null";
                                 return value.toString();
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);

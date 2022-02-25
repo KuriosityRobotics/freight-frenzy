@@ -5,8 +5,8 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.double
 import java.util.ArrayList;
 
 public class Line {
-    public Point startPoint;
-    public Point endPoint;
+    public final Point startPoint;
+    public final Point endPoint;
 
     //for pathfollow (LINE SEGMENT)
     public Line(Point startPoint, Point endPoint) {

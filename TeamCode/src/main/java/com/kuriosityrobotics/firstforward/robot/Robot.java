@@ -28,9 +28,6 @@ public class Robot extends PhysicalRobot {
     public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    private Thread[] threads;
-    private final Module[] modules;
-
     private final SensorThread sensorThread;
     public final ModuleThread moduleThread;
     public VisionThread visionThread;
@@ -44,7 +41,7 @@ public class Robot extends PhysicalRobot {
 
     public final LEDModule ledModule;
 
-    public TelemetryDump telemetryDump;
+    public final TelemetryDump telemetryDump;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
@@ -52,7 +49,7 @@ public class Robot extends PhysicalRobot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public WebcamName camera;
+    public final WebcamName camera;
 
     public static boolean isBlue = false;
 
@@ -94,7 +91,7 @@ public class Robot extends PhysicalRobot {
         ledModule = new LEDModule(hardwareMap);
         telemetryDump.registerTelemeter(ledModule);
 
-        modules = new Module[]{
+        Module[] modules = new Module[]{
                 drivetrain,
                 intakeModule,
                 outtakeModule,
@@ -103,7 +100,7 @@ public class Robot extends PhysicalRobot {
         };
 
         // threads
-        moduleThread = new ModuleThread(this, this.modules);
+        moduleThread = new ModuleThread(this, modules);
 
         this.isCamera = isCamera;
         visionThread = new VisionThread(this, camera);
@@ -118,6 +115,7 @@ public class Robot extends PhysicalRobot {
     }
 
     public void start() {
+        Thread[] threads;
         if (this.isCamera) {
             threads = new Thread[]{
                     new Thread(sensorThread),

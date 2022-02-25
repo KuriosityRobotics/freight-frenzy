@@ -14,15 +14,13 @@ import java.util.ArrayList;
 
 class DrivetrainModule implements Module, Telemeter {
     //states
-    public double xMov = 0;
-    public double yMov = 0;
-    public double turnMov = 0;
+    private double xMov, yMov, turnMov;
 
     //motors
-    private DcMotor fLeft;
-    private DcMotor fRight;
-    private DcMotor bLeft;
-    private DcMotor bRight;
+    private final DcMotor fLeft;
+    private final DcMotor fRight;
+    private final DcMotor bLeft;
+    private final DcMotor bRight;
 
     public DrivetrainModule(HardwareMap hardwareMap) {
         fLeft = hardwareMap.dcMotor.get("fLeft");

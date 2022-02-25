@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class VisionThread implements Runnable, Telemeter {
-    public final TeamMarkerDetector teamMarkerDetector;
+    private final TeamMarkerDetector teamMarkerDetector;
 
     private final CargoDetectorConsumer cargoDetectorConsumer;
     private Thread cargoDetectionThread;
@@ -39,9 +39,8 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> telemetryData = new ArrayList<>();
-        telemetryData.addAll(vuforiaLocalizationConsumer.logPositionAndDetection());
-        telemetryData.add("Team marker location: " + teamMarkerDetector.getLocation());
+        ArrayList<String> telemetryData = new ArrayList<>(vuforiaLocalizationConsumer.logPositionAndDetection());
+        telemetryData.add("Team marker location: " + getTeamMarkerDetector().getLocation());
         telemetryData.add("Update time: " + updateTime);
         return telemetryData;
     }
@@ -65,7 +64,7 @@ public class VisionThread implements Runnable, Telemeter {
                     robot.camera,
                     vuforiaLocalizationConsumer,
                     openCVDumper,
-                    teamMarkerDetector,
+                    getTeamMarkerDetector(),
                     cargoDetectorConsumer
             );
 
@@ -113,5 +112,9 @@ public class VisionThread implements Runnable, Telemeter {
 
     public double getCameraAngle() {
         return vuforiaLocalizationConsumer.getCameraAngle();
+    }
+
+    public TeamMarkerDetector getTeamMarkerDetector() {
+        return teamMarkerDetector;
     }
 }

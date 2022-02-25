@@ -3,22 +3,14 @@ package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 public interface Classifier {
     List<Recognition> recognizeImage(Bitmap bitmap);
 
-    void enableStatLogging(final boolean debug);
-
-    String getStatString();
-
     void close();
-
-    void setNumThreads(int num_threads);
-
-    void setUseNNAPI(boolean isChecked);
-
-    float getObjThresh();
 
     class Recognition {
         private final String id;
@@ -58,6 +50,7 @@ public interface Classifier {
         }
 
 
+        @NonNull
         @Override
         public String toString() {
             String resultString = "";

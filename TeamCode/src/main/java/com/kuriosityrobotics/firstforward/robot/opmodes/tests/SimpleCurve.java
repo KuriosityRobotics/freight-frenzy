@@ -23,7 +23,7 @@ public class SimpleCurve extends LinearOpMode {
 
         robot.resetPose(new Pose(0, 0, 0));
 
-        PurePursuit pp = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit pp = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(0, 0, new AngleLock(AngleLock.AngleLockType.LOCK, 0)),
                 new WayPoint(0, 20),
                 new WayPoint(-30, 40),

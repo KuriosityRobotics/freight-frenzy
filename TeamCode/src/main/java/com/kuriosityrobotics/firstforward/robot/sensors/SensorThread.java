@@ -24,7 +24,6 @@ public class SensorThread implements Runnable, Telemeter {
 
     private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
 
-    private final String configLocation;
     private final Robot robot;
 
     private final Odometry odometry;
@@ -63,7 +62,6 @@ public class SensorThread implements Runnable, Telemeter {
 
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
-        this.configLocation = configLocation;
 
         robot.telemetryDump.registerTelemeter(this);
         robot.telemetryDump.registerTelemeter(theKalmanFilter);

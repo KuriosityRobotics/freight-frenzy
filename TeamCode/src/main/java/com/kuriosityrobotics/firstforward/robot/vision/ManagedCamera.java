@@ -26,7 +26,7 @@ import de.esoco.coroutine.CoroutineScope;
 public final class ManagedCamera {
     private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
-    public boolean vuforiaActive = true;
+    boolean vuforiaActive = true;
     private final List<OpenCvConsumer> openCvConsumers;
     private final WebcamName cameraName;
     private VuforiaLocalizer vuforia;

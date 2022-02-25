@@ -18,11 +18,12 @@ public class SideWays extends LinearOpMode {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
 
         robot.resetPose(new Pose(0, 0, 0));
 
-        PurePursuit pp = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit pp = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(0, 0, new AngleLock(0)),
                 new WayPoint(-20, 0),
                 new WayPoint(-50, 0, new VelocityLock(0))

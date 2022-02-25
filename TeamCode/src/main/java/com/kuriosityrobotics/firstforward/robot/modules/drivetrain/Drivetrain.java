@@ -12,21 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
-    PhysicalRobot physicalRobot;
-    private final boolean isOn = true;
-    public final DrivetrainModule drivetrainModule;
+    final PhysicalRobot physicalRobot;
+    private final DrivetrainModule drivetrainModule;
 
     //states
-    public double xMov;
-    public double yMov;
-    public double turnMov = 0;
+    public volatile double xMov, yMov, turnMov;
 
     //braking states
-    private Braking brake = new Braking(); // whether or not to actively brake
+    private final Braking brake = new Braking(); // whether or not to actively brake
     private boolean opmodeStarted = false;
 
     // stalling states
-    private StallDetector stallDetector = new StallDetector();
+    private final StallDetector stallDetector = new StallDetector();
 
     public Drivetrain(PhysicalRobot physicalRobot, HardwareMap hardwareMap) {
         this.physicalRobot = physicalRobot;
@@ -75,7 +72,7 @@ public class Drivetrain implements Module, Telemeter {
 
     @Override
     public boolean isOn() {
-        return isOn;
+        return true;
     }
 
     @Override

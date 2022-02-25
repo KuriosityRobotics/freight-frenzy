@@ -18,9 +18,9 @@ public class TelemetryDump implements PoseWatcher {
     private final boolean debug;
 
     private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
-    public FtcDashboard dashboard;
+    private final FtcDashboard dashboard;
 
-    private List<Pose> poseHistory = new ArrayList<>();
+    private final List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
         telemeters.add(telemeter);

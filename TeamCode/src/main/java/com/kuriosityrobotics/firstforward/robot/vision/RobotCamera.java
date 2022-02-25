@@ -6,7 +6,6 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
-import static java.lang.Math.PI;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 

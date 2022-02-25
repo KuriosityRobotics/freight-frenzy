@@ -5,7 +5,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class ExtendOuttakeAction extends Action {
     OuttakeModule.VerticalSlideLevel slideLevel;
-    OuttakeModule outtakeModule;
+    final OuttakeModule outtakeModule;
 
     public ExtendOuttakeAction(OuttakeModule outtakeModule, OuttakeModule.VerticalSlideLevel slideLevel) {
         this.outtakeModule = outtakeModule;

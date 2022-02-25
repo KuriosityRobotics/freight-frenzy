@@ -37,11 +37,12 @@ public class PathFollowTuning extends LinearOpMode {
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
+            return;
         }
 
         ArrayList<Action> carouselActions = new ArrayList<>();
         carouselActions.add(robot.carouselAction());
-        PurePursuit startcToCarousel = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit startcToCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START_C),
                 new WayPoint(START_C.x + 20, START_C.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 3),
@@ -53,27 +54,27 @@ public class PathFollowTuning extends LinearOpMode {
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(robot.intakeAction());
-        PurePursuit wobbleToWarehouse = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit wobbleToWarehouse = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WOBBLE_W),
                 new WayPoint(new Pose(BETWEEN_WOBBLE_WALLGAP, Math.toRadians(-150)), 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(new Pose(WALL_GAP, 180), 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WAREHOUSE, 0, intakeActions)
         }, 4);
 
-        PurePursuit warehouseToWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit warehouseToWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WAREHOUSE),
                 new WayPoint(WALL_GAP, 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BETWEEN_WOBBLE_WALLGAP, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE_W, 0, wobbleActions)
         }, 4);
 
-        PurePursuit startwToWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit startwToWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START_W),
                 new WayPoint(BETWEEN_START_WOBBLE, 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE_W, 0, new ArrayList<>())
         }, 4);
 
-        PurePursuit carouselToStorage = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
+        PurePursuit carouselToStorage = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(CAROUSEL.between(STORAGE), 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(STORAGE, 0, new ArrayList<>())

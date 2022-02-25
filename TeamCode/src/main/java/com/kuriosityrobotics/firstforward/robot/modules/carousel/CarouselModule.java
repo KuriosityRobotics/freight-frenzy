@@ -20,8 +20,6 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
     private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
 
-    private final boolean isOn = true;
-
     //states
     public volatile boolean spin = false;
     public volatile boolean clockwise = false;
@@ -30,17 +28,15 @@ public class CarouselModule implements Module, Telemeter {
     private Long spinStartTimeMillis = null;
 
     //motors
-    private DcMotorEx carouselMotor;
+    private final DcMotorEx carouselMotor;
 
     public CarouselModule(HardwareMap hardwareMap) {
-        this.maxSpeed = MAX_CAROUSEL_SPEED;
+        // original:  1.4 * pi
+        this.maxSpeed = 1.0 * PI;
 
         carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
-
-    private static double MAX_CAROUSEL_SPEED = 1.0 * PI; // original:  1.4 * pi
-    private static double MAX_SPEED_MS = 1300;
 
     private double target = 0;
 
@@ -50,6 +46,7 @@ public class CarouselModule implements Module, Telemeter {
                 spinStartTimeMillis = SystemClock.elapsedRealtime();
             }
 
+            double MAX_SPEED_MS = 1300;
             double speed = maxSpeed * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
             carouselMotor.setVelocity(clockwise ? -speed : speed, AngleUnit.RADIANS);
             target = speed;
@@ -60,7 +57,7 @@ public class CarouselModule implements Module, Telemeter {
     }
 
     public boolean isOn() {
-        return isOn;
+        return true;
     }
 
     public String getName() {

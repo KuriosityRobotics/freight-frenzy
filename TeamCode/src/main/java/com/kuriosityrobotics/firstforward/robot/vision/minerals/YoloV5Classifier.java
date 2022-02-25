@@ -1,16 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 import static org.apache.commons.collections4.ComparatorUtils.reversedComparator;
-
 import static java.util.Comparator.comparing;
 
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.RectF;
 
-import org.apache.commons.collections4.ComparatorUtils;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.checkerframework.checker.units.qual.C;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -18,22 +14,19 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
-import org.tensorflow.lite.nnapi.NnApiDelegate;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.PriorityQueue;
 
+@SuppressWarnings("SameParameterValue")
 public class YoloV5Classifier implements Classifier {
-    private static final boolean USE_NON_MAXIUM_SUPPRESSION = false;
-    private static final boolean USE_QUANTIZED_MODEL = true;
     public static final int CLOSENESS_THRESHOLD = 20;
     public static final float DETECTION_THRESHOLD = .6f;
-
+    private static final boolean USE_NON_MAXIUM_SUPPRESSION = false;
+    private static final boolean USE_QUANTIZED_MODEL = true;
     private static final float IMAGE_MEAN = 0;
     private static final float IMAGE_STD = 255.0f;
 
@@ -42,14 +35,13 @@ public class YoloV5Classifier implements Classifier {
     // Pre-allocated buffers.
     private static final String[] labels = {"Ball", "Waffle"};
     private static YoloV5Classifier theCargoDetector;
+    protected final float mNmsThresh = 0.6f;
     //config yolo
     private final int inputSize;
     private final int outputRowCount;
     private final boolean isQuantized;
     private final int imageBufferSize, outputBufferSize;
     private final int classCount;
-    protected float mNmsThresh = 0.6f;
-
     private int inputZeroPoint;
     private float inputScale;
     private MappedByteBuffer tfliteModel;
@@ -60,7 +52,7 @@ public class YoloV5Classifier implements Classifier {
     YoloV5Classifier(final AssetManager assetManager,
                      final String modelFilename,
                      final boolean isQuantized,
-                     final int inputSize) throws IOException {
+                     final int inputSize) {
         try {
             Interpreter.Options options = (new Interpreter.Options());
             options.setNumThreads(NUM_THREADS);
@@ -96,14 +88,10 @@ public class YoloV5Classifier implements Classifier {
 
     public static YoloV5Classifier getInstance() {
         if (theCargoDetector == null) {
-            try {
-                theCargoDetector = new YoloV5Classifier(AppUtil.getInstance().getActivity().getAssets(),
-                        USE_QUANTIZED_MODEL  ? "best-int8.tflite" : "best-fp16.tflite", USE_QUANTIZED_MODEL, 416);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            //noinspection ConstantConditions
+            theCargoDetector = new YoloV5Classifier(AppUtil.getInstance().getActivity().getAssets(),
+                    USE_QUANTIZED_MODEL ? "best-int8.tflite" : "best-fp16.tflite", USE_QUANTIZED_MODEL, 416);
         }
-        ;
 
         return theCargoDetector;
     }
@@ -136,32 +124,10 @@ public class YoloV5Classifier implements Classifier {
     }
 
     @Override
-    public void enableStatLogging(final boolean logStats) {
-    }
-
-    @Override
-    public String getStatString() {
-        return "";
-    }
-
-    @Override
     public void close() {
         interpreter.close();
         interpreter = null;
         tfliteModel = null;
-    }
-
-    public void setNumThreads(int num_threads) {
-        if (interpreter != null) interpreter.setNumThreads(num_threads);
-    }
-
-    @Override
-    public void setUseNNAPI(boolean isChecked) {
-//        if (tfLite != null) tfLite.setUseNNAPI(isChecked);
-    }
-
-    public float getObjThresh() {
-        return DETECTION_THRESHOLD;
     }
 
     //non maximum suppression
@@ -300,7 +266,7 @@ public class YoloV5Classifier implements Classifier {
 
         var detections = recognizeImage(bmp);
 
-        if(!USE_NON_MAXIUM_SUPPRESSION) {
+        if (!USE_NON_MAXIUM_SUPPRESSION) {
             var filtered = new ArrayList<Classifier.Recognition>();
             outer:
             for (var detection : detections) {

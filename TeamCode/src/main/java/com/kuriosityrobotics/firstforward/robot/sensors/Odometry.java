@@ -35,11 +35,6 @@ public class Odometry implements Telemeter {
     private double oldyVel = 0;
     private double oldangleVel = 0;
 
-    // acceleration calculations
-    private double xAccel = 0;
-    private double yAccel = 0;
-    private double angleAccel = 0;
-
     // change in position of the robot
     private double dx = 0;
     private double dy = 0;
@@ -120,9 +115,10 @@ public class Odometry implements Telemeter {
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
 
-        xAccel = (xVel - oldxVel) / (dTime);
-        yAccel = (yVel - oldyVel) / (dTime);
-        angleAccel = (angleVel - oldangleVel) / (dTime);
+        // acceleration calculations
+        double xAccel = (xVel - oldxVel) / (dTime);
+        double yAccel = (yVel - oldyVel) / (dTime);
+        double angleAccel = (angleVel - oldangleVel) / (dTime);
 
         oldX = worldX;
         oldY = worldY;
@@ -143,19 +139,15 @@ public class Odometry implements Telemeter {
         double dMecanumFrontPodInches = dMecanumFrontPod * INCHES_PER_ENCODER_TICK;
 
         // so its easier to type
-        double L = dLeftPodInches;
-        double R = dRightPodInches;
-        double B = dMecanumBackPodInches;
-        double F = dMecanumFrontPodInches;
         double P = LR_ENCODER_DIST_FROM_CENTER;
         double Q = B_ENCODER_DIST_FROM_CENTER;
 
         // find robot relative deltas
-        double dThetaLR = (L - R) / (2 * P);
-        double dThetaFB = (F - B) / (2 * Q);
+        double dThetaLR = (dLeftPodInches - dRightPodInches) / (2 * P);
+        double dThetaFB = (dMecanumFrontPodInches - dMecanumBackPodInches) / (2 * Q);
 
-        double X = Math.abs(L + R);
-        double Y = Math.abs(F + B);
+        double X = Math.abs(dLeftPodInches + dRightPodInches);
+        double Y = Math.abs(dMecanumFrontPodInches + dMecanumBackPodInches);
 
         double weightLR = 0.5;
         double weightFB = 0.5;
@@ -167,8 +159,8 @@ public class Odometry implements Telemeter {
 
         double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
 
-        double dRobotX = B * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
-        double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + B * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
+        double dRobotX = dMecanumBackPodInches * sinXOverX(dTheta) + Q * Math.sin(dTheta) - dLeftPodInches * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
+        double dRobotY = dLeftPodInches * sinXOverX(dTheta) - P * Math.sin(dTheta) + dMecanumBackPodInches * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
 
         // change global variables so they can be used in the kalman filter
         dx = dRobotX;
