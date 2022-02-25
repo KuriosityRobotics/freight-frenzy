@@ -55,11 +55,11 @@ public class PathFollowTuning extends LinearOpMode {
         }, 3, "start to carousel");
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new PauseAction());
+        //wobbleActions.add(new PauseAction());
         //wobbleActions.add(new DumpOuttakeAction(OuttakeModule.HopperDumpPosition.DUMP_OUTWARDS));
 
         ArrayList<Action> intakeActions = new ArrayList<>();
-        intakeActions.add(new PauseAction());
+        //intakeActions.add(new PauseAction());
         //intakeActions.add(new IntakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W),
@@ -110,8 +110,7 @@ public class PathFollowTuning extends LinearOpMode {
 
         waitForStart();
 
-        /*
-        robot.followPath(startwToWobble);
+        robot.followPath(redStartwToWobble);
 
         for (int  i = 0; i < 3; i++){
             robot.followPath(wobbleToWarehouse);
@@ -119,12 +118,13 @@ public class PathFollowTuning extends LinearOpMode {
         }
 
         /*
-        robot.followPath(blueStartwToWobble);
+        blueStartwToWobble.follow(false);
 
         for (int i = 0; i < 3; i++){
             robot.followPath(blueWobbleToWarehouse);
             robot.followPath(blueWarehouseToWobble);
         }
-        */
+         */
+
     }
 }
