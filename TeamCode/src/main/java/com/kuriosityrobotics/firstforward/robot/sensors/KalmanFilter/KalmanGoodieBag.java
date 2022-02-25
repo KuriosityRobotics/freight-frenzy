@@ -24,13 +24,16 @@ public class KalmanGoodieBag {
         this.goodieBag = new LinkedList<>();
         goodieBag.add(new KalmanGoodie(null, SystemClock.elapsedRealtime(), new KalmanState(startMean, startCov)));
     }
-
     public void addGoodie(KalmanGoodie goodie){
         goodieBag.add(goodie);
     }
 
     public void addGoodie(KalmanData data, long timeStamp){
         goodieBag.add(new KalmanGoodie(data,timeStamp));
+    }
+
+    public void addState(KalmanState state, long timeStamp){
+        goodieBag.add(new KalmanGoodie(null, timeStamp, state));
     }
 
     public KalmanGoodie getGoodie(int i){

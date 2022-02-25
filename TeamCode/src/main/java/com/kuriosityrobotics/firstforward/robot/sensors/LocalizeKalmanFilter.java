@@ -40,9 +40,9 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     });
     private static final long KALMAN_WINDOW_SIZE_MS = 100;
 
-    String strat = "";
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
+        state = new KalmanState(matrixPose, STARTING_COVARIANCE);
         goodieBag = new KalmanGoodieBag(new KalmanState(matrixPose, STARTING_COVARIANCE));
     }
 
@@ -51,6 +51,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
 
             long currentTimeMillis = SystemClock.elapsedRealtime();
             goodieBag.updateGoodieBag(currentTimeMillis, KALMAN_WINDOW_SIZE_MS);
+
+            if (goodieBag.getBagSize() == 0) goodieBag.addState(state, currentTimeMillis);
 
             for (int i = 1; i < goodieBag.getBagSize(); i++){
                 KalmanGoodie prevGoodie = goodieBag.getGoodie(i-1);
@@ -241,8 +243,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("strat: " + strat);
-
+        data.add("state age: " + stateAge);
+        data.add("filtering " + goodieBag.getBagSize() + " goodies");
         data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));
         data.add("covar: " + MatrixUtil.toCovarianceString(state.getCov()));
         data.add("velo: " + getRollingVelocity().toString());

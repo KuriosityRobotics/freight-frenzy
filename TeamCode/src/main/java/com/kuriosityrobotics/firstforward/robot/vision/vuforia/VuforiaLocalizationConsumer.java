@@ -251,6 +251,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("Detected Trackable: " + detectedTrackable.getName());
                 data.add("Horizontal Peripheral Angle: " + Math.toDegrees(detectedHorizPeripheralAngle));
                 data.add("Vertical Peripheral Angle: " + Math.toDegrees(detectedVertPeripheralAngle));
+                data.add("vufX: " + getLocationRealMatrix().getEntry(0,0));
+                data.add("vufY: " + getLocationRealMatrix().getEntry(1,0));
+                data.add("vufHeading: " + getLocationRealMatrix().getEntry(2,0));
             }
 
             return data;
