@@ -2,11 +2,11 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.PauseAction;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -17,11 +17,11 @@ import java.util.ArrayList;
 public class PathFollowTuning extends LinearOpMode {
     public static final Pose START_C = new Pose(6.5, 108., Math.toRadians(90)); //start near carousel
 
-    public static final Pose RED_START_W = new Pose(6.75, 64.5, Math.toRadians(90)); //start near warehouse
-    public static final Pose RED_WOBBLE_W = new Pose(25.5, 70.5, Math.toRadians(240));
-    public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(10, 66., Math.toRadians(200));
-    public static final Pose RED_WALL_GAP = new Pose(5.8, 46.5, Math.toRadians(180));
-    public static final Pose RED_WAREHOUSE = new Pose(5.85, 23, Math.toRadians(180));
+    public static final Pose RED_START_W = new Pose(7, 64.5, Math.toRadians(90)); //start near warehouse
+    public static final Pose RED_WOBBLE_W = new Pose(22.5, 71.5, Math.toRadians(250));
+    public static final Point RED_BETWEEN_WOBBLE_WALLGAP = new Point(7, 61.5);
+    public static final Pose RED_WALL_GAP = new Pose(6, 46.5, Math.toRadians(180));
+    public static final Pose RED_WAREHOUSE = new Pose(6.2, 23, Math.toRadians(180));
 
     public static final Pose BLUE_START_W = new Pose(140.5-6.75, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose BLUE_WOBBLE_W = new Pose(140.5-25.5, 70.5, Math.toRadians(-240));
@@ -63,35 +63,35 @@ public class PathFollowTuning extends LinearOpMode {
         //intakeActions.add(new IntakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W),
-                new WayPoint(RED_START_W.between(RED_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                //new WayPoint(RED_START_W.between(RED_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
         }, 4, "start to wobble");
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(RED_WALL_GAP, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WAREHOUSE, 0, intakeActions)
         }, 4, "wobble to warehouse");
 
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WAREHOUSE),
-                new WayPoint(RED_WALL_GAP,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
         }, 4, "warehouse to wobble");
 
 
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_START_W),
-                new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                //new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W) , 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WOBBLE_W, 0, wobbleActions)
         }, 4, "start to wobble");
 
         PurePursuit blueWobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_WOBBLE_W),
-                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(BLUE_WALL_GAP, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WAREHOUSE, 0, intakeActions)
         }, 4, "wobble to warehouse");
 
@@ -116,6 +116,8 @@ public class PathFollowTuning extends LinearOpMode {
             robot.followPath(wobbleToWarehouse);
             robot.followPath(warehouseToWobble);
         }
+
+
 
         /*
         blueStartwToWobble.follow(false);
