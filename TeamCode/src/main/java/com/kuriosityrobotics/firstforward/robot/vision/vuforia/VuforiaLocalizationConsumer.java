@@ -23,10 +23,10 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.sensors.PoseProvider;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -89,11 +89,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private long lastUpdateTime = 0;
 
-    private final PoseProvider poseProvider;
+    private final PhysicalRobot physicalRobot;
     private final PhysicalCamera physicalCamera;
 
-    public VuforiaLocalizationConsumer(PoseProvider poseProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
-        this.poseProvider = poseProvider;
+    public VuforiaLocalizationConsumer(PhysicalRobot physicalRobot, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+        this.physicalRobot = physicalRobot;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
         rotator = hwMap.get(Servo.class, "webcamPivot");
@@ -134,9 +134,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      * @return target camera heading in radians
      */
     private double calculateOptimalCameraAngle(){
-        double robotX = poseProvider.getPose().x;
-        double robotY = poseProvider.getPose().y;
-        double robotHeading = poseProvider.getPose().heading;
+        double robotX = physicalRobot.getPose().x;
+        double robotY = physicalRobot.getPose().y;
+        double robotHeading = physicalRobot.getPose().heading;
 
         double pivotX = robotX + SERVO_FORWARD_DISPLACEMENT_MM /25.4 * Math.sin(robotHeading) + SERVO_LEFT_DISPLACEMENT_MM /25.4 * Math.cos(robotHeading);
         double pivotY = robotY + SERVO_FORWARD_DISPLACEMENT_MM /25.4 * Math.cos(robotHeading) - SERVO_LEFT_DISPLACEMENT_MM /25.4 * Math.sin(robotHeading);
@@ -277,12 +277,12 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 }
 
                 // filter out by translational speed
-                if (Math.hypot(poseProvider.getVelocity().x, poseProvider.getVelocity().y) > 2){
+                if (Math.hypot(physicalRobot.getVelocity().x, physicalRobot.getVelocity().y) > 2){
                     return null;
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(poseProvider.getVelocity().heading) > 0.15 || Math.abs(cameraAngleVelocity) > 0.05){
+                if (Math.abs(physicalRobot.getVelocity().heading) > 0.15 || Math.abs(cameraAngleVelocity) > 0.05){
                     return null;
                 }
 

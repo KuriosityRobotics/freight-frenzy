@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -19,7 +20,6 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
     private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
 
-    private final Robot robot;
     private final boolean isOn = true;
 
     //states
@@ -32,12 +32,10 @@ public class CarouselModule implements Module, Telemeter {
     //motors
     private DcMotorEx carouselMotor;
 
-    public CarouselModule(Robot robot) {
+    public CarouselModule(HardwareMap hardwareMap) {
         this.maxSpeed = MAX_CAROUSEL_SPEED;
 
-        this.robot = robot;
-//        robot.telemetryDump.registerTelemeter(this);
-        carouselMotor = (DcMotorEx) robot.getDcMotor("carousel");
+        carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 

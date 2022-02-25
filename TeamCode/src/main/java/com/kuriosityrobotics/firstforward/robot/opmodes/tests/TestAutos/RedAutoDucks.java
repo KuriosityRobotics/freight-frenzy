@@ -4,6 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
@@ -35,23 +36,23 @@ public class RedAutoDucks extends LinearOpMode {
 
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-            robot.sensorThread.resetPose(START);
+            robot.resetPose(START);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
         }
 
-        PurePursuit toWobble = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit toWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
         }, 4);
 
-        PurePursuit wobbleToCarousel = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit wobbleToCarousel = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(CAROUSEL)
         }, 4);
 
-        PurePursuit toPark = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit toPark = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 4);
@@ -79,21 +80,21 @@ public class RedAutoDucks extends LinearOpMode {
 //                }
 //
 //                state = RedAutoDucksState.CAROUSEL;
-                toWobble.follow(false);
+                robot.followPath(toWobble);
             case CAROUSEL:
-                wobbleToCarousel.follow(true);
+                robot.followPath(wobbleToCarousel);
                 state = RedAutoDucksState.PARK;
             case PARK:
-                toPark.follow(false);
+                robot.followPath(toPark);
                 break;
         }
     }
 
     public PurePursuit createOutTakeAction(OuttakeModule.VerticalSlideLevel level, Robot robot) {
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(new ExtendOuttakeAction(level));
-        wobbleActions.add(new DumpOuttakeAction());
-        return new PurePursuit(robot, new WayPoint[]{
+        wobbleActions.add(robot.extendOuttakeAction(level));
+        wobbleActions.add(robot.dumpOuttakeAction());
+        return new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, wobbleActions),
         }, 4);

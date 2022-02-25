@@ -8,6 +8,7 @@ import static java.lang.Math.abs;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.ArrayList;
@@ -110,8 +111,6 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
-    private final Robot robot;
-
     // states
     public VerticalSlideLevel targetSlideLevel;
     public OuttakeState targetState;
@@ -131,17 +130,13 @@ public class OuttakeModule implements Module, Telemeter {
     // helpers
     private long transitionTime;
 
-    public OuttakeModule(Robot robot) {
-        this.robot = robot;
+    public OuttakeModule(HardwareMap hardwareMap) {
+        linkage = hardwareMap.servo.get("outtakeLinkage");
+        pivot = hardwareMap.servo.get("outtakePivot");
+        clamp = hardwareMap.servo.get("outtakeClamp");
+        turret = hardwareMap.servo.get("outtakeTurret");
 
-        robot.telemetryDump.registerTelemeter(this);
-
-        linkage = robot.getServo("outtakeLinkage");
-        pivot = robot.getServo("outtakePivot");
-        clamp = robot.getServo("outtakeClamp");
-        turret = robot.getServo("outtakeTurret");
-
-        slide = robot.getDcMotor("lift");
+        slide = hardwareMap.dcMotor.get("lift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setTargetPosition(0);

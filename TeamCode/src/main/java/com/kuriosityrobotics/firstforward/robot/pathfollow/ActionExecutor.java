@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,10 +10,10 @@ import java.util.Iterator;
 public class ActionExecutor {
     private ArrayList<Action> executing = new ArrayList<>();
 
-    private final Robot robot;
+    private final HardwareMap hardwareMap;
 
-    public ActionExecutor(Robot robot) {
-        this.robot = robot;
+    public ActionExecutor(HardwareMap hardwareMap) {
+        this.hardwareMap = hardwareMap;
     }
 
     public void execute(Action action) {
@@ -32,7 +32,7 @@ public class ActionExecutor {
             while (i.hasNext()) {
                 Action action = i.next();
 
-                action.tick(this.robot);
+                action.tick();
 
                 if (action.isCompleted()) {
                     Log.v("action", ""+action.getClass().getName()+" completed");

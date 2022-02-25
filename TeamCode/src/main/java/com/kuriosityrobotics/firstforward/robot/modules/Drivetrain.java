@@ -3,16 +3,18 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
 
+import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
-    Robot robot;
+    PhysicalRobot physicalRobot;
     private final boolean isOn = true;
     public final DrivetrainModule drivetrainModule;
 
@@ -28,10 +30,9 @@ public class Drivetrain implements Module, Telemeter {
     // stalling states
     private StallDetector stallDetector = new StallDetector();
 
-    public Drivetrain(Robot robot) {
-        this.robot = robot;
-        drivetrainModule = new DrivetrainModule(robot);
-        robot.telemetryDump.registerTelemeter(this);
+    public Drivetrain(PhysicalRobot physicalRobot, HardwareMap hardwareMap) {
+        this.physicalRobot = physicalRobot;
+        drivetrainModule = new DrivetrainModule(hardwareMap);
     }
 
     public void setMovements(double xMov, double yMov, double turnMov) {
@@ -55,7 +56,7 @@ public class Drivetrain implements Module, Telemeter {
     // gets updated in robot
     public void update() {
         if (opmodeStarted) {
-            if (movementsZero() && !getVelocity().equals(Pose.ZERO)) {
+            if (movementsZero() && !physicalRobot.getVelocity().equals(Pose.ZERO)) {
 //                Pose brakeMovements = brake.getBrakeMovement(getCurrentPose().wrapped(), getVelocity());
 //                drivetrainModule.setMovements(brakeMovements);
                 drivetrainModule.setMovements(0, 0, 0);
@@ -68,23 +69,6 @@ public class Drivetrain implements Module, Telemeter {
             //stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
         }
-    }
-
-    public double distanceToPoint(Point point) {
-        return this.getCurrentPose().distance(point);
-    }
-
-    public Pose getCurrentPose() {
-        return robot.sensorThread.getPose();
-    }
-
-    public Pose getVelocity() {
-        return robot.sensorThread.getVelocity();
-    }
-
-    public double getOrthVelocity() {
-        Pose velo = getVelocity();
-        return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
     }
 
     public StallDetector getStallDetector() {

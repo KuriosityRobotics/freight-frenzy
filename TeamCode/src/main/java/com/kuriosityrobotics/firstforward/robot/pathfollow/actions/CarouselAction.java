@@ -1,22 +1,27 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.actions;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class CarouselAction extends Action {
+    private final CarouselModule carouselModule;
     private static final long WAIT_TIME_MS = 3000;
 
-    @Override
-    public void tick(Robot robot) {
-        super.tick(robot);
+    public CarouselAction(CarouselModule carouselModule) {
+        this.carouselModule = carouselModule;
+    }
 
-        robot.carouselModule.maxSpeed = 0.8 * Math.PI;
+    @Override
+    public void tick() {
+        super.tick();
+
+        carouselModule.maxSpeed = 0.8 * Math.PI;
 
         if (this.msSinceStart() >= WAIT_TIME_MS) {
-            robot.carouselModule.spin = false;
+            carouselModule.spin = false;
             this.completed = true;
         } else {
-            robot.carouselModule.spin = true;
+            carouselModule.spin = true;
         }
     }
 }

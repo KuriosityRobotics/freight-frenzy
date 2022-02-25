@@ -12,6 +12,7 @@ import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.apache.commons.collections4.BoundedCollection;
@@ -35,10 +36,9 @@ public class IntakeModule implements Module, Telemeter {
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
+    private final OuttakeModule outtakeModule;
 
     private final AnalogDistance distanceSensor;
-
-    private Robot robot;
 
     // states
     public volatile IntakePosition intakePosition = IntakePosition.EXTENDED;
@@ -47,7 +47,6 @@ public class IntakeModule implements Module, Telemeter {
     private Long intakerRetractionStartTime;
     private volatile boolean intakeOccupied = false;
     private volatile boolean newIntakeOccupied = false;
-    private boolean started = false;
 
     List<Double> avgRPMs;
 
@@ -97,27 +96,26 @@ public class IntakeModule implements Module, Telemeter {
         }
     }
 
-    private boolean isOn;
-
     public enum IntakePosition {
         EXTENDED,
         RETRACTED
     }
 
-    public IntakeModule(Robot robot, boolean isOn) {
-        this.robot = robot;
+    public IntakeModule(HardwareMap hardwareMap, OuttakeModule outtakeModule, boolean isOpModeActive) {
+        this.outtakeModule = outtakeModule;
 
-        this.isOn = isOn;
-
-        this.extenderLeft = robot.hardwareMap.servo.get("extenderLeft");
-        this.extenderRight = robot.hardwareMap.servo.get("extenderRight");
-        this.intakeMotor = (DcMotorEx) robot.hardwareMap.dcMotor.get("intake");
+        this.extenderLeft = hardwareMap.servo.get("extenderLeft");
+        this.extenderRight = hardwareMap.servo.get("extenderRight");
+        this.intakeMotor = (DcMotorEx) hardwareMap.dcMotor.get("intake");
 
         intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        this.distanceSensor = new AnalogDistance(robot.hardwareMap.get(AnalogInput.class, "distance"));
+        this.distanceSensor = new AnalogDistance(hardwareMap.get(AnalogInput.class, "distance"));
 
-        robot.telemetryDump.registerTelemeter(this);
+        if(isOpModeActive)
+            setIntakePosition(IntakePosition.EXTENDED);
+        else
+            setIntakePosition(IntakePosition.RETRACTED);
     }
 
     public void setIntakePosition(IntakePosition intakePosition) {
@@ -140,12 +138,6 @@ public class IntakeModule implements Module, Telemeter {
 
     public void update() {
         synchronized (intakeRpmRingBuffer) {
-            if (!robot.isOpModeActive() && !started) {
-                setIntakePosition(IntakePosition.RETRACTED);
-            } else if (!started) {
-                setIntakePosition(IntakePosition.EXTENDED);
-                started = true;
-            }
 
 //            doOccupationStatusProcessing();
 
@@ -159,7 +151,7 @@ public class IntakeModule implements Module, Telemeter {
             // started retracting yet, we should do that.
             newIntakeOccupied = mineralInIntake();
             if (newIntakeOccupied && !inRetractionState())
-                if (robot.outtakeModule.collapsed())
+                if (outtakeModule.collapsed())
                     startIntakeRetraction();
 
             intakeMotor.setPower(
@@ -184,9 +176,9 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     private synchronized void startIntakeExtension() {
-        if (robot != null) {
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+        if (outtakeModule != null) {
+            outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+            outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
         intakeOccupied = false;
         intakerRetractionStartTime = null;
@@ -202,7 +194,7 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     public boolean isOn() {
-        return isOn;
+        return true;
     }
 
     @Override

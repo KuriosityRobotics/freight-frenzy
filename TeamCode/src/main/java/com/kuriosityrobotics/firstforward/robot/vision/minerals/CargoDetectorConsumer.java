@@ -3,16 +3,13 @@ package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 import android.util.Pair;
 
+import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Point;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.sensors.PoseProvider;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Mat;
 
 import java.util.ArrayList;
@@ -32,15 +29,15 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     private final PinholeCamera pinholeCamera;
     private final PhysicalCamera physicalCamera;
     private final ConcurrentHashMap<Point, Classifier.Recognition> detectedGameElements = new ConcurrentHashMap<>();
-    private final PoseProvider poseProvider;
+    private final PhysicalRobot physicalRobot;
     private final AtomicReference<Pair<Mat, Pose>> latestFrame;
     private volatile double lastFrameTime = -1;
 
-    public CargoDetectorConsumer(PoseProvider poseProvider, PhysicalCamera physicalCamera) {
+    public CargoDetectorConsumer(PhysicalRobot physicalRobot, PhysicalCamera physicalCamera) {
         latestFrame = new AtomicReference<>();
 
         this.physicalCamera = physicalCamera;
-        this.poseProvider = poseProvider;
+        this.physicalRobot = physicalRobot;
         this.pinholeCamera = new PinholeCamera(
                 FOCAL_LENGTH_X,
                 FOCAL_LENGTH_Y,
@@ -49,8 +46,8 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
                 FRAME_WIDTH,
                 FRAME_HEIGHT,
                 SENSOR_DIAGONAL,
-                physicalCamera.robotToCameraRotation().applyTo(poseProvider.getRotation()),
-                physicalCamera.robotToCameraTranslation().add(poseProvider.getTranslation())
+                physicalCamera.robotToCameraRotation().applyTo(physicalRobot.getRotation()),
+                physicalCamera.robotToCameraTranslation().add(physicalRobot.getTranslation())
         );
     }
 
@@ -92,7 +89,7 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     public void processFrame(Mat frame) {
         var oldFrame = latestFrame.getAndSet(Pair.create(
                 frame.clone(),
-                poseProvider.getPose()));
+                physicalRobot.getPose()));
 
         if (oldFrame != null)
             oldFrame.first.release();

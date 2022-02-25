@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -36,15 +37,15 @@ public class RedAuto extends LinearOpMode {
             e.printStackTrace();
         }
 
-        robot.sensorThread.resetPose(START);
+        robot.resetPose(START);
         robot.carouselModule.clockwise = false;
         TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_DUCKS;
 
         waitForStart();
 
         ArrayList<Action> carouselActions = new ArrayList<>();
-        carouselActions.add(new CarouselAction());
-        PurePursuit toCarousel = new PurePursuit(robot, new WayPoint[]{
+        carouselActions.add(robot.carouselAction());
+        PurePursuit toCarousel = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
@@ -53,21 +54,21 @@ public class RedAuto extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         ArrayList<Action> other = new ArrayList<>();
-        other.add(new ExtendOuttakeAction(robot.visionThread.teamMarkerDetector.getLocation().slideLevel()));
-        wobbleActions.add(new DumpOuttakeAction());
-        PurePursuit toWobble = new PurePursuit(robot, new WayPoint[]{
+        other.add(robot.extendOuttakeAction(robot.visionThread.teamMarkerDetector.getLocation().slideLevel()));
+        wobbleActions.add(robot.dumpOuttakeAction());
+        PurePursuit toWobble = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
                 new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
-//        PurePursuit toPark = new PurePursuit(robot, new WayPoint[]{
+//        PurePursuit toPark = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
 //                new WayPoint(CAROUSEL),
 //                new WayPoint(WALL_ENT, 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
 //                new WayPoint(PARK, 0, new ArrayList<>())
 //        }, 4);
 
-        PurePursuit toPark = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit toPark = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(CAROUSEL.between(WAREHOUSE_PARK), 9, new ArrayList<>()),
                 new WayPoint(WAREHOUSE_PARK, 0, new ArrayList<>())
@@ -76,11 +77,11 @@ public class RedAuto extends LinearOpMode {
         // DETECT the THING
 
         // go to carousel
-        toCarousel.follow(true);
+        robot.followPath(toCarousel);
 
         // to wobble
-        toWobble.follow(false);
+        robot.followPath(toCarousel);
 
-        toPark.follow(false);
+        robot.followPath(toPark);
     }
 }

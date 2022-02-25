@@ -5,24 +5,30 @@ import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.Out
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class DumpOuttakeAction extends Action {
     private boolean raised = false;
     private boolean dumped = false;
+    private final OuttakeModule outtakeModule;
+
+    public DumpOuttakeAction(OuttakeModule outtakeModule) {
+        this.outtakeModule = outtakeModule;
+    }
+
 
     @Override
-    public void tick(Robot robot) {
-        super.tick(robot);
+    public void tick() {
+        super.tick();
 
         if (!raised) {
-            robot.outtakeModule.targetState = EXTEND;
-            raised = robot.outtakeModule.atState(EXTEND);
+            outtakeModule.targetState = EXTEND;
+            raised = outtakeModule.atState(EXTEND);
         } else if (!dumped) {
-            robot.outtakeModule.targetState = COLLAPSE;
+            outtakeModule.targetState = COLLAPSE;
             dumped = true;
-        } else if (robot.outtakeModule.collapsed()) {
+        } else if (outtakeModule.collapsed()) {
             this.completed = true;
         }
 

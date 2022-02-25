@@ -2,18 +2,18 @@ package com.kuriosityrobotics.firstforward.robot.modules;
 
 import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
 
+import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 
 
 public class DrivetrainModule implements Module, Telemeter {
-    private final Robot robot;
-
     //states
     public double xMov = 0;
     public double yMov = 0;
@@ -25,9 +25,16 @@ public class DrivetrainModule implements Module, Telemeter {
     private DcMotor bLeft;
     private DcMotor bRight;
 
-    public DrivetrainModule(Robot robot) {
-        this.robot = robot;
-        init();
+    public DrivetrainModule(HardwareMap hardwareMap) {
+        fLeft = hardwareMap.dcMotor.get("fLeft");
+        fRight = hardwareMap.dcMotor.get("fRight");
+        bLeft = hardwareMap.dcMotor.get("bLeft");
+        bRight = hardwareMap.dcMotor.get("bRight");
+
+        fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        fRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        bLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        bRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
 //        robot.telemetryDump.registerTelemeter(this);
     }
@@ -81,18 +88,6 @@ public class DrivetrainModule implements Module, Telemeter {
         } else {
             motor.setPower(power);
         }
-    }
-
-    public void init() {
-        fLeft = robot.getDcMotor("fLeft");
-        fRight = robot.getDcMotor("fRight");
-        bLeft = robot.getDcMotor("bLeft");
-        bRight = robot.getDcMotor("bRight");
-
-        fLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        fRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        bLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        bRight.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public boolean isOn() {

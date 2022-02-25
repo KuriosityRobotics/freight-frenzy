@@ -21,7 +21,7 @@ import java.util.HashMap;
 
 import de.esoco.coroutine.Coroutine;
 
-public class SensorThread implements Runnable, Telemeter, PoseProvider {
+public class SensorThread implements Runnable, Telemeter {
 
     private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
 

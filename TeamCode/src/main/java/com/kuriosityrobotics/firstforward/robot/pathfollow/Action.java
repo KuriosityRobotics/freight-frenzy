@@ -13,16 +13,16 @@ public abstract class Action {
     /**
      * Executes the action, blocking until the action is completed.
      */
-    public void execute(Robot robot) {
+    public void execute() {
         while (!this.isCompleted()) {
-            this.tick(robot);
+            this.tick();
         }
     }
 
     /**
      * Performs one tick of this action. Best for asynchronous execution.
      */
-    public void tick(Robot robot) {
+    public void tick() {
         if (!isStarted) {
             isStarted = true;
             startTime = SystemClock.elapsedRealtime();

@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -20,9 +21,9 @@ public class Straight extends LinearOpMode {
             e.printStackTrace();
         }
 
-        robot.sensorThread.resetPose(new Pose(0, 0, 0));
+        robot.resetPose(new Pose(0, 0, 0));
 
-        PurePursuit pp = new PurePursuit(robot, new WayPoint[]{
+        PurePursuit pp = new PurePursuit(new ActionExecutor(hardwareMap), new WayPoint[]{
                 new WayPoint(0, 0),
                 new WayPoint(0, 20),
                 new WayPoint(0, 40),
@@ -32,7 +33,7 @@ public class Straight extends LinearOpMode {
 
         waitForStart();
 
-        pp.follow(false);
+        robot.followPath(pp);
 
         while (opModeIsActive()) {
             // yeet
