@@ -24,7 +24,7 @@ public class Robot extends LocationProvider {
     public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    private final SensorThread sensorThread;
+    public final SensorThread sensorThread;
     public final ModuleThread moduleThread;
     public VisionThread visionThread;
     public final DebugThread debugThread;

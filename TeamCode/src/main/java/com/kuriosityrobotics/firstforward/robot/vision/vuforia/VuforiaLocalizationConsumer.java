@@ -18,8 +18,10 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -81,7 +83,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private final LocationProvider locationProvider;
     private final PhysicalCamera physicalCamera;
 
-    public VuforiaLocalizationConsumer(LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+    private final Robot robot;
+
+    public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+        this.robot = robot;
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
@@ -114,7 +119,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         synchronized (this) {
             setCameraAngle(calculateOptimalCameraAngle());
             updateCameraAngleAndVelocity();
+
+            long currentTimeMillis = SystemClock.elapsedRealtime();
             trackVuforiaTargets();
+
+            RealMatrix data = getLocationRealMatrix();
+
+            // hopefully this doesn't do bad thread stuff
+            if (data != null) robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
         }
     }
 
@@ -255,6 +267,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
             try {
+                if (detectedData == null) {
+                    return null;
+                }
+
                 if (detectedData == null) {
                     return null;
                 }

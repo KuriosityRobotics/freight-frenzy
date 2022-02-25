@@ -9,11 +9,12 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodie;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,7 +67,7 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(this);
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
 
-        this.odometry = new Odometry(robot.hardwareMap, theKalmanFilter.getPose());
+        this.odometry = new Odometry(robot, robot.hardwareMap, theKalmanFilter.getPose());
     }
 
     @Override
@@ -78,13 +79,7 @@ public class SensorThread implements Runnable, Telemeter {
             });
             odometry.update();
 
-            RealMatrix odometry = this.odometry.getDeltaMatrix();
-            RealMatrix vuforia = null;
-            if (robot.isCamera) {
-                vuforia = robot.visionThread.getVuforiaMatrix();
-            }
-
-            theKalmanFilter.update(odometry, vuforia);
+            theKalmanFilter.update();
 
             long currentTime = SystemClock.elapsedRealtime();
 
@@ -97,6 +92,14 @@ public class SensorThread implements Runnable, Telemeter {
             lastLoopTime = currentTime;
         }
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
+    }
+
+    public void addGoodie(KalmanGoodie goodie){
+        theKalmanFilter.addGoodie(goodie);
+    }
+
+    public void addGoodie(KalmanData data, long timeStamp){
+        theKalmanFilter.addGoodie(data, timeStamp);
     }
 
     public Pose getPose() {

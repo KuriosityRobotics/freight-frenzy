@@ -1,8 +1,8 @@
-package com.kuriosityrobotics.firstforward.robot.sensors;
+package com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter;
 
 import org.apache.commons.math3.linear.RealMatrix;
 
-interface KalmanFilter {
+public interface KalmanFilter {
     RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update);
     RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs);
     RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs);
