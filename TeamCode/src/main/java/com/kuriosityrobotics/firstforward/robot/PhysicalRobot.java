@@ -1,7 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;

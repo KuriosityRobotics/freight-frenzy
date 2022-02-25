@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 import static java.lang.Math.PI;
 
 import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;

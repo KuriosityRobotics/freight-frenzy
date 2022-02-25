@@ -1,13 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.mean;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
 import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;

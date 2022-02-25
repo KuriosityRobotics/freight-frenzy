@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
 

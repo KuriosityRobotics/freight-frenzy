@@ -1,6 +1,6 @@
-package com.kuriosityrobotics.firstforward.robot.math;
+package com.kuriosityrobotics.firstforward.robot.util.math;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
 import java.util.ArrayList;
 

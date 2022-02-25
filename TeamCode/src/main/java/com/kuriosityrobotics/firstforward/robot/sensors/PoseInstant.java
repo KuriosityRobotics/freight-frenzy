@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 class PoseInstant extends Pose {
     double timestamp;

@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.math;
+package com.kuriosityrobotics.firstforward.robot.util.math;
 
 import java.util.ArrayList;
 

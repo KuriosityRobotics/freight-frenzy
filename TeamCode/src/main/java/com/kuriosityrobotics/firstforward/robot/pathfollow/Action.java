@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
-
 public abstract class Action {
     protected boolean completed = false;
 

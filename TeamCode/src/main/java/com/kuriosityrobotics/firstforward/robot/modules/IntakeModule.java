@@ -4,9 +4,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.INT
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Intake.RING_BUFFER_CAPACITY;
 
 import android.os.SystemClock;
-import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
 import com.qualcomm.robotcore.hardware.AnalogInput;

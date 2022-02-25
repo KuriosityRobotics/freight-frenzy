@@ -1,13 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
-import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -64,17 +63,15 @@ public class Odometry implements Telemeter {
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
 
-    public Odometry(Robot robot, Pose pose) {
-        robot.telemetryDump.registerTelemeter(this);
-
+    public Odometry(HardwareMap hardwareMap, Pose pose) {
         this.worldX = pose.x;
         this.worldY = pose.y;
         this.worldHeadingRad = pose.heading;
 
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumBackEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
-        mecanumFrontEncoder = robot.hardwareMap.get(DcMotor.class, "bRight");
+        yLeftEncoder = hardwareMap.get(DcMotor.class, "fLeft");
+        yRightEncoder = hardwareMap.get(DcMotor.class, "fRight");
+        mecanumBackEncoder = hardwareMap.get(DcMotor.class, "bLeft");
+        mecanumFrontEncoder = hardwareMap.get(DcMotor.class, "bRight");
 
         resetEncoders();
 

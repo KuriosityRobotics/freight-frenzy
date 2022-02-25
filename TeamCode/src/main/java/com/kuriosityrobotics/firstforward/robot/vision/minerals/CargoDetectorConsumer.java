@@ -5,8 +5,8 @@ import android.util.Pair;
 
 import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Point;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 

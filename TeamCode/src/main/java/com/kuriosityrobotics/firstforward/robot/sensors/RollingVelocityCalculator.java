@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import java.util.ArrayList;
 import java.util.Iterator;

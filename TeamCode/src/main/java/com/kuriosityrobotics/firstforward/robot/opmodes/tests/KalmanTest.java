@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;

@@ -1,11 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.max;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.max;
 
-import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;

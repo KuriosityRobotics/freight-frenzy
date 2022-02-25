@@ -5,7 +5,6 @@ import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.Out
 import static com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule.OuttakeState.TURRET_IN;
 import static java.lang.Math.abs;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
