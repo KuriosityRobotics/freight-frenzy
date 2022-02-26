@@ -11,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodie;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodieBag;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 
@@ -92,6 +93,10 @@ public class SensorThread implements Runnable, Telemeter {
             lastLoopTime = currentTime;
         }
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
+    }
+
+    public KalmanGoodieBag getGoodieBag() {
+        return theKalmanFilter.unprocessedGoodieBag;
     }
 
     public void addGoodie(KalmanGoodie goodie){

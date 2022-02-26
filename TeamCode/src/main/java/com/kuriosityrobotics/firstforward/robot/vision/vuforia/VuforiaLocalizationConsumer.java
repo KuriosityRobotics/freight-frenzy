@@ -24,6 +24,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodieBag;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
@@ -88,14 +89,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private final LocationProvider locationProvider;
     private final PhysicalCamera physicalCamera;
-
     private final Robot robot;
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
-        this.robot = robot;
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
+        this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
         rotator.setPosition(ROTATOR_CENTER_POS);

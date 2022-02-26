@@ -13,7 +13,6 @@ import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodi
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanState;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
@@ -28,7 +27,7 @@ import java.util.List;
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
 
     private KalmanState state;
-    private KalmanGoodieBag unprocessedGoodieBag; // has null states
+    public KalmanGoodieBag unprocessedGoodieBag; // has null states
 
     private KalmanGoodieBag processedGoodieBag;
 
