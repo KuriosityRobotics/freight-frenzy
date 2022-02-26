@@ -6,7 +6,6 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -40,7 +39,7 @@ public class CarouselModule implements Module, Telemeter {
     }
 
     public CarouselAction carouselAction() {
-        return this.new CarouselAction();
+        return new CarouselAction(this);
     }
 
     private double target = 0;
@@ -80,21 +79,4 @@ public class CarouselModule implements Module, Telemeter {
         return data;
     }
 
-    class CarouselAction extends Action {
-        private static final long WAIT_TIME_MS = 3000;
-
-        @Override
-        public void tick() {
-            super.tick();
-
-            maxSpeed = 0.8 * Math.PI;
-
-            if (this.msSinceStart() >= WAIT_TIME_MS) {
-                spin = false;
-                this.completed = true;
-            } else {
-                spin = true;
-            }
-        }
-    }
 }
