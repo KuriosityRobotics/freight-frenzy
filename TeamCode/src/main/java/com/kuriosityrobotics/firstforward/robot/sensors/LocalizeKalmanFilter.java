@@ -1,13 +1,19 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanFilter;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodie;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodieBag;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanState;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
-
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 
@@ -20,7 +26,13 @@ import java.util.List;
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
-    private RealMatrix[] matrixPose; // pose, cov
+
+    private KalmanState state;
+    private KalmanGoodieBag unprocessedGoodieBag; // has null states
+
+    private KalmanGoodieBag processedGoodieBag;
+
+    private int stateAge = 0;
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -28,40 +40,78 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             {0, Math.pow(4, 2), 0},
             {0, 0, Math.pow(Math.toRadians(15), 2)}
     });
+    private static final long KALMAN_WINDOW_SIZE_MS = 100;
 
-    String strat = "";
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
-        this.matrixPose = new RealMatrix[]{matrixPose, STARTING_COVARIANCE};
+        state = new KalmanState(matrixPose, STARTING_COVARIANCE);
+        unprocessedGoodieBag = new KalmanGoodieBag();
+        processedGoodieBag = new KalmanGoodieBag(new KalmanState(matrixPose, STARTING_COVARIANCE));
     }
 
-    /**
-     * Provides next estimate of discrete-time pose of robot based on update and/or observation
-     * Smartly decides estimate method based on information given
-     *
-     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
-     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
-     *                dHeading odo math generates)
-     * @param obs:    the observation that is used to correct (vuforia) column 1 is the actual
-     *                tracker information (position on field) column 2 is where the robot is in the
-     *                trackers coordinate system
-     */
-    @SuppressWarnings("ConstantConditions")
-    void update(RealMatrix update, RealMatrix obs) {
+    void update() {
         synchronized (this) {
-            if (update != null && obs == null){
-                matrixPose = prediction(matrixPose, update);
-                strat = "prediction";
-            } else if (update == null && obs != null){
-                matrixPose = correction(matrixPose, obs);
-                strat = "correction";
-            }  else if (update != null && obs != null) {
-                matrixPose = fuse(matrixPose, update, obs);
-                strat = "fuse";
+
+            long currentTimeMillis = SystemClock.elapsedRealtime();
+
+            processedGoodieBag.addGoodieBag(unprocessedGoodieBag);
+            unprocessedGoodieBag.clearGoodieBag();
+
+            processedGoodieBag.updateGoodieBag(currentTimeMillis, KALMAN_WINDOW_SIZE_MS);
+
+            if (processedGoodieBag.getBagSize() == 0) processedGoodieBag.addState(state, currentTimeMillis);
+
+            for (int i = 1; i < processedGoodieBag.getBagSize(); i++){
+                KalmanGoodie prevGoodie = processedGoodieBag.getGoodie(i-1);
+                KalmanGoodie goodie = processedGoodieBag.getGoodie(i);
+
+                if (prevGoodie.isStateNull()) {
+                    continue;
+                }
+                if (goodie.isDataNull()) {
+                    continue;
+                }
+
+                KalmanState state = prevGoodie.getState();
+                KalmanData data = goodie.getData();
+
+                if (data.getDataType() == 0) state = prediction(state, data);
+                if (data.getDataType() == 1) state = correction(state, data);
+
+                processedGoodieBag.setGoodieState(i, state);
+
+//                Log.v("kf", "procs: " + processedGoodieBag.getGoodie(i).toString());
             }
+
+            state = processedGoodieBag.getLastGoodie().getState();
+            stateAge = (int) (currentTimeMillis - processedGoodieBag.getLastGoodie().getTimeStamp());
         }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+    }
+
+    public KalmanState prediction(KalmanState prev, KalmanData update){
+        RealMatrix[] prevMatrix = new RealMatrix[]{
+                prev.getMean(), prev.getCov()
+        };
+
+        RealMatrix updateMatrix = update.getData();
+
+        RealMatrix[] predictionMatrix = prediction(prevMatrix, updateMatrix);
+
+        return new KalmanState(predictionMatrix[0], predictionMatrix[1]);
+    }
+
+    public KalmanState correction(KalmanState pred, KalmanData obs){
+        RealMatrix[] predMatrix = new RealMatrix[]{
+                pred.getMean(), pred.getCov()
+        };
+
+        RealMatrix obsMatrix = obs.getData();
+
+        RealMatrix[] correctionMatrix = correction(predMatrix, obsMatrix);
+
+        return new KalmanState(correctionMatrix[0], correctionMatrix[1]);
     }
 
     /**
@@ -130,7 +180,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
      *              information (position on field) column 2 is where the robot is in the trackers
      *              coordinate system
-     * @return corrected prediction
+     * @return: corrected prediction
      */
     @Override
     public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
@@ -177,7 +227,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                trackers coordinate system
      * @return corrected prediction
      */
-    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
         RealMatrix[] prediction = prediction(prev, update);
@@ -185,23 +234,37 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return correction;
     }
 
-    public Pose getPose() {
-        synchronized (this) {
-            double x = matrixPose[0].getEntry(0, 0);
-            double y = matrixPose[0].getEntry(1, 0);
-            double heading = matrixPose[0].getEntry(2, 0);
-            return new Pose(x, y, heading);
+    public void addGoodie(KalmanGoodie goodie){
+        synchronized (this){
+            unprocessedGoodieBag.addGoodie(goodie);
         }
+    }
+
+    public void addGoodie(KalmanData data, long timeStamp){
+        synchronized (this){
+            unprocessedGoodieBag.addGoodie(data, timeStamp);
+        }
+    }
+
+    public Pose getPose() {
+        RealMatrix matrixPose = state.getMean();
+
+        double x = matrixPose.getEntry(0, 0);
+        double y = matrixPose.getEntry(1, 0);
+        double heading = matrixPose.getEntry(2, 0);
+
+        return new Pose(x, y, heading);
     }
 
     @Override
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("strat: " + strat);
-
-        data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
-        data.add("covar: " + MatrixUtil.toCovarianceString(matrixPose[1]));
+        data.add("state age: " + stateAge);
+        data.add("unprocessed: " + unprocessedGoodieBag.getBagSize() + " goodies");
+        data.add("processed: " + processedGoodieBag.getBagSize() + " goodies");
+        data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));
+        data.add("covar: " + MatrixUtil.toCovarianceString(state.getCov()));
         data.add("velo: " + getRollingVelocity().toString());
 
         return data;
@@ -211,7 +274,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> map = new HashMap<>();
 
-        map.put("pose: ", MatrixUtil.toPoseString(matrixPose[0]));
+        map.put("pose: ", MatrixUtil.toPoseString(state.getMean()));
         map.put("velo: ", getRollingVelocity().toString());
 
         return map;

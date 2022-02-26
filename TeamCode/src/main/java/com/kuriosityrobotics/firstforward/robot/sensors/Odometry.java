@@ -2,8 +2,10 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -58,7 +60,10 @@ public class Odometry implements Telemeter {
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
 
-    public Odometry(HardwareMap hardwareMap, Pose pose) {
+
+    private final Robot robot;
+    public Odometry(Robot robot, HardwareMap hardwareMap, Pose pose) {
+        this.robot = robot;
         this.worldX = pose.x;
         this.worldY = pose.y;
         this.worldHeadingRad = pose.heading;
@@ -75,11 +80,14 @@ public class Odometry implements Telemeter {
     }
 
     public void update() {
+
+        long currentTimeMillis = SystemClock.elapsedRealtime();
         calculatePosition();
+        robot.sensorThread.addGoodie(new KalmanData(0, getDeltaMatrix()), currentTimeMillis);
 
         calculateInstantaneousVelocity();
-
 //        this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+
     }
 
     private void calculatePosition() {

@@ -17,20 +17,21 @@ public class Constants {
         // Camera positions on robot (both front and left)
         // it is correct but vuforia sucks when it is too close to the wall target(2-3 inches off)
         public static final float SERVO_FORWARD_DISPLACEMENT_MM = 4.821f * MM_PER_INCH;
-        public static final float SERVO_VERTICAL_DISPLACEMENT_MM = 16.519f * MM_PER_INCH;
+        public static final float SERVO_VERTICAL_DISPLACEMENT_MM = 16.404f * MM_PER_INCH;
         public static final float SERVO_LEFT_DISPLACEMENT_MM = 0.318f * MM_PER_INCH;
 
         // camera pos relative to the turret servo
-        public static final float CAMERA_VARIABLE_DISPLACEMENT_MM = 3.382f * MM_PER_INCH;
+        public static final float CAMERA_VARIABLE_DISPLACEMENT_MM = 3.365f * MM_PER_INCH;
         public static final float CAMERA_VERTICAL_DISPLACEMENT_MM = 0f * MM_PER_INCH;
 
         // Constants for perimeter targets
-        public static final float TARGET_HEIGHT_MM = 6f * MM_PER_INCH;
-        public static final float HALF_FIELD_MM = 70.5f * MM_PER_INCH;
-        public static final float ONE_TILE_MM = 23.375f * MM_PER_INCH;
-        public static final float FULL_FIELD_MM = HALF_FIELD_MM * 2f;
-        public static final float ONE_AND_HALF_TILE_MM = 35f * MM_PER_INCH;
-        public static final float HALF_TILE_MM = 11.625f * MM_PER_INCH;
+        public static final float TARGET_HEIGHT_MM = 5.75f * MM_PER_INCH;
+        public static final float TILE_MEAT_MM = 23f * MM_PER_INCH;
+        public static final float HALF_TILE_MEAT_MM = TILE_MEAT_MM * 0.5f;
+        public static final float TILE_TAB_MM = 0.5f * MM_PER_INCH;
+        public static final float FULL_FIELD_MM = 6f * TILE_MEAT_MM + 5f * TILE_TAB_MM;
+        public static final float HALF_FIELD_MM = FULL_FIELD_MM * 0.5f;
+
 
         public static final String VUFORIA_LICENCE_KEY =
                 "AWPSm1P/////AAABmfp26UJ0EUAui/y06avE/y84xKk68LTTAP3wBE75aIweAnuSt" +
