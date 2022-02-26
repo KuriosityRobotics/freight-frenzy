@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
-import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.util.math.Line;
@@ -27,9 +27,7 @@ public class PurePursuit implements Telemeter {
     // params
     private final boolean backwards;
     private final double followRadius;
-
-    private final ActionExecutor actionExecutor;
-
+    
     // motion magic
     private final MotionProfile profile;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
@@ -44,41 +42,40 @@ public class PurePursuit implements Telemeter {
     private boolean executedLastAction;
     private boolean pathEnding;
 
-    public PurePursuit(ActionExecutor actionExecutor, WayPoint[] path, boolean backwards, double followRadius) {
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
         this.path = path;
         this.followRadius = followRadius;
 
         this.profile = new MotionProfile(path);
 
-        this.actionExecutor = actionExecutor;
-
         this.backwards = backwards;
         this.executedLastAction = false;
         this.pathIndex = 0;
-        this.actionExecutor.execute(path[0]);
+        ActionExecutor.execute(path[0]);
     }
 
-    public PurePursuit(ActionExecutor actionExecutor, WayPoint[] path, double followRadius) {
-        this(actionExecutor, path, false, followRadius);
+    public PurePursuit(WayPoint[] path, double followRadius) {
+        this(path, false, followRadius);
     }
 
-    public boolean update(PhysicalRobot physicalRobot, Drivetrain drivetrain) {
-        boolean atEnd = atEnd(physicalRobot);
+    public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
+        boolean atEnd = atEnd(locationProvider);
         if (atEnd && !executedLastAction) {
-            actionExecutor.execute(path[path.length - 1]);
+            ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
-        } else if (atEnd && executedLastAction && actionExecutor.doneExecuting()) {
+        } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
             drivetrain.setMovements(0, 0, 0);
             return false;
         }
 
-        this.updateDrivetrain(physicalRobot, drivetrain);
+        this.updateDrivetrain(locationProvider, drivetrain);
+        ActionExecutor.tick();
         return true;
     }
 
-    private void updateDrivetrain(PhysicalRobot physicalRobot, Drivetrain drivetrain) {
-        Pose robotPose = physicalRobot.getPose();
-        Point robotVelo = physicalRobot.getVelocity();
+    private void updateDrivetrain(LocationProvider locationProvider, Drivetrain drivetrain) {
+        Pose robotPose = locationProvider.getPose();
+        Point robotVelo = locationProvider.getVelocity();
 
         Point target = targetPosition(robotPose);
 
@@ -101,7 +98,7 @@ public class PurePursuit implements Telemeter {
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
 
-        pathEnding = physicalRobot.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD || pathEnding;
+        pathEnding = locationProvider.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD || pathEnding;
         if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK && pathEnding) {
             // if we overshoot the end point we don't want to turn back around to face it
             angPow = 0;
@@ -134,8 +131,6 @@ public class PurePursuit implements Telemeter {
 
         drivetrain.setMovements(xPow, yPow, angPow);
 
-        actionExecutor.tick();
-
         // save values for dashboard lemon
         vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         targvel = targetVelocity;
@@ -145,7 +140,7 @@ public class PurePursuit implements Telemeter {
         targy = targetYVelo;
         heading = robotPose.heading;
         targhead = targetAngleLock.heading;
-        distToEnd = physicalRobot.distanceToPoint(path[path.length - 1]);
+        distToEnd = locationProvider.distanceToPoint(path[path.length - 1]);
 
         this.target = target;
     }
@@ -208,7 +203,7 @@ public class PurePursuit implements Telemeter {
                 if (i != pathIndex) {
                     for (int j = pathIndex + 1; j <= i; j++) {
                         WayPoint point = path[j];
-                        actionExecutor.execute(point);
+                        ActionExecutor.execute(point);
                     }
 
                     // set the new target
@@ -224,13 +219,13 @@ public class PurePursuit implements Telemeter {
         return path[path.length - 1];
     }
 
-    public boolean atEnd(PhysicalRobot physicalRobot) {
+    public boolean atEnd(LocationProvider locationProvider) {
         WayPoint end = path[path.length - 1];
         AngleLock lastAngle = profile.getLastAngleLock();
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
-                || (Math.abs(angleWrap(physicalRobot.getPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && physicalRobot.getVelocity().heading < Math.toRadians(1.5));
-        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (physicalRobot.getOrthVelocity() <= 3);
-        return physicalRobot.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
+                || (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
+        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 3);
+        return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd
                 && stopped;
     }

@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 import android.util.Pair;
 
-import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -28,14 +28,14 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
 
     private final PinholeCamera pinholeCamera;
     private final ConcurrentHashMap<Point, Classifier.Recognition> detectedGameElements = new ConcurrentHashMap<>();
-    private final PhysicalRobot physicalRobot;
+    private final LocationProvider locationProvider;
     private final AtomicReference<Pair<Mat, Pose>> latestFrame;
     private volatile double lastFrameTime = -1;
 
-    public CargoDetectorConsumer(PhysicalRobot physicalRobot, PhysicalCamera physicalCamera) {
+    public CargoDetectorConsumer(LocationProvider locationProvider, PhysicalCamera physicalCamera) {
         latestFrame = new AtomicReference<>();
 
-        this.physicalRobot = physicalRobot;
+        this.locationProvider = locationProvider;
         this.pinholeCamera = new PinholeCamera(
                 FOCAL_LENGTH_X,
                 FOCAL_LENGTH_Y,
@@ -44,8 +44,8 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
                 FRAME_WIDTH,
                 FRAME_HEIGHT,
                 SENSOR_DIAGONAL,
-                physicalCamera.robotToCameraRotation().applyTo(physicalRobot.getRotation()),
-                physicalCamera.robotToCameraTranslation().add(physicalRobot.getTranslation())
+                physicalCamera.robotToCameraRotation().applyTo(locationProvider.getRotation()),
+                physicalCamera.robotToCameraTranslation().add(locationProvider.getTranslation())
         );
     }
 
@@ -87,7 +87,7 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     public void processFrame(Mat frame) {
         var oldFrame = latestFrame.getAndSet(Pair.create(
                 frame.clone(),
-                physicalRobot.getPose()));
+                locationProvider.getPose()));
 
         if (oldFrame != null)
             oldFrame.first.release();

@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
-import com.kuriosityrobotics.firstforward.robot.PhysicalRobot;
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
-    final PhysicalRobot physicalRobot;
+    final LocationProvider locationProvider;
     private final DrivetrainModule drivetrainModule;
 
     //states
@@ -25,8 +25,8 @@ public class Drivetrain implements Module, Telemeter {
     // stalling states
     private final StallDetector stallDetector = new StallDetector();
 
-    public Drivetrain(PhysicalRobot physicalRobot, HardwareMap hardwareMap) {
-        this.physicalRobot = physicalRobot;
+    public Drivetrain(LocationProvider locationProvider, HardwareMap hardwareMap) {
+        this.locationProvider = locationProvider;
         drivetrainModule = new DrivetrainModule(hardwareMap);
     }
 
@@ -51,7 +51,7 @@ public class Drivetrain implements Module, Telemeter {
     // gets updated in robot
     public void update() {
         if (opmodeStarted) {
-            if (movementsZero() && !physicalRobot.getVelocity().equals(Pose.ZERO)) {
+            if (movementsZero() && !locationProvider.getVelocity().equals(Pose.ZERO)) {
 //                Pose brakeMovements = brake.getBrakeMovement(getCurrentPose().wrapped(), getVelocity());
 //                drivetrainModule.setMovements(brakeMovements);
                 drivetrainModule.setMovements(0, 0, 0);

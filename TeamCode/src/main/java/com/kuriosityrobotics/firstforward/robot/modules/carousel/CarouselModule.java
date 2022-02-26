@@ -19,6 +19,7 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE = 2 * PI;
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
     private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
+    private static final double MAX_SPEED_MS = 1300;
 
     //states
     public volatile boolean spin = false;
@@ -50,7 +51,6 @@ public class CarouselModule implements Module, Telemeter {
                 spinStartTimeMillis = SystemClock.elapsedRealtime();
             }
 
-            double MAX_SPEED_MS = 1300;
             double speed = maxSpeed * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
             carouselMotor.setVelocity(clockwise ? -speed : speed, AngleUnit.RADIANS);
             target = speed;

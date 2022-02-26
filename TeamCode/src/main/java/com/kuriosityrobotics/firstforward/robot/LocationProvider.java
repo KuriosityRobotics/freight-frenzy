@@ -9,7 +9,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.function.Supplier;
 
-public abstract class PhysicalRobot {
+public abstract class LocationProvider {
     public abstract Pose getPose();
     public abstract Pose getVelocity();
 
@@ -30,8 +30,8 @@ public abstract class PhysicalRobot {
         return new Vector3D(getPose().x, 0, getPose().y);
     }
 
-    public static PhysicalRobot of(Supplier<Pose> pose, Supplier<Pose> velocity) {
-        return new PhysicalRobot() {
+    public static LocationProvider of(Supplier<Pose> pose, Supplier<Pose> velocity) {
+        return new LocationProvider() {
             @Override
             public Pose getPose() {
                 return pose.get();
@@ -44,8 +44,8 @@ public abstract class PhysicalRobot {
         };
     }
 
-    public static PhysicalRobot of(Pose pose, Pose velocity) {
-        return new PhysicalRobot() {
+    public static LocationProvider of(Pose pose, Pose velocity) {
+        return new LocationProvider() {
             @Override
             public Pose getPose() {
                 return pose;

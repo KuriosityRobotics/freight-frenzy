@@ -6,23 +6,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class ActionExecutor {
-    private final ArrayList<Action> executing = new ArrayList<>();
+    private static final ArrayList<Action> executing = new ArrayList<>();
 
-    public ActionExecutor() {
-    }
+    private ActionExecutor() {}
 
-    public void execute(Action action) {
-        executing.add(action);
-    }
-
-    public void execute(WayPoint point) {
-        for (Action action : point.getActions()) {
-            this.execute(action);
+    public static void execute(Action action) {
+        synchronized (executing) {
+            executing.add(action);
         }
     }
 
-    public void tick() {
-        synchronized(this) {
+    public static void execute(WayPoint point) {
+        for (Action action : point.getActions()) {
+            execute(action);
+        }
+    }
+
+    public static void tick() {
+        synchronized(executing) {
             Iterator<Action> i = executing.iterator();
             while (i.hasNext()) {
                 Action action = i.next();
@@ -37,9 +38,9 @@ public class ActionExecutor {
         }
     }
 
-    public boolean doneExecuting() {
-        synchronized(this) {
-            return this.executing.isEmpty();
+    public static boolean doneExecuting() {
+        synchronized(executing) {
+            return executing.isEmpty();
         }
     }
 }

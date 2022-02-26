@@ -23,7 +23,7 @@ public class SideWays extends LinearOpMode {
 
         robot.resetPose(new Pose(0, 0, 0));
 
-        PurePursuit pp = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit pp = new PurePursuit(new WayPoint[]{
                 new WayPoint(0, 0, new AngleLock(0)),
                 new WayPoint(-20, 0),
                 new WayPoint(-50, 0, new VelocityLock(0))

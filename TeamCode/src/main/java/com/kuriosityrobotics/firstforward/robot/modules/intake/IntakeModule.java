@@ -101,7 +101,7 @@ public class IntakeModule implements Module, Telemeter {
         RETRACTED
     }
 
-    public IntakeModule(HardwareMap hardwareMap, OuttakeModule outtakeModule, boolean isOpModeActive) {
+    public IntakeModule(HardwareMap hardwareMap, OuttakeModule outtakeModule) {
         this.outtakeModule = outtakeModule;
 
         this.extenderLeft = hardwareMap.servo.get("extenderLeft");
@@ -112,10 +112,7 @@ public class IntakeModule implements Module, Telemeter {
 
         this.distanceSensor = new AnalogDistance(hardwareMap.get(AnalogInput.class, "distance"));
 
-        if(isOpModeActive)
-            setIntakePosition(IntakePosition.EXTENDED);
-        else
-            setIntakePosition(IntakePosition.RETRACTED);
+        setIntakePosition(IntakePosition.RETRACTED);
     }
 
     public void setIntakePosition(IntakePosition intakePosition) {

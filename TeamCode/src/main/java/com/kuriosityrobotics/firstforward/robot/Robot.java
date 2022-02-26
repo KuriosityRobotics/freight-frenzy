@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
-public class Robot extends PhysicalRobot {
+public class Robot extends LocationProvider {
     public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
@@ -78,7 +78,7 @@ public class Robot extends PhysicalRobot {
         outtakeModule = new OuttakeModule(hardwareMap);
         telemetryDump.registerTelemeter(outtakeModule);
 
-        intakeModule = new IntakeModule(hardwareMap, outtakeModule,  isOpModeActive());
+        intakeModule = new IntakeModule(hardwareMap, outtakeModule);
         telemetryDump.registerTelemeter(intakeModule);
 
         carouselModule = new CarouselModule(hardwareMap);

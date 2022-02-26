@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("CanBeFinal")
 public class LEDModule implements Module, Telemeter {
     // states
     public RevBlinkinLedDriver.BlinkinPattern pattern = RevBlinkinLedDriver.BlinkinPattern.BREATH_RED;

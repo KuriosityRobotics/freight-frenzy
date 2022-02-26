@@ -29,7 +29,7 @@ public class SimpleAuto extends LinearOpMode {
 
         robot.resetPose(START);
 
-        PurePursuit park = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit park = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 5);

@@ -52,7 +52,7 @@ public class RedAutoCycle extends LinearOpMode {
 
         ArrayList<Action> carouselActions = new ArrayList<>();
         carouselActions.add(robot.carouselModule.carouselAction());
-        PurePursuit toCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 3),
@@ -61,32 +61,32 @@ public class RedAutoCycle extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
-        PurePursuit carouselToWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit carouselToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL, robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
         ArrayList<Action> intakeActions = new ArrayList<>();
         intakeActions.add(robot.intakeModule.intakeAction());
-        PurePursuit toWarehouse = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit toWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(WALL_WH,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WAREHOUSE, 0, intakeActions)
         }, 4);
 
-        PurePursuit warehouseToWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(WAREHOUSE),
                 new WayPoint(WALL_WH,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
-        PurePursuit toPark = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(WALL_WH, 0.2 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(PARK, 0, new ArrayList<>())
         }, 4);
 
-        PurePursuit toWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
         }, 4);
@@ -131,7 +131,7 @@ public class RedAutoCycle extends LinearOpMode {
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.extendOuttakeAction(level));
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
-        return new PurePursuit(new ActionExecutor(), new WayPoint[]{
+        return new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE, 0, wobbleActions),
         }, 4);
     }
