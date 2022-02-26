@@ -24,49 +24,93 @@ public class KalmanGoodieBag {
         this.goodieBag = new LinkedList<>();
         goodieBag.add(new KalmanGoodie(null, SystemClock.elapsedRealtime(), new KalmanState(startMean, startCov)));
     }
+
+    public KalmanGoodieBag(){
+        this.goodieBag = new LinkedList<>();
+    }
+
+    public void clearGoodieBag(){
+        synchronized (goodieBag){
+            goodieBag.clear();
+        }
+    }
+
+    public void addGoodieBag(KalmanGoodieBag newGoodieBag){
+        synchronized (goodieBag){
+            goodieBag.addAll(newGoodieBag.getLinkedList());
+        }
+    }
+
     public void addGoodie(KalmanGoodie goodie){
-        goodieBag.add(goodie);
+        synchronized (goodieBag){
+            goodieBag.add(goodie);
+        }
     }
 
     public void addGoodie(KalmanData data, long timeStamp){
-        goodieBag.add(new KalmanGoodie(data,timeStamp));
+        synchronized (goodieBag){
+            goodieBag.add(new KalmanGoodie(data,timeStamp));
+        }
     }
 
     public void addState(KalmanState state, long timeStamp){
-        goodieBag.add(new KalmanGoodie(null, timeStamp, state));
+        synchronized (goodieBag){
+            goodieBag.add(new KalmanGoodie(null, timeStamp, state));
+        }
     }
 
     public KalmanGoodie getGoodie(int i){
-        return goodieBag.get(i);
+        synchronized (goodieBag){
+            return goodieBag.get(i);
+        }
     }
 
     public KalmanGoodie getLastGoodie(){
-        return goodieBag.get(goodieBag.size()-1);
+        synchronized (goodieBag){
+            return goodieBag.get(goodieBag.size()-1);
+        }
     }
 
     public void setGoodie(int i, KalmanGoodie goodie){
-        goodieBag.set(i, goodie);
+        synchronized (goodieBag){
+            goodieBag.set(i, goodie);
+        }
     }
 
     public void setGoodieState(int i, KalmanState state){
-        KalmanGoodie prevGoodie = goodieBag.get(i);
-        goodieBag.set(i, new KalmanGoodie(prevGoodie.getData(), prevGoodie.getTimeStamp(), state));
+        synchronized (goodieBag){
+            KalmanGoodie prevGoodie = goodieBag.get(i);
+            goodieBag.set(i, new KalmanGoodie(prevGoodie.getData(), prevGoodie.getTimeStamp(), state));
+        }
     }
 
     public int getBagSize(){
-        return goodieBag.size();
+        synchronized (goodieBag){
+            return goodieBag.size();
+        }
     }
 
     public void sortGoodieBag(){
-        goodieBag.sort(Comparator.comparing(KalmanGoodie::getTimeStamp));
+        synchronized (goodieBag){
+            goodieBag.sort(Comparator.comparing(KalmanGoodie::getTimeStamp));
+        }
     }
 
     public void refreshGoodieBag(long currentTime, long timeWindow){
-        goodieBag.removeIf(n -> (n.getTimeStamp() > currentTime || n.getTimeStamp() < currentTime - timeWindow));
+        synchronized (goodieBag){
+            goodieBag.removeIf(n -> (n.getTimeStamp() > currentTime || n.getTimeStamp() < currentTime - timeWindow));
+        }
     }
 
     public void updateGoodieBag(long currentTime, long timeWindow){
-        refreshGoodieBag(currentTime, timeWindow);
-        sortGoodieBag();
+        synchronized (goodieBag){
+            if (goodieBag == null) return;
+            refreshGoodieBag(currentTime, timeWindow);
+            sortGoodieBag();
+        }
+    }
+
+    public LinkedList<KalmanGoodie> getLinkedList(){
+        return this.goodieBag;
     }
 }

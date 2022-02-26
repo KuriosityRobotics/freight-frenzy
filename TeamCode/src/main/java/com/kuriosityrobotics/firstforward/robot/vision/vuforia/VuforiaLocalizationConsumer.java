@@ -1,15 +1,20 @@
 
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_AND_HALF_TILE_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.ONE_TILE_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TARGET_HEIGHT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_MEAT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_TAB_MM;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.DEGREES;
+
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
@@ -46,12 +51,13 @@ import java.util.ArrayList;
 
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
+
     private static final Point[] TARGETS = {
             // all in our coordinate system
-            new Point(0, (ONE_AND_HALF_TILE_MM + ONE_TILE_MM)/25.4),
-            new Point(ONE_AND_HALF_TILE_MM /25.4, FULL_FIELD_MM /25.4),
-            new Point((FULL_FIELD_MM - ONE_AND_HALF_TILE_MM)/25.4, FULL_FIELD_MM /25.4),
-            new Point(FULL_FIELD_MM /25.4, (ONE_AND_HALF_TILE_MM + ONE_TILE_MM)/25.4)
+            new Point(0, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM)/25.4),
+            new Point((TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM)/25.4, FULL_FIELD_MM/25.4),
+            new Point((FULL_FIELD_MM - (TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM))/25.4, FULL_FIELD_MM/25.4),
+            new Point(FULL_FIELD_MM/25.4, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM)/25.4)
     };
 
     private final WebcamName cameraName;
@@ -108,10 +114,33 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage", -HALF_FIELD_MM, ONE_AND_HALF_TILE_MM, (float) Math.toRadians(90), (float) Math.toRadians(90));
-        identifyTarget(1, "Blue Alliance Wall", HALF_TILE_MM, HALF_FIELD_MM, (float) Math.toRadians(90), 0f);
-        identifyTarget(2, "Red Storage", -HALF_FIELD_MM, -ONE_AND_HALF_TILE_MM, (float) Math.toRadians(90), (float) Math.toRadians(90));
-        identifyTarget(3, "Red Alliance Wall", HALF_TILE_MM, -HALF_FIELD_MM, (float) Math.toRadians(90), (float) Math.toRadians(180));
+        identifyTarget(0, "Blue Storage",
+                -HALF_FIELD_MM,
+                1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)
+        );
+
+        identifyTarget(1, "Blue Alliance Wall",
+                0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
+                HALF_FIELD_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, 0f
+        );
+
+        identifyTarget(2, "Red Storage",
+                -HALF_FIELD_MM,
+                -(1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM),
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)
+        );
+
+        identifyTarget(3, "Red Alliance Wall",
+                0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
+                -HALF_FIELD_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
+        );
     }
 
     @Override
@@ -251,21 +280,29 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("Detected Trackable: " + detectedTrackable.getName());
                 data.add("Horizontal Peripheral Angle: " + Math.toDegrees(detectedHorizPeripheralAngle));
                 data.add("Vertical Peripheral Angle: " + Math.toDegrees(detectedVertPeripheralAngle));
-                data.add("vufX: " + getLocationRealMatrix().getEntry(0,0));
-                data.add("vufY: " + getLocationRealMatrix().getEntry(1,0));
-                data.add("vufHeading: " + getLocationRealMatrix().getEntry(2,0));
+
+                RealMatrix robotLocation = getLocationRealMatrix();
+
+                if (robotLocation != null){
+                    data.add("vufX: " + robotLocation.getEntry(0,0));
+                    data.add("vufY: " + robotLocation.getEntry(1,0));
+                    data.add("vufHeading: " + robotLocation.getEntry(2,0));
+                } else {
+                    data.add("not using vuforia goodies rn");
+                }
             }
 
             return data;
         }
     }
 
-    private void identifyTarget(int targetIndex, String targetName, float dx, float dy, float rx, float rz) {
+    private void identifyTarget(int targetIndex, String targetName, float dx, float dy, float dz, float rx, float ry, float rz) {
         VuforiaTrackable aTarget = this.freightFrenzyTargets.get(targetIndex);
         aTarget.setName(targetName);
-        aTarget.setLocation(OpenGLMatrix.translation(dx, dy, com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TARGET_HEIGHT_MM)
-                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, RADIANS, rx, (float) 0.0, rz)));
+        aTarget.setLocation(OpenGLMatrix.translation(dx, dy, dz)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XYZ, RADIANS, rx, ry, rz)));
     }
+
 
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {

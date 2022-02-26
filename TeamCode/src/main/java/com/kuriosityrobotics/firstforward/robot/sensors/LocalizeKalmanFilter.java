@@ -28,7 +28,9 @@ import java.util.List;
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
 
     private KalmanState state;
-    private KalmanGoodieBag goodieBag;
+    private KalmanGoodieBag unprocessedGoodieBag; // has null states
+
+    private KalmanGoodieBag processedGoodieBag;
 
     private int stateAge = 0;
 
@@ -43,23 +45,32 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
         state = new KalmanState(matrixPose, STARTING_COVARIANCE);
-        goodieBag = new KalmanGoodieBag(new KalmanState(matrixPose, STARTING_COVARIANCE));
+        unprocessedGoodieBag = new KalmanGoodieBag();
+        processedGoodieBag = new KalmanGoodieBag(new KalmanState(matrixPose, STARTING_COVARIANCE));
     }
 
     void update() {
         synchronized (this) {
 
             long currentTimeMillis = SystemClock.elapsedRealtime();
-            goodieBag.updateGoodieBag(currentTimeMillis, KALMAN_WINDOW_SIZE_MS);
 
-            if (goodieBag.getBagSize() == 0) goodieBag.addState(state, currentTimeMillis);
+            processedGoodieBag.addGoodieBag(unprocessedGoodieBag);
+            unprocessedGoodieBag.clearGoodieBag();
 
-            for (int i = 1; i < goodieBag.getBagSize(); i++){
-                KalmanGoodie prevGoodie = goodieBag.getGoodie(i-1);
-                KalmanGoodie goodie = goodieBag.getGoodie(i);
+            processedGoodieBag.updateGoodieBag(currentTimeMillis, KALMAN_WINDOW_SIZE_MS);
 
-                if (prevGoodie.isStateNull()) continue;
-                if (goodie.isDataNull()) continue;
+            if (processedGoodieBag.getBagSize() == 0) processedGoodieBag.addState(state, currentTimeMillis);
+
+            for (int i = 1; i < processedGoodieBag.getBagSize(); i++){
+                KalmanGoodie prevGoodie = processedGoodieBag.getGoodie(i-1);
+                KalmanGoodie goodie = processedGoodieBag.getGoodie(i);
+
+                if (prevGoodie.isStateNull()) {
+                    continue;
+                }
+                if (goodie.isDataNull()) {
+                    continue;
+                }
 
                 KalmanState state = prevGoodie.getState();
                 KalmanData data = goodie.getData();
@@ -67,11 +78,11 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
                 if (data.getDataType() == 0) state = prediction(state, data);
                 if (data.getDataType() == 1) state = correction(state, data);
 
-                goodieBag.setGoodieState(i, state);
+                processedGoodieBag.setGoodieState(i, state);
             }
 
-            state = goodieBag.getLastGoodie().getState();
-            stateAge = (int) (currentTimeMillis - goodieBag.getLastGoodie().getTimeStamp());
+            state = processedGoodieBag.getLastGoodie().getState();
+            stateAge = (int) (currentTimeMillis - processedGoodieBag.getLastGoodie().getTimeStamp());
         }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -222,11 +233,15 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public void addGoodie(KalmanGoodie goodie){
-        goodieBag.addGoodie(goodie);
+        synchronized (this){
+            unprocessedGoodieBag.addGoodie(goodie);
+        }
     }
 
     public void addGoodie(KalmanData data, long timeStamp){
-        goodieBag.addGoodie(data, timeStamp);
+        synchronized (this){
+            unprocessedGoodieBag.addGoodie(data, timeStamp);
+        }
     }
 
     public Pose getPose() {
@@ -244,7 +259,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         ArrayList<String> data = new ArrayList<>();
 
         data.add("state age: " + stateAge);
-        data.add("filtering " + goodieBag.getBagSize() + " goodies");
+        data.add("unprocessed: " + unprocessedGoodieBag.getBagSize() + " goodies");
+        data.add("processed: " + processedGoodieBag.getBagSize() + " goodies");
         data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));
         data.add("covar: " + MatrixUtil.toCovarianceString(state.getCov()));
         data.add("velo: " + getRollingVelocity().toString());
