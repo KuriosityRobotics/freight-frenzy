@@ -57,7 +57,7 @@ public class Robot extends LocationProvider {
 
         this.camera = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        telemetryDump = new TelemetryDump(telemetry);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");

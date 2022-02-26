@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
+
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -15,15 +17,10 @@ import java.util.Date;
 
 public class OpenCVDumper implements OpenCvConsumer {
     private long lastCaptureTime;
-    private boolean isOn;
-
-    public OpenCVDumper(boolean debug) {
-        this.isOn = debug;
-    }
 
     @Override
     public void processFrame(Mat frame) {
-        if (!isOn) {
+        if (!Robot.DEBUG) {
             return;
         }
 
@@ -40,9 +37,5 @@ public class OpenCVDumper implements OpenCvConsumer {
             }
             lastCaptureTime = millis;
         }
-    }
-
-    public void toggleDumper() {
-        isOn = !isOn;
     }
 }

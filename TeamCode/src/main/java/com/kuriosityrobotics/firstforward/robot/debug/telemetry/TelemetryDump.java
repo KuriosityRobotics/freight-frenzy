@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 
@@ -15,7 +16,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
-    private final boolean debug;
 
     private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
     private final FtcDashboard dashboard;
@@ -30,9 +30,8 @@ public class TelemetryDump implements PoseWatcher {
         telemeters.remove(telemeter);
     }
 
-    public TelemetryDump(Telemetry telemetry, boolean debug) {
+    public TelemetryDump(Telemetry telemetry) {
         this.telemetry = telemetry;
-        this.debug = debug;
 
         this.dashboard = FtcDashboard.getInstance();
         this.dashboard.setTelemetryTransmissionInterval(25);
@@ -62,7 +61,7 @@ public class TelemetryDump implements PoseWatcher {
 
     @Override
     public void sendPose(Pose pose) {
-        if (debug) {
+        if (Robot.DEBUG) {
             TelemetryPacket packet = new TelemetryPacket();
             Canvas canvas = packet.fieldOverlay();
             for (Telemeter telemeter : telemeters) {
