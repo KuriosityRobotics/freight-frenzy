@@ -7,6 +7,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
@@ -14,6 +15,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
+@Disabled
 public class PlebDetect extends LinearOpMode {
     @Override
     public void runOpMode() {
