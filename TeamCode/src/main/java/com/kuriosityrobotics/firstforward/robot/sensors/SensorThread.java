@@ -9,8 +9,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -25,7 +24,6 @@ public class SensorThread implements Runnable, Telemeter {
 
     private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
 
-    private final String configLocation;
     private final Robot robot;
 
     private final Odometry odometry;
@@ -64,12 +62,11 @@ public class SensorThread implements Runnable, Telemeter {
 
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
-        this.configLocation = configLocation;
 
         robot.telemetryDump.registerTelemeter(this);
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
 
-        this.odometry = new Odometry(robot, theKalmanFilter.getPose());
+        this.odometry = new Odometry(robot.hardwareMap, theKalmanFilter.getPose());
     }
 
     @Override
@@ -116,6 +113,10 @@ public class SensorThread implements Runnable, Telemeter {
 
         data.add("Update time: " + updateTime);
         data.add("Robot Pose: " + theKalmanFilter.getPose().toDegrees());
+
+        data.add("");
+        data.add("-- Odometry --");
+        data.addAll(odometry.getTelemetryData());
 
         return data;
     }

@@ -1,12 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
 
 import org.apache.commons.math3.linear.MatrixUtils;
@@ -47,6 +46,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                tracker information (position on field) column 2 is where the robot is in the
      *                trackers coordinate system
      */
+    @SuppressWarnings("ConstantConditions")
     void update(RealMatrix update, RealMatrix obs) {
         synchronized (this) {
             if (update != null && obs == null){
@@ -130,7 +130,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
      *              information (position on field) column 2 is where the robot is in the trackers
      *              coordinate system
-     * @return: corrected prediction
+     * @return corrected prediction
      */
     @Override
     public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
@@ -177,6 +177,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                trackers coordinate system
      * @return corrected prediction
      */
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
         RealMatrix[] prediction = prediction(prev, update);
@@ -185,11 +186,12 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
     }
 
     public Pose getPose() {
-        double x = matrixPose[0].getEntry(0, 0);
-        double y = matrixPose[0].getEntry(1, 0);
-        double heading = matrixPose[0].getEntry(2, 0);
-
-        return new Pose(x, y, heading);
+        synchronized (this) {
+            double x = matrixPose[0].getEntry(0, 0);
+            double y = matrixPose[0].getEntry(1, 0);
+            double heading = matrixPose[0].getEntry(2, 0);
+            return new Pose(x, y, heading);
+        }
     }
 
     @Override
@@ -201,7 +203,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
         data.add("covar: " + MatrixUtil.toCovarianceString(matrixPose[1]));
         data.add("velo: " + getRollingVelocity().toString());
-        data.add("STD: " + MatrixUtil.toSTDString(matrixPose[1]));
 
         return data;
     }
@@ -212,7 +213,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
 
         map.put("pose: ", MatrixUtil.toPoseString(matrixPose[0]));
         map.put("velo: ", getRollingVelocity().toString());
-        map.put("STD: ", MatrixUtil.toSTDString(matrixPose[1]));
 
         return map;
     }

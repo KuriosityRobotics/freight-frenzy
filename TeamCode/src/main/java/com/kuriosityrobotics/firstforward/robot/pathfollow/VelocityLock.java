@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import androidx.annotation.NonNull;
+
 public class VelocityLock {
     public final boolean targetVelocity;
     public final double velocity;
@@ -21,6 +23,7 @@ public class VelocityLock {
         this.allowAccel = false;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "VelocityLock{" +

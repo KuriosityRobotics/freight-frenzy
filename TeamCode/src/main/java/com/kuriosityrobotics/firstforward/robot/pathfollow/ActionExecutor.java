@@ -2,37 +2,33 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class ActionExecutor {
-    private ArrayList<Action> executing = new ArrayList<>();
+    private static final ArrayList<Action> executing = new ArrayList<>();
 
-    private final Robot robot;
+    private ActionExecutor() {}
 
-    public ActionExecutor(Robot robot) {
-        this.robot = robot;
-    }
-
-    public void execute(Action action) {
-        executing.add(action);
-    }
-
-    public void execute(WayPoint point) {
-        for (Action action : point.getActions()) {
-            this.execute(action);
+    public static void execute(Action action) {
+        synchronized (executing) {
+            executing.add(action);
         }
     }
 
-    public void tick() {
-        synchronized(this) {
+    public static void execute(WayPoint point) {
+        for (Action action : point.getActions()) {
+            execute(action);
+        }
+    }
+
+    public static void tick() {
+        synchronized(executing) {
             Iterator<Action> i = executing.iterator();
             while (i.hasNext()) {
                 Action action = i.next();
 
-                action.tick(this.robot);
+                action.tick();
 
                 if (action.isCompleted()) {
                     Log.v("action", ""+action.getClass().getName()+" completed");
@@ -42,9 +38,9 @@ public class ActionExecutor {
         }
     }
 
-    public boolean doneExecuting() {
-        synchronized(this) {
-            return this.executing.isEmpty();
+    public static boolean doneExecuting() {
+        synchronized(executing) {
+            return executing.isEmpty();
         }
     }
 }

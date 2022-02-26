@@ -6,11 +6,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 @Disabled
 public class PlebCamRotationTuner extends LinearOpMode {
-    private Servo camRotator;
 
     @Override
-    public void runOpMode() throws InterruptedException {
-        camRotator = hardwareMap.get(Servo.class, "webcamPivot");
+    public void runOpMode() {
+        Servo camRotator = hardwareMap.get(Servo.class, "webcamPivot");
         double pos = 0.399897;
         camRotator.setPosition(pos);
 

@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,14 +11,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public abstract class RollingVelocityCalculator {
     private static final double VELOCITY_WINDOW_S = 0.100;
 
-    private ConcurrentLinkedQueue<PoseInstant> history = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<PoseInstant> history = new ConcurrentLinkedQueue<>();
     private Pose velocity = new Pose(0, 0, 0);
 
+    @SuppressWarnings("ConstantConditions")
     protected void calculateRollingVelocity(PoseInstant currentPose) {
         double currentTime = SystemClock.elapsedRealtime() / 1000.0;
 
         // remove oldest velocities
-        while (history.peek() != null && history.peek().timestamp < currentTime - VELOCITY_WINDOW_S) {
+        while (!history.isEmpty() && history.peek().timestamp < currentTime - VELOCITY_WINDOW_S) {
             history.poll();
         }
 

@@ -1,13 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
-import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -36,11 +35,6 @@ public class Odometry implements Telemeter {
     private double oldyVel = 0;
     private double oldangleVel = 0;
 
-    // acceleration calculations
-    private double xAccel = 0;
-    private double yAccel = 0;
-    private double angleAccel = 0;
-
     // change in position of the robot
     private double dx = 0;
     private double dy = 0;
@@ -64,26 +58,20 @@ public class Odometry implements Telemeter {
     private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
     private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
 
-    public Odometry(Robot robot, Pose pose) {
-        robot.telemetryDump.registerTelemeter(this);
-
+    public Odometry(HardwareMap hardwareMap, Pose pose) {
         this.worldX = pose.x;
         this.worldY = pose.y;
         this.worldHeadingRad = pose.heading;
 
-        yLeftEncoder = robot.hardwareMap.get(DcMotor.class, "fLeft");
-        yRightEncoder = robot.hardwareMap.get(DcMotor.class, "fRight");
-        mecanumBackEncoder = robot.hardwareMap.get(DcMotor.class, "bLeft");
-        mecanumFrontEncoder = robot.hardwareMap.get(DcMotor.class, "bRight");
+        yLeftEncoder = hardwareMap.get(DcMotor.class, "fLeft");
+        yRightEncoder = hardwareMap.get(DcMotor.class, "fRight");
+        mecanumBackEncoder = hardwareMap.get(DcMotor.class, "bLeft");
+        mecanumFrontEncoder = hardwareMap.get(DcMotor.class, "bRight");
 
         resetEncoders();
 
         FileDump.addField("xVel", this);
         FileDump.addField("yVel", this);
-        FileDump.addField("angleVel", this);
-        FileDump.addField("xAccel", this);
-        FileDump.addField("yAccel", this);
-        FileDump.addField("angleAccel", this);
     }
 
     public void update() {
@@ -123,10 +111,6 @@ public class Odometry implements Telemeter {
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
 
-        xAccel = (xVel - oldxVel) / (dTime);
-        yAccel = (yVel - oldyVel) / (dTime);
-        angleAccel = (angleVel - oldangleVel) / (dTime);
-
         oldX = worldX;
         oldY = worldY;
         oldHeading = worldHeadingRad;
@@ -146,19 +130,15 @@ public class Odometry implements Telemeter {
         double dMecanumFrontPodInches = dMecanumFrontPod * INCHES_PER_ENCODER_TICK;
 
         // so its easier to type
-        double L = dLeftPodInches;
-        double R = dRightPodInches;
-        double B = dMecanumBackPodInches;
-        double F = dMecanumFrontPodInches;
         double P = LR_ENCODER_DIST_FROM_CENTER;
         double Q = B_ENCODER_DIST_FROM_CENTER;
 
         // find robot relative deltas
-        double dThetaLR = (L - R) / (2 * P);
-        double dThetaFB = (F - B) / (2 * Q);
+        double dThetaLR = (dLeftPodInches - dRightPodInches) / (2 * P);
+        double dThetaFB = (dMecanumFrontPodInches - dMecanumBackPodInches) / (2 * Q);
 
-        double X = Math.abs(L + R);
-        double Y = Math.abs(F + B);
+        double X = Math.abs(dLeftPodInches + dRightPodInches);
+        double Y = Math.abs(dMecanumFrontPodInches + dMecanumBackPodInches);
 
         double weightLR = 0.5;
         double weightFB = 0.5;
@@ -170,8 +150,8 @@ public class Odometry implements Telemeter {
 
         double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
 
-        double dRobotX = B * sinXOverX(dTheta) + Q * Math.sin(dTheta) - L * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
-        double dRobotY = L * sinXOverX(dTheta) - P * Math.sin(dTheta) + B * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
+        double dRobotX = dMecanumBackPodInches * sinXOverX(dTheta) + Q * Math.sin(dTheta) - dLeftPodInches * cosXMinusOneOverX(dTheta) + P * (Math.cos(dTheta) - 1);
+        double dRobotY = dLeftPodInches * sinXOverX(dTheta) - P * Math.sin(dTheta) + dMecanumBackPodInches * cosXMinusOneOverX(dTheta) + Q * (Math.cos(dTheta) - 1);
 
         // change global variables so they can be used in the kalman filter
         dx = dRobotX;

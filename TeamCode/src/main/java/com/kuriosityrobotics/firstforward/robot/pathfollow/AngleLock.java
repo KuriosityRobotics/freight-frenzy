@@ -1,12 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import androidx.annotation.NonNull;
+
 public class AngleLock {
     public enum AngleLockType {
         CONTINUE_LAST, LOCK, NO_LOCK
     }
 
-    public AngleLockType type;
-    public double heading;
+    public final AngleLockType type;
+    public final double heading;
 
     public AngleLock(AngleLockType type, double heading) {
         this.type = type;
@@ -21,6 +23,7 @@ public class AngleLock {
         this(AngleLockType.LOCK, heading);
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "type: " + type + ", heading: " + heading;

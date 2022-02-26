@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import android.os.SystemClock;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
-
 public abstract class Action {
     protected boolean completed = false;
 
@@ -13,16 +11,17 @@ public abstract class Action {
     /**
      * Executes the action, blocking until the action is completed.
      */
-    public void execute(Robot robot) {
+    @SuppressWarnings("unused")
+    public void execute() {
         while (!this.isCompleted()) {
-            this.tick(robot);
+            this.tick();
         }
     }
 
     /**
      * Performs one tick of this action. Best for asynchronous execution.
      */
-    public void tick(Robot robot) {
+    public void tick() {
         if (!isStarted) {
             isStarted = true;
             startTime = SystemClock.elapsedRealtime();

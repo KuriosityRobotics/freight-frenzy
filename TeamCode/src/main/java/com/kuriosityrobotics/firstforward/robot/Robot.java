@@ -2,32 +2,29 @@ package com.kuriosityrobotics.firstforward.robot;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
-import com.kuriosityrobotics.firstforward.robot.modules.CarouselModule;
-import com.kuriosityrobotics.firstforward.robot.modules.Drivetrain;
-import com.kuriosityrobotics.firstforward.robot.modules.IntakeModule;
-import com.kuriosityrobotics.firstforward.robot.modules.LEDModule;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
-import com.kuriosityrobotics.firstforward.robot.modules.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.carousel.CarouselModule;
+import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
+import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.leds.LEDModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
-public class Robot {
-    private static final boolean DEBUG = false;
+public class Robot extends LocationProvider {
+    public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    private Thread[] threads;
-    private final Module[] modules;
-
-    public final SensorThread sensorThread;
+    private final SensorThread sensorThread;
     public final ModuleThread moduleThread;
     public VisionThread visionThread;
     public final DebugThread debugThread;
@@ -40,7 +37,7 @@ public class Robot {
 
     public final LEDModule ledModule;
 
-    public TelemetryDump telemetryDump;
+    public final TelemetryDump telemetryDump;
 
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
@@ -48,7 +45,7 @@ public class Robot {
     public final LynxModule revHub1;
     public final LynxModule revHub2;
 
-    public WebcamName camera;
+    public final WebcamName camera;
 
     public static boolean isBlue = false;
 
@@ -60,7 +57,7 @@ public class Robot {
 
         this.camera = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        telemetryDump = new TelemetryDump(telemetry, DEBUG);
+        telemetryDump = new TelemetryDump(telemetry);
 
         try {
             revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
@@ -75,13 +72,22 @@ public class Robot {
         sensorThread = new SensorThread(this, configLocation);
 
         // modules
-        drivetrain = new Drivetrain(this);
-        intakeModule = new IntakeModule(this, true);
-        outtakeModule = new OuttakeModule(this);
-        carouselModule = new CarouselModule(this);
-        ledModule = new LEDModule(this);
+        drivetrain = new Drivetrain(this, hardwareMap);
+        telemetryDump.registerTelemeter(drivetrain);
 
-        modules = new Module[]{
+        outtakeModule = new OuttakeModule(hardwareMap);
+        telemetryDump.registerTelemeter(outtakeModule);
+
+        intakeModule = new IntakeModule(hardwareMap, outtakeModule);
+        telemetryDump.registerTelemeter(intakeModule);
+
+        carouselModule = new CarouselModule(hardwareMap);
+        //telemetryDump.registerTelemeter(carouselModule);
+
+        ledModule = new LEDModule(hardwareMap);
+        telemetryDump.registerTelemeter(ledModule);
+
+        Module[] modules = new Module[]{
                 drivetrain,
                 intakeModule,
                 outtakeModule,
@@ -90,7 +96,7 @@ public class Robot {
         };
 
         // threads
-        moduleThread = new ModuleThread(this, this.modules);
+        moduleThread = new ModuleThread(this, modules);
 
         this.isCamera = isCamera;
         visionThread = new VisionThread(this, camera);
@@ -105,6 +111,7 @@ public class Robot {
     }
 
     public void start() {
+        Thread[] threads;
         if (this.isCamera) {
             threads = new Thread[]{
                     new Thread(sensorThread),
@@ -125,21 +132,7 @@ public class Robot {
         }
     }
 
-    public DcMotor getDcMotor(String name) {
-        try {
-            return hardwareMap.dcMotor.get(name);
-        } catch (IllegalArgumentException exception) {
-            throw new Error("Motor with name " + name + " could not be found. Exception: " + exception);
-        }
-    }
 
-    public Servo getServo(String name) {
-        try {
-            return hardwareMap.servo.get(name);
-        } catch (IllegalArgumentException exception) {
-            throw new Error("Servo with name " + name + " could not be found. Exception: " + exception);
-        }
-    }
 
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
@@ -155,5 +148,25 @@ public class Robot {
 
     public boolean isDebug() {
         return DEBUG;
+    }
+
+    @Override
+    public Pose getPose() {
+        return sensorThread.getPose();
+    }
+
+    @Override
+    public Pose getVelocity() {
+        return sensorThread.getVelocity();
+    }
+
+    public void resetPose(Pose pose) {
+        sensorThread.resetPose(pose);
+    }
+
+    public void followPath(PurePursuit path) {
+        telemetryDump.registerTelemeter(path);
+        while (isOpModeActive() && path.update(this, drivetrain));
+        telemetryDump.removeTelemeter(path);
     }
 }

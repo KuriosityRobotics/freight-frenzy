@@ -1,12 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
-import static com.kuriosityrobotics.firstforward.robot.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Dashboard.ROBOT_RADIUS;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.kuriosityrobotics.firstforward.robot.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import java.util.List;
 

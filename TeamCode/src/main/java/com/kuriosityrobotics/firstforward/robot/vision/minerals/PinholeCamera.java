@@ -10,37 +10,20 @@ public class PinholeCamera {
     private final Vector3D cameraPosition;
 
     // in pixels (yes, focal length is in px)
-    private final double focalLength, originX, originY, width, height;
+    private final double fx, fy, originX, originY, width, height;
 
     // in mm (diagonal;  used with hypot(width, height) to convert between pixels and coords)
     private final double sensorDiagonalUnits;
 
-    public PinholeCamera(double focalLength, double originX, double originY, double width, double height,
-                         double sensorDiagonalUnits) {
-        this(focalLength, originX, originY, width, height, sensorDiagonalUnits,
-                Rotation.IDENTITY, null);
-    }
-
-    public PinholeCamera(double focalLength, double originX, double originY, double width, double height,
-                         double sensorDiagonalUnits, Rotation cameraRotation) {
-        this(focalLength, originX, originY, width, height, sensorDiagonalUnits,
-                cameraRotation, null);
-    }
-
-    public PinholeCamera(double focalLength, double originX, double originY, double width, double height,
-                         double sensorDiagonalUnits, Vector3D cameraPosition) {
-        this(focalLength, originX, originY, width, height, sensorDiagonalUnits,
-                Rotation.IDENTITY, cameraPosition);
-    }
-
-    public PinholeCamera(double focalLength, double originX, double originY, double width, double height,
+    public PinholeCamera(double fx, double fy, double originX, double originY, double width, double height,
                          double sensorDiagonalUnits, Rotation cameraRotation, Vector3D cameraPosition) {
         this.originX = originX;
         this.originY = originY;
         this.width = width;
         this.height = height;
         this.sensorDiagonalUnits = sensorDiagonalUnits;
-        this.focalLength = focalLength;
+        this.fx = fx;
+        this.fy = fy;
         this.cameraRotation = cameraRotation;
         this.cameraPosition = cameraPosition;
 
@@ -76,8 +59,8 @@ public class PinholeCamera {
     private RealMatrix normalisedFrameTo3DPixel() {
         return MatrixUtils.createRealMatrix(new double[][]
                 {
-                        {1 / focalLength, 0, 0},
-                        {0, 1 / focalLength, 0},
+                        {1 / fx, 0, 0},
+                        {0, 1 / fy, 0},
                         {0, 0, 1}
                 });
     }

@@ -5,11 +5,11 @@ import android.os.SystemClock;
 import java.util.ArrayList;
 
 public class StateExecutor {
-    private ArrayList<State> states;
+    private final ArrayList<State> states;
     private State currentState;
 
     private int currentStep = -1;
-    private double totalSteps;
+    private final double totalSteps;
     private long completeTime =  0;
 
     public StateExecutor(ArrayList<State> states){

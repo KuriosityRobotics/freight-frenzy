@@ -55,9 +55,7 @@ public class ClassicalPID {
         lastError = error;
         errorChange = d;
 
-        double robotspeed = p + i + d;
-
-        return robotspeed;
+        return p + i + d;
     }
 
     /**

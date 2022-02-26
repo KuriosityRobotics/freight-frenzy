@@ -26,7 +26,7 @@ import de.esoco.coroutine.CoroutineScope;
 public final class ManagedCamera {
     private final VuforiaConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
-    public boolean vuforiaActive = true;
+    boolean vuforiaActive = true;
     private final List<OpenCvConsumer> openCvConsumers;
     private final WebcamName cameraName;
     private VuforiaLocalizer vuforia;
@@ -75,7 +75,7 @@ public final class ManagedCamera {
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
                 try {
-                    openCvCamera.startStreaming(800, 448);
+                    openCvCamera.startStreaming(960, 720);
                 } catch(Exception e) {
                     Log.e("Managed Camera", "An error occured! " + e);
                 }
@@ -113,6 +113,7 @@ public final class ManagedCamera {
                 CoroutineScope.launch(scope ->
                 {
                     if (vuforiaConsumer != null) {
+
                         vuforiaCoro.runAsync(scope, vuforiaConsumer);
                     }
                     openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));

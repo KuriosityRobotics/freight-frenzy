@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.util.wrappers;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 
 public class AnalogDistance {
-    AnalogInput analogInput;
+    final AnalogInput analogInput;
 
     public AnalogDistance(AnalogInput analogInput) {
         this.analogInput = analogInput;

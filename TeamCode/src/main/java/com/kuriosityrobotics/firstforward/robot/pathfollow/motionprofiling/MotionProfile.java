@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -24,7 +24,7 @@ public class MotionProfile {
     private final double maxVel, maxAccel, maxDeccel;
 
     private final WayPoint[] path;
-    private LinkedMap<Double, AngleLock> angleLockProfile;
+    private final LinkedMap<Double, AngleLock> angleLockProfile;
     private final ArrayList<MotionSegment> velocityProfile;
 
     public MotionProfile(WayPoint[] inputPath) {
