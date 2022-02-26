@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
@@ -22,19 +24,18 @@ public class PurePursuit implements Telemeter {
     private static final double STOP_THRESHOLD = 3;
     private static final double ANGLE_THRESHOLD = Math.toRadians(2);
 
-    private String name = "";
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
     // params
     private final boolean backwards;
     private final double followRadius;
-
+    
     // motion magic
     private final MotionProfile profile;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
-    private final FeedForwardPID yPID = new FeedForwardPID(0.0155, 0.0075, 0, 0.013);
-    private final FeedForwardPID xPID = new FeedForwardPID(0.023, 0.018, 0, 0);
-    private final ClassicalPID headingPID = new ClassicalPID(0.41, 0.000055, 0.21);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.024, 0.010, 0, 0.005);
+    private final FeedForwardPID xPID = new FeedForwardPID(0.026, 0.0225, 0.000015, 0);
+    private final ClassicalPID headingPID = new ClassicalPID(0.6, 0.000055, 0.12);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
     Point target = new Point(0, 0);
     // helpers
@@ -42,6 +43,7 @@ public class PurePursuit implements Telemeter {
     private int closestIndex; // which path segment is our robot closest to? updated in clipToPath()
     private boolean executedLastAction;
     private boolean pathEnding;
+    private boolean started = false;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
         this.path = path;
@@ -52,26 +54,24 @@ public class PurePursuit implements Telemeter {
         this.backwards = backwards;
         this.executedLastAction = false;
         this.pathIndex = 0;
-        ActionExecutor.execute(path[0]);
     }
 
     public PurePursuit(WayPoint[] path, double followRadius) {
         this(path, false, followRadius);
     }
 
-    public PurePursuit(WayPoint[] path, double followRadius, String name) {
-        this(path, false, followRadius);
-        this.name = name;
-    }
-
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
+        if (!started) {
+            ActionExecutor.execute(path[0]);
+            started = true;
+        }
+
         boolean atEnd = atEnd(locationProvider);
         if (atEnd && !executedLastAction) {
             ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
         } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
             drivetrain.setMovements(0, 0, 0);
-            pathIndex = 0;
             return false;
         }
 
@@ -164,10 +164,12 @@ public class PurePursuit implements Telemeter {
             Point clipped = robotPosition.projectToSegment(segment);
             double clipDistance = robotPosition.distance(clipped);
 
-            if (clipDistance < nearestClipDist) {
-                nearestClippedPoint = clipped;
-                nearestClipDist = clipDistance;
-                closestIndex = i; // this is quite sus
+            if (segment.containsPoint(clipped)) {
+                if (clipDistance < nearestClipDist) {
+                    nearestClippedPoint = clipped;
+                    nearestClipDist = clipDistance;
+                    closestIndex = i; // this is quite sus
+                }
             }
         }
 
@@ -264,6 +266,7 @@ public class PurePursuit implements Telemeter {
         map.put("yvel", "" + yvel);
         map.put("targy", "" + targy);
         map.put("Heading", "" + heading);
+        Log.v("pp", "" +heading);
         map.put("targ heading", "" + targhead);
         map.put("targvel", "" + targvel);
         map.put("vel", "" + vel);

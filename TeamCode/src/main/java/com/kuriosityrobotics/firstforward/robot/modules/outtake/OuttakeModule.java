@@ -5,6 +5,8 @@ import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeMo
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 import static java.lang.Math.abs;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -237,7 +239,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     @Override
     public boolean isOn() {
-        return false;
+        return true;
     }
 
     @Override

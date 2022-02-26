@@ -45,7 +45,7 @@ public class RedAuto extends LinearOpMode {
         carouselActions.add(robot.carouselModule.carouselAction());
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
-                new WayPoint(START.x + 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
+                new WayPoint(START.x + 20, START.y + 7),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y, CAROUSEL.heading, 0, carouselActions)
         }, 4);
@@ -56,7 +56,7 @@ public class RedAuto extends LinearOpMode {
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
-                new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(CAROUSEL.between(WOBBLE)),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
@@ -68,7 +68,7 @@ public class RedAuto extends LinearOpMode {
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
-                new WayPoint(CAROUSEL.between(WAREHOUSE_PARK), 9, new ArrayList<>()),
+                new WayPoint(CAROUSEL.between(WAREHOUSE_PARK)),
                 new WayPoint(WAREHOUSE_PARK, 0, new ArrayList<>())
         }, 4);
 
@@ -78,7 +78,7 @@ public class RedAuto extends LinearOpMode {
         robot.followPath(toCarousel);
 
         // to wobble
-        robot.followPath(toCarousel);
+        robot.followPath(toWobble);
 
         robot.followPath(toPark);
     }
