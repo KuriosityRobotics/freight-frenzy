@@ -83,7 +83,6 @@ public class TeleOp extends LinearOpMode {
                 robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
             }
         } else if (gamepad2.dpad_down) {
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
             robot.outtakeModule.skipToCollapse();
         }
 

@@ -84,8 +84,8 @@ public class Robot extends LocationProvider {
         carouselModule = new CarouselModule(hardwareMap);
         //telemetryDump.registerTelemeter(carouselModule);
 
-        ledModule = new LEDModule(hardwareMap);
-        telemetryDump.registerTelemeter(ledModule);
+        ledModule = new LEDModule(hardwareMap, intakeModule);
+//        telemetryDump.registerTelemeter(ledModule);
 
         Module[] modules = new Module[]{
                 drivetrain,

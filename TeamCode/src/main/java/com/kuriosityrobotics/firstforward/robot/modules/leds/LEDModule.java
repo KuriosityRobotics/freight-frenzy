@@ -2,24 +2,32 @@ package com.kuriosityrobotics.firstforward.robot.modules.leds;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import java.util.ArrayList;
-
 public class LEDModule implements Module, Telemeter {
-    // states
-    public RevBlinkinLedDriver.BlinkinPattern pattern = RevBlinkinLedDriver.BlinkinPattern.BREATH_RED;
+    RevBlinkinLedDriver.BlinkinPattern INTAKE_OCCUPIED = RevBlinkinLedDriver.BlinkinPattern.GREEN;
+    RevBlinkinLedDriver.BlinkinPattern IDLE = RevBlinkinLedDriver.BlinkinPattern.BREATH_RED;
+
+    // modules
+    IntakeModule intake;
 
     //servos
-    private final RevBlinkinLedDriver LED;
+    private final RevBlinkinLedDriver led;
 
-    public LEDModule(HardwareMap hardwareMap) {
-        LED = hardwareMap.get(RevBlinkinLedDriver.class, "LED");
+    public LEDModule(HardwareMap hardwareMap, IntakeModule intake) {
+        led = hardwareMap.get(RevBlinkinLedDriver.class, "LED");
+
+        this.intake = intake;
     }
 
     public void update() {
-        this.LED.setPattern(pattern);
+        if (intake != null && intake.hasMineral()) {
+            led.setPattern(INTAKE_OCCUPIED);
+        } else {
+            led.setPattern(IDLE);
+        }
     }
 
     @Override
@@ -34,8 +42,6 @@ public class LEDModule implements Module, Telemeter {
 
     @Override
     public Iterable<String> getTelemetryData() {
-        return new ArrayList<>() {{
-            add("Color: " + pattern.toString());
-        }};
+        return null;
     }
 }

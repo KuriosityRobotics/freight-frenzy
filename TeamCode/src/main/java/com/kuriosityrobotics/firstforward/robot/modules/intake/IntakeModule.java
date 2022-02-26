@@ -51,7 +51,7 @@ public class IntakeModule implements Module, Telemeter {
     private boolean wasDoneTransitioning;
 
     private boolean hasMineral;
-    Queue<Double> distanceReadings = new CircularFifoQueue<>(15);
+    CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(15);
 
     public enum IntakePosition {
         EXTENDED,
@@ -68,6 +68,13 @@ public class IntakeModule implements Module, Telemeter {
         intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.distanceSensor = new AnalogDistance(hardwareMap.get(AnalogInput.class, "distance"));
+
+        this.targetIntakePosition = IntakePosition.RETRACTED;
+        this.transitionTo = targetIntakePosition;
+        this.transitionTime = 0;
+        this.wasDoneTransitioning = true;
+
+        this.hasMineral = false;
     }
 
     public void update() {
@@ -160,7 +167,7 @@ public class IntakeModule implements Module, Telemeter {
         if (reading < CLOSE_DISTANCE_THRESHOLD) {
             // if last 4 are all positives it's a go
             Object[] queueArray = distanceReadings.toArray();
-            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 5, 0); i--) {
+            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 2, 0); i--) {
                 if (((double) queueArray[i]) > CLOSE_DISTANCE_THRESHOLD) {
                     return false;
                 }
