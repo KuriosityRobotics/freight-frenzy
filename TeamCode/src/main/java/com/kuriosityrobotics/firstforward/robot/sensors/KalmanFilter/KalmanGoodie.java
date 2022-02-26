@@ -62,4 +62,13 @@ public class KalmanGoodie {
         if (state == null) return null;
         return state.getCov();
     }
+
+    @Override
+    public String toString() {
+        return "KalmanGoodie{" +
+                "data=" + data +
+                ", timeStamp=" + timeStamp +
+                ", state=" + state +
+                '}';
+    }
 }

@@ -4,6 +4,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
@@ -27,7 +28,7 @@ import java.util.List;
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
 
     private KalmanState state;
-    public KalmanGoodieBag unprocessedGoodieBag; // has null states
+    private KalmanGoodieBag unprocessedGoodieBag; // has null states
 
     private KalmanGoodieBag processedGoodieBag;
 
@@ -78,6 +79,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
                 if (data.getDataType() == 1) state = correction(state, data);
 
                 processedGoodieBag.setGoodieState(i, state);
+
+//                Log.v("kf", "procs: " + processedGoodieBag.getGoodie(i).toString());
             }
 
             state = processedGoodieBag.getLastGoodie().getState();

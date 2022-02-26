@@ -26,4 +26,12 @@ public class KalmanState {
     public void setCov(RealMatrix cov) {
         this.cov = cov;
     }
+
+    @Override
+    public String toString() {
+        return "KalmanState{" +
+                "mean=" + mean +
+                ", cov=" + cov +
+                '}';
+    }
 }

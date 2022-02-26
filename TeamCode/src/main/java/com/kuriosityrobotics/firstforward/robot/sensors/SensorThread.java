@@ -95,10 +95,6 @@ public class SensorThread implements Runnable, Telemeter {
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
-    public KalmanGoodieBag getGoodieBag() {
-        return theKalmanFilter.unprocessedGoodieBag;
-    }
-
     public void addGoodie(KalmanGoodie goodie){
         theKalmanFilter.addGoodie(goodie);
     }

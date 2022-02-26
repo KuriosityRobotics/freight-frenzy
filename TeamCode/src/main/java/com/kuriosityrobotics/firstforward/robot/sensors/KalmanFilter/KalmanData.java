@@ -18,4 +18,12 @@ public class KalmanData {
     public RealMatrix getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "KalmanData{" +
+                "dataType=" + dataType +
+                ", data=" + data +
+                '}';
+    }
 }
