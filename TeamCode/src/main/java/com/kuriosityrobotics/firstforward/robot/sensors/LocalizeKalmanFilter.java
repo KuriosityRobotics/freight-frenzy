@@ -19,7 +19,6 @@ import java.util.List;
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
-@SuppressWarnings("ALL")
 public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
     private RealMatrix[] matrixPose; // pose, cov
 
@@ -47,6 +46,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                tracker information (position on field) column 2 is where the robot is in the
      *                trackers coordinate system
      */
+    @SuppressWarnings("ConstantConditions")
     void update(RealMatrix update, RealMatrix obs) {
         synchronized (this) {
             if (update != null && obs == null){
@@ -130,7 +130,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
      *              information (position on field) column 2 is where the robot is in the trackers
      *              coordinate system
-     * @return: corrected prediction
+     * @return corrected prediction
      */
     @Override
     public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
@@ -177,6 +177,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                trackers coordinate system
      * @return corrected prediction
      */
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
         RealMatrix[] prediction = prediction(prev, update);
@@ -202,7 +203,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         data.add("pose: " + MatrixUtil.toPoseString(matrixPose[0]));
         data.add("covar: " + MatrixUtil.toCovarianceString(matrixPose[1]));
         data.add("velo: " + getRollingVelocity().toString());
-        data.add("STD: " + MatrixUtil.toSTDString(matrixPose[1]));
 
         return data;
     }
@@ -213,7 +213,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
 
         map.put("pose: ", MatrixUtil.toPoseString(matrixPose[0]));
         map.put("velo: ", getRollingVelocity().toString());
-        map.put("STD: ", MatrixUtil.toSTDString(matrixPose[1]));
 
         return map;
     }

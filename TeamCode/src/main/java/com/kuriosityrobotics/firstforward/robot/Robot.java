@@ -2,20 +2,16 @@ package com.kuriosityrobotics.firstforward.robot;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.carousel.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.leds.LEDModule;
-import com.kuriosityrobotics.firstforward.robot.modules.Module;
-import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.CarouselAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.DumpOuttakeAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.ExtendOuttakeAction;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.actions.IntakeAction;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -172,21 +168,5 @@ public class Robot extends PhysicalRobot {
         telemetryDump.registerTelemeter(path);
         while (isOpModeActive() && path.update(this, drivetrain));
         telemetryDump.removeTelemeter(path);
-    }
-
-    public CarouselAction carouselAction() {
-        return new CarouselAction(carouselModule);
-    }
-
-    public DumpOuttakeAction dumpOuttakeAction() {
-        return new DumpOuttakeAction(outtakeModule);
-    }
-
-    public ExtendOuttakeAction extendOuttakeAction(OuttakeModule.VerticalSlideLevel verticalSlideLevel) {
-        return new ExtendOuttakeAction(outtakeModule, verticalSlideLevel);
-    }
-
-    public IntakeAction intakeAction() {
-        return new IntakeAction(intakeModule);
     }
 }

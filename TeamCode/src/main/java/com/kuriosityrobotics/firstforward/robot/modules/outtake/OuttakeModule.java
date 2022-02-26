@@ -5,8 +5,11 @@ import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeMo
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.TURRET_IN;
 import static java.lang.Math.abs;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -255,4 +258,51 @@ public class OuttakeModule implements Module, Telemeter {
         }};
     }
 
+    public DumpOuttakeAction dumpOuttakeAction() {
+        return this.new DumpOuttakeAction();
+    }
+    public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel) {
+        return this.new ExtendOuttakeAction(slideLevel);
+    }
+
+    class ExtendOuttakeAction extends Action {
+        VerticalSlideLevel slideLevel;
+
+        public ExtendOuttakeAction(VerticalSlideLevel slideLevel) {
+            this.slideLevel = slideLevel;
+        }
+
+        @Override
+        public void tick() {
+            super.tick();
+
+            targetSlideLevel = slideLevel;
+            targetState = OuttakeModule.OuttakeState.EXTEND;
+
+            this.completed = atTargetState();
+        }
+    }
+
+    class DumpOuttakeAction extends Action {
+        private boolean raised = false;
+        private boolean dumped = false;
+
+        @Override
+        public void tick() {
+            super.tick();
+
+            if (!raised) {
+                targetState = EXTEND;
+                raised = atState(EXTEND);
+            } else if (!dumped) {
+                targetState = COLLAPSE;
+                dumped = true;
+            } else if (collapsed()) {
+                this.completed = true;
+            }
+
+            if (this.completed)
+                Log.v("outtake", "completed");
+        }
+    }
 }

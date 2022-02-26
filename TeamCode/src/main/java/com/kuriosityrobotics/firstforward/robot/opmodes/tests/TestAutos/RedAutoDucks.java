@@ -91,8 +91,8 @@ public class RedAutoDucks extends LinearOpMode {
 
     public PurePursuit createOutTakeAction(OuttakeModule.VerticalSlideLevel level, Robot robot) {
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.extendOuttakeAction(level));
-        wobbleActions.add(robot.dumpOuttakeAction());
+        wobbleActions.add(robot.outtakeModule.extendOuttakeAction(level));
+        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         return new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(WOBBLE, 0.5 * MotionProfile.ROBOT_MAX_VEL, wobbleActions),

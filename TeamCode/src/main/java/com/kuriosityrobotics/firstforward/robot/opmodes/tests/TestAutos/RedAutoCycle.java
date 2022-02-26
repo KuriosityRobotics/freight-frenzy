@@ -51,7 +51,7 @@ public class RedAutoCycle extends LinearOpMode {
         }
 
         ArrayList<Action> carouselActions = new ArrayList<>();
-        carouselActions.add(robot.carouselAction());
+        carouselActions.add(robot.carouselModule.carouselAction());
         PurePursuit toCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
@@ -60,14 +60,14 @@ public class RedAutoCycle extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.dumpOuttakeAction());
+        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit carouselToWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
-                new WayPoint(CAROUSEL, robot.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
+                new WayPoint(CAROUSEL, robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
         ArrayList<Action> intakeActions = new ArrayList<>();
-        intakeActions.add(robot.intakeAction());
+        intakeActions.add(robot.intakeModule.intakeAction());
         PurePursuit toWarehouse = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(WALL_WH,  0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
@@ -129,8 +129,8 @@ public class RedAutoCycle extends LinearOpMode {
 
     public PurePursuit createOutTakeAction(OuttakeModule.VerticalSlideLevel level, Robot robot) {
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.extendOuttakeAction(level));
-        wobbleActions.add(robot.dumpOuttakeAction());
+        wobbleActions.add(robot.outtakeModule.extendOuttakeAction(level));
+        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         return new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WOBBLE, 0, wobbleActions),
         }, 4);

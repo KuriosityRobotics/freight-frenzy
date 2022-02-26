@@ -41,7 +41,7 @@ public class PathFollowTuning extends LinearOpMode {
         }
 
         ArrayList<Action> carouselActions = new ArrayList<>();
-        carouselActions.add(robot.carouselAction());
+        carouselActions.add(robot.carouselModule.carouselAction());
         PurePursuit startcToCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START_C),
                 new WayPoint(START_C.x + 20, START_C.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
@@ -50,10 +50,10 @@ public class PathFollowTuning extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.dumpOuttakeAction());
+        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
 
         ArrayList<Action> intakeActions = new ArrayList<>();
-        intakeActions.add(robot.intakeAction());
+        intakeActions.add(robot.intakeModule.intakeAction());
         PurePursuit wobbleToWarehouse = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(WOBBLE_W),
                 new WayPoint(new Pose(BETWEEN_WOBBLE_WALLGAP, Math.toRadians(-150)), 0.5 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),

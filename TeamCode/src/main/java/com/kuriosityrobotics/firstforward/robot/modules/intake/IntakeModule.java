@@ -8,6 +8,7 @@ import android.os.SystemClock;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 import com.kuriosityrobotics.firstforward.robot.util.wrappers.AnalogDistance;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -217,4 +218,34 @@ public class IntakeModule implements Module, Telemeter {
     public String getName() {
         return "IntakeModule";
     }
+
+    public IntakeAction intakeAction() {
+        return this.new IntakeAction();
+    }
+
+    class IntakeAction extends Action {
+        private static final long END_DELAY = 750;
+
+        boolean startedRetracting = false;
+        long startRetractionTime;
+
+        @Override
+        public void tick() {
+            super.tick();
+
+            long currentTime = SystemClock.elapsedRealtime();
+            if (startedRetracting && currentTime > startRetractionTime + END_DELAY) {
+                intakePower = 0;
+                this.completed = true;
+            } else {
+                if (inRetractionState()) {
+                    startedRetracting = true;
+                    startRetractionTime = currentTime;
+                }
+
+                intakePower = 1;
+            }
+        }
+    }
+
 }

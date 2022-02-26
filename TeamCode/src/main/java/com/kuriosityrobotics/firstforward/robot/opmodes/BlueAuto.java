@@ -44,7 +44,7 @@ public class BlueAuto extends LinearOpMode {
         waitForStart();
 
         ArrayList<Action> carouselActions = new ArrayList<>();
-        carouselActions.add(robot.carouselAction());
+        carouselActions.add(robot.carouselModule.carouselAction());
         PurePursuit toCarousel = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x - 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
@@ -54,8 +54,8 @@ public class BlueAuto extends LinearOpMode {
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         ArrayList<Action> other = new ArrayList<>();
-        other.add(robot.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel()));
-        wobbleActions.add(robot.dumpOuttakeAction());
+        other.add(robot.outtakeModule.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel()));
+        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit toWobble = new PurePursuit(new ActionExecutor(), new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
                 new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),

@@ -72,10 +72,6 @@ public class Odometry implements Telemeter {
 
         FileDump.addField("xVel", this);
         FileDump.addField("yVel", this);
-        FileDump.addField("angleVel", this);
-        FileDump.addField("xAccel", this);
-        FileDump.addField("yAccel", this);
-        FileDump.addField("angleAccel", this);
     }
 
     public void update() {
@@ -114,11 +110,6 @@ public class Odometry implements Telemeter {
         xVel = (worldX - oldX) / (dTime);
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
-
-        // acceleration calculations
-        double xAccel = (xVel - oldxVel) / (dTime);
-        double yAccel = (yVel - oldyVel) / (dTime);
-        double angleAccel = (angleVel - oldangleVel) / (dTime);
 
         oldX = worldX;
         oldY = worldY;
