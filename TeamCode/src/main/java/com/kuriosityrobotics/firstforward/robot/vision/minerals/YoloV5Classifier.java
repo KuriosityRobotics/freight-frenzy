@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 
 @SuppressWarnings("SameParameterValue")
-public class YoloV5Classifier implements Classifier {
+public class YoloV5Classifier {
     public static final int CLOSENESS_THRESHOLD = 20;
     public static final float DETECTION_THRESHOLD = .6f;
     private static final boolean USE_NON_MAXIUM_SUPPRESSION = false;
@@ -123,7 +123,6 @@ public class YoloV5Classifier implements Classifier {
         return inputSize;
     }
 
-    @Override
     public void close() {
         interpreter.close();
         interpreter = null;
@@ -258,7 +257,7 @@ public class YoloV5Classifier implements Classifier {
     }
 
 
-    public synchronized ArrayList<Classifier.Recognition> findGameElementsOnMat(Mat frame) {
+    public synchronized ArrayList<Recognition> findGameElementsOnMat(Mat frame) {
         Imgproc.resize(frame, frame, new Size(416, 416));
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
         var bmp = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
@@ -267,7 +266,7 @@ public class YoloV5Classifier implements Classifier {
         var detections = recognizeImage(bmp);
 
         if (!USE_NON_MAXIUM_SUPPRESSION) {
-            var filtered = new ArrayList<Classifier.Recognition>();
+            var filtered = new ArrayList<Recognition>();
             outer:
             for (var detection : detections) {
                 if (new RectF(0, 0, 416, 416).contains(detection.getLocation())) {
