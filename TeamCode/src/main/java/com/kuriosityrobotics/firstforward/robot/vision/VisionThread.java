@@ -79,6 +79,7 @@ public class VisionThread implements Runnable, Telemeter {
             }
             this.vuforiaLocalizationConsumer.deactivate();
             this.managedCamera.close();
+            managedCamera = null;
             Log.v("VisionThread", "Exited due to opMode's no longer being active.");
         } catch (Exception e) {
             if (robot.isOpModeActive()) // if we got interrupted bc the opmode is stopping its fine;  if we're still running, rethrow
@@ -86,8 +87,10 @@ public class VisionThread implements Runnable, Telemeter {
         } finally {
             /*if(cargoDetectionThread != null)
                 cargoDetectionThread.interrupt();*/
-            if (managedCamera != null)
+            if (managedCamera != null) {
                 managedCamera.close();
+                managedCamera = null;
+            }
         }
     }
 
@@ -112,5 +115,14 @@ public class VisionThread implements Runnable, Telemeter {
 
     public TeamMarkerDetector getTeamMarkerDetector() {
         return teamMarkerDetector;
+    }
+
+    @Override
+    protected void finalize()  {
+        if (managedCamera != null) {
+            Log.w("VisionThread", "Camera closed in finalize()");
+            managedCamera.close();
+            managedCamera = null;
+        }
     }
 }

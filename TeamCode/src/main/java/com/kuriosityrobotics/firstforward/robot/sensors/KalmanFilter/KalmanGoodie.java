@@ -6,7 +6,7 @@ public class KalmanGoodie {
     private KalmanData data;
     private long timeStamp;
 
-    private KalmanState state; // current
+    private final KalmanState state; // current
 
     public KalmanGoodie(KalmanData data, long timeStamp, KalmanState state) {
         this.data = data;
@@ -26,10 +26,6 @@ public class KalmanGoodie {
 
     public boolean isStateNull(){
         return state == null;
-    }
-
-    public void setState(KalmanState state) {
-        this.state = state;
     }
 
     public KalmanData getData() {
