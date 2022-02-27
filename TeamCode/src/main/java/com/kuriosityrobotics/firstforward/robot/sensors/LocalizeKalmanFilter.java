@@ -228,9 +228,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
 
             KalmanGoodie lastGoodie = processedGoodieBag.peekLast();
 
-            if (processedGoodieBag.peekLast() == null)
-                throw new Error();
-
+            assert lastGoodie != null;
             state = lastGoodie.getState();
             stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
         }
@@ -247,37 +245,43 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     public Pose getPose() {
-        RealMatrix matrixPose = state.getMean();
+        synchronized (this) {
+            RealMatrix matrixPose = state.getMean();
 
-        double x = matrixPose.getEntry(0, 0);
-        double y = matrixPose.getEntry(1, 0);
-        double heading = matrixPose.getEntry(2, 0);
+            double x = matrixPose.getEntry(0, 0);
+            double y = matrixPose.getEntry(1, 0);
+            double heading = matrixPose.getEntry(2, 0);
 
-        return new Pose(x, y, heading);
+            return new Pose(x, y, heading);
+        }
     }
 
     @Override
     public List<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
+        synchronized (this) {
+            ArrayList<String> data = new ArrayList<>();
 
-        data.add("state age: " + stateAge);
-        data.add("unprocessed: " + unprocessedGoodieBag.size() + " goodies");
-        data.add("processed: " + processedGoodieBag.size() + " goodies");
-        data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));
-        data.add("covar: " + MatrixUtil.toCovarianceString(state.getCov()));
-        data.add("velo: " + getRollingVelocity().toString());
+            data.add("state age: " + stateAge);
+            data.add("unprocessed: " + unprocessedGoodieBag.size() + " goodies");
+            data.add("processed: " + processedGoodieBag.size() + " goodies");
+            data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));
+            data.add("covar: " + MatrixUtil.toCovarianceString(state.getCov()));
+            data.add("velo: " + getRollingVelocity().toString());
 
-        return data;
+            return data;
+        }
     }
 
     @Override
     public HashMap<String, Object> getDashboardData() {
-        HashMap<String, Object> map = new HashMap<>();
+        synchronized (this) {
+            HashMap<String, Object> map = new HashMap<>();
 
-        map.put("pose: ", MatrixUtil.toPoseString(state.getMean()));
-        map.put("velo: ", getRollingVelocity().toString());
+            map.put("pose: ", MatrixUtil.toPoseString(state.getMean()));
+            map.put("velo: ", getRollingVelocity().toString());
 
-        return map;
+            return map;
+        }
     }
 
     @Override
