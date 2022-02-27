@@ -46,7 +46,7 @@ public class RedAuto extends LinearOpMode {
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
                 new WayPoint(START.x + 20, START.y + 7),
-                new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
+                new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 10),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y, CAROUSEL.heading, 0, carouselActions)
         }, 4);
 
