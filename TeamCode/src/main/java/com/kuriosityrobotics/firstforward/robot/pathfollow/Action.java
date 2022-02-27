@@ -36,6 +36,11 @@ public abstract class Action {
         return completed;
     }
 
+    public void reset() {
+        this.isStarted = false;
+        this.completed = false;
+    }
+
     public long msSinceStart() {
         long currentTime = SystemClock.elapsedRealtime();
         return currentTime - startTime;

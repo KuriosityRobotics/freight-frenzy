@@ -57,6 +57,8 @@ public final class ManagedCamera {
             parameters.cameraName = webcamName;
             parameters.useExtendedTracking = false;
 
+            // TODO: when this is interrupted we get really weird behavior. sometimes we catch an exception,
+            // sometimes the entire rc crashes
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
             vuforiaConsumer.setup(vuforia);
@@ -77,7 +79,7 @@ public final class ManagedCamera {
                 try {
                     openCvCamera.startStreaming(960, 720);
                 } catch(Exception e) {
-                    Log.e("Managed Camera", "An error occured! " + e);
+                    Log.e("VisionThread", "An error occured! " + e);
                 }
             }
 
@@ -93,8 +95,8 @@ public final class ManagedCamera {
     }
 
     public void close() {
-        this.openCvCamera.closeCameraDevice();
-        this.vuforia.close();
+//        this.openCvCamera.closeCameraDevice();
+//        this.vuforia.close();
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {

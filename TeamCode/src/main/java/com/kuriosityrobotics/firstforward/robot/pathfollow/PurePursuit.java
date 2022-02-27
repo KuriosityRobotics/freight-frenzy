@@ -22,7 +22,7 @@ import java.util.HashMap;
 public class PurePursuit implements Telemeter {
     // constants
     private static final double STOP_THRESHOLD = 3;
-    private static final double ANGLE_THRESHOLD = Math.toRadians(2);
+    private static final double ANGLE_THRESHOLD = Math.toRadians(4);
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
@@ -35,7 +35,7 @@ public class PurePursuit implements Telemeter {
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
     private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.027, 0.0000, 0);
-    private final ClassicalPID headingPID = new ClassicalPID(0.70, 0.000, 0.10);
+    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 
     Point target = new Point(0, 0);
@@ -69,6 +69,10 @@ public class PurePursuit implements Telemeter {
         xPID.reset();
         yPID.reset();
         headingPID.reset();
+
+        for (WayPoint point : path) {
+            point.resetActions();
+        }
     }
 
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
@@ -95,11 +99,7 @@ public class PurePursuit implements Telemeter {
         Pose robotPose = locationProvider.getPose();
         Point robotVelo = locationProvider.getVelocity();
 
-        Log.v("PP", "pose: " + robotPose);
-
         Point clipped = clipToPath(robotPose);
-
-        Log.v("PP", "clipped: " + clipped);
 
         Point target = targetPosition(clipped);
 
@@ -212,18 +212,13 @@ public class PurePursuit implements Telemeter {
         // make sure we include the next path too. but don't go over the last path segment.
         lookAheadUntil = Math.min(path.length - 2, Math.max(lookAheadUntil, pathIndex + 1));
 
-        Log.v("PP", "index: " + pathIndex);
-        Log.v("PP", "look ahead till: " + lookAheadUntil);
-
         // find intersections in this path or the next
         // search the furthest segment first (so the next one)
         // return the first intersection closest to the end of its path segment
         for (int i = lookAheadUntil; i >= pathIndex; i--) {
             Line pathSegment = new Line(path[i], path[i + 1]);
 
-            Log.v("PP", "looking at : " + i);
             ArrayList<Point> pathIntersections = radius.getSegmentIntersections(pathSegment);
-            Log.v("PP", pathIntersections.toString());
 
             if (!pathIntersections.isEmpty()) {
                 //returns point that is closer to the end of the segment
@@ -242,8 +237,6 @@ public class PurePursuit implements Telemeter {
             }
         }
 
-        Log.v("PP", "defaulting");
-
         // if we couldn't find any intersections
         // return the end of the path
 //        return path[path.length - 1];
@@ -256,7 +249,6 @@ public class PurePursuit implements Telemeter {
 
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
                 || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
-        Log.v("PP", "curr: " + angleWrap(locationProvider.getPose().heading, Math.PI) + " targ: " + lastAngle.heading);
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 3);
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd
@@ -276,10 +268,9 @@ public class PurePursuit implements Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
-        data.add("target point: " + target.toString());
+        data.add("target point: " + ((Point) target).toString());
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);
-        data.add("distToEnd: " + distToEnd);
         return data;
     }
 
@@ -292,7 +283,6 @@ public class PurePursuit implements Telemeter {
         map.put("yvel", "" + yvel);
         map.put("targy", "" + targy);
         map.put("Heading", "" + heading);
-        Log.v("pp", "" +heading);
         map.put("targ heading", "" + targhead);
         map.put("targvel", "" + targvel);
         map.put("vel", "" + vel);
