@@ -7,7 +7,6 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodie;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanState;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
@@ -21,14 +20,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Extended Kalman Filter (EKF) for sensor fusion between odometry and vuforia Odometry is used as
  * prediction to generate estimate Vuforia is used as measurement to generate correction
  */
-public class LocalizeKalmanFilter extends RollingVelocityCalculator implements KalmanFilter, Telemeter {
+public class LocalizeKalmanFilter extends RollingVelocityCalculator implements Telemeter {
 
     // values
     private static final RealMatrix STARTING_COVARIANCE = MatrixUtils.createRealMatrix(new double[][]{
@@ -37,63 +35,23 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
             {0, 0, Math.pow(Math.toRadians(15), 2)}
     });
     private static final long KALMAN_WINDOW_SIZE_MS = 100;
-    private KalmanState state;
+
     private final LinkedBlockingDeque<KalmanGoodie> unprocessedGoodieBag; // has null states
     private final LinkedList<KalmanGoodie> processedGoodieBag;
+
+    private KalmanState state;
     private int stateAge = 0;
 
-
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
-        state = new KalmanState(matrixPose, STARTING_COVARIANCE);
-        unprocessedGoodieBag = new LinkedBlockingDeque<>();
-        processedGoodieBag = new LinkedList<>();
-        processedGoodieBag.add(new KalmanGoodie(null, SystemClock.elapsedRealtime(), new KalmanState(matrixPose, STARTING_COVARIANCE)));
-    }
-
-    void update() {
         synchronized (this) {
-            long currentTimeMillis = SystemClock.elapsedRealtime();
-
-            unprocessedGoodieBag.drainTo(processedGoodieBag);
-
-            processedGoodieBag.removeIf(n -> (n.getTimeStamp() > currentTimeMillis || n.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS));
-            processedGoodieBag.sort(Comparator.comparing(KalmanGoodie::getTimeStamp));
-
-            if (processedGoodieBag.isEmpty())
-                processedGoodieBag.add(new KalmanGoodie(null, currentTimeMillis, state));
-
-            for(int i = 1; i < processedGoodieBag.size(); i++) {
-                KalmanGoodie goodie = processedGoodieBag.get(i);
-                KalmanGoodie prevGoodie = processedGoodieBag.get(i-1);
-
-                if (prevGoodie.isStateNull()) {
-                    continue;
-                }
-                if (goodie.isDataNull()) {
-                    continue;
-                }
-
-                KalmanState state = prevGoodie.getState();
-                KalmanData data = goodie.getData();
-
-                if (data.getDataType() == 0) state = prediction(state, data);
-                if (data.getDataType() == 1) state = correction(state, data);
-
-                processedGoodieBag.set(i, new KalmanGoodie(goodie.getData(), goodie.getTimeStamp(), state));
-
-//                Log.v("kf", "procs: " + processedGoodieBag.getGoodie(i).toString());
-            }
-
-            KalmanGoodie lastGoodie = processedGoodieBag.peekLast();
-
-            state = lastGoodie.getState();
-            stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
+            state = new KalmanState(matrixPose, STARTING_COVARIANCE);
+            unprocessedGoodieBag = new LinkedBlockingDeque<>();
+            processedGoodieBag = new LinkedList<>();
+            processedGoodieBag.add(new KalmanGoodie(null, SystemClock.elapsedRealtime(), new KalmanState(matrixPose, STARTING_COVARIANCE)));
         }
-
-        calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
     }
 
-    public KalmanState prediction(KalmanState prev, KalmanData update) {
+    public static KalmanState prediction(KalmanState prev, KalmanData update) {
         RealMatrix[] prevMatrix = new RealMatrix[]{
                 prev.getMean(), prev.getCov()
         };
@@ -105,7 +63,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
         return new KalmanState(predictionMatrix[0], predictionMatrix[1]);
     }
 
-    public KalmanState correction(KalmanState pred, KalmanData obs) {
+    public static KalmanState correction(KalmanState pred, KalmanData obs) {
         RealMatrix[] predMatrix = new RealMatrix[]{
                 pred.getMean(), pred.getCov()
         };
@@ -126,8 +84,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                dHeading odo math generates)
      * @return prediction
      */
-    @Override
-    public RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
+    public static RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
         // set up
         double prevX = prev[0].getEntry(0, 0);
         double prevY = prev[0].getEntry(1, 0);
@@ -183,10 +140,9 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
      *              information (position on field) column 2 is where the robot is in the trackers
      *              coordinate system
-     * @return: corrected prediction
+     * @return corrected prediction
      */
-    @Override
-    public RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
+    public static RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
         RealMatrix predCov = pred[1];
 
         RealMatrix predObs = pred[0]; // for full state sensor
@@ -230,16 +186,60 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements K
      *                trackers coordinate system
      * @return corrected prediction
      */
-    @Override
-    public RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
+    public static RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
         RealMatrix[] prediction = prediction(prev, update);
         RealMatrix[] correction = correction(prediction, obs);
         return correction;
     }
 
+    void update() {
+        synchronized (this) {
+            long currentTimeMillis = SystemClock.elapsedRealtime();
+
+            unprocessedGoodieBag.drainTo(processedGoodieBag);
+
+            processedGoodieBag.removeIf(n -> (n.getTimeStamp() > currentTimeMillis || n.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS));
+            processedGoodieBag.sort(Comparator.comparing(KalmanGoodie::getTimeStamp));
+
+            if (processedGoodieBag.isEmpty())
+                processedGoodieBag.add(new KalmanGoodie(null, currentTimeMillis, state));
+
+            for (int i = 1; i < processedGoodieBag.size(); i++) {
+                KalmanGoodie goodie = processedGoodieBag.get(i);
+                KalmanGoodie prevGoodie = processedGoodieBag.get(i - 1);
+
+                if (prevGoodie.isStateNull()) {
+                    continue;
+                }
+                if (goodie.isDataNull()) {
+                    continue;
+                }
+
+                KalmanState goodieState = prevGoodie.getState();
+                KalmanData data = goodie.getData();
+
+                if (data.getDataType() == 0) goodieState = prediction(goodieState, data);
+                if (data.getDataType() == 1) goodieState = correction(goodieState, data);
+
+                processedGoodieBag.set(i, new KalmanGoodie(goodie.getData(), goodie.getTimeStamp(), goodieState));
+
+//                Log.v("kf", "procs: " + processedGoodieBag.getGoodie(i).toString());
+            }
+
+            KalmanGoodie lastGoodie = processedGoodieBag.peekLast();
+
+            if (processedGoodieBag.peekLast() == null)
+                throw new Error();
+
+            state = lastGoodie.getState();
+            stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
+        }
+
+        calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+    }
+
     public void addGoodie(KalmanGoodie goodie) {
         unprocessedGoodieBag.add(goodie);
-
     }
 
     public void addGoodie(KalmanData data, long timeStamp) {

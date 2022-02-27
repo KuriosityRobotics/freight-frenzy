@@ -48,6 +48,10 @@ public class MathUtil {
         return Math.abs(a - b) < EPSILON;
     }
 
+    public static boolean doublesEqualEpsilon(double epsilon, double a, double b) {
+        return Math.abs(a - b) < epsilon;
+    }
+
     public static double max(double... in) {
         double max = Double.MIN_VALUE;
         for (double x : in) {

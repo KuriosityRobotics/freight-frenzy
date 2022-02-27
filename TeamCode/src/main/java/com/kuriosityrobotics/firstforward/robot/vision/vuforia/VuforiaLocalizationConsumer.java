@@ -14,6 +14,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TIL
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_TAB_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqualEpsilon;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
@@ -91,7 +92,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
         rotator.setPosition(ROTATOR_CENTER_POS);
 
-        while(!doublesEqual(cameraEncoder.getCurrentPosition() * CAMERA_ENCODER_TO_RADIAN, 0));
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         resetEncoders();
     }
