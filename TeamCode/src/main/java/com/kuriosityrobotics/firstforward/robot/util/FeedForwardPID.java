@@ -1,7 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
 public class FeedForwardPID {
-    private final double f;
+    public final double f;
 
     private final ClassicalPID classicalPID;
 
@@ -14,5 +14,9 @@ public class FeedForwardPID {
         double scale = classicalPID.calculateSpeed(error);
 
         return (target * f) + (scale);
+    }
+
+    public void reset() {
+        classicalPID.reset();
     }
 }

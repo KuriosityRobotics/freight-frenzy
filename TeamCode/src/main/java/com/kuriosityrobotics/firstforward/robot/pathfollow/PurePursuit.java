@@ -33,10 +33,11 @@ public class PurePursuit implements Telemeter {
     // motion magic
     private final MotionProfile profile;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
-    private final FeedForwardPID yPID = new FeedForwardPID(0.024, 0.010, 0, 0.005);
-    private final FeedForwardPID xPID = new FeedForwardPID(0.026, 0.0225, 0.000015, 0);
-    private final ClassicalPID headingPID = new ClassicalPID(0.6, 0.000055, 0.12);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
+    private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.027, 0.0000, 0);
+    private final ClassicalPID headingPID = new ClassicalPID(0.70, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
+
     Point target = new Point(0, 0);
     // helpers
     private int pathIndex; // which path segment is our follow point on? 0 is 0-1, 1 is 1-2, etc.
@@ -52,12 +53,22 @@ public class PurePursuit implements Telemeter {
         this.profile = new MotionProfile(path);
 
         this.backwards = backwards;
-        this.executedLastAction = false;
-        this.pathIndex = 0;
+
+        this.reset();
     }
 
     public PurePursuit(WayPoint[] path, double followRadius) {
         this(path, false, followRadius);
+    }
+
+    public void reset() {
+        this.pathIndex = 0;
+        this.executedLastAction = false;
+        this.started = false;
+
+        xPID.reset();
+        yPID.reset();
+        headingPID.reset();
     }
 
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
@@ -84,9 +95,13 @@ public class PurePursuit implements Telemeter {
         Pose robotPose = locationProvider.getPose();
         Point robotVelo = locationProvider.getVelocity();
 
-        Point target = targetPosition(robotPose);
+        Log.v("PP", "pose: " + robotPose);
 
         Point clipped = clipToPath(robotPose);
+
+        Log.v("PP", "clipped: " + clipped);
+
+        Point target = targetPosition(clipped);
 
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
         AngleLock targetAngleLock = profile.interpolateTargetAngleLock(closestIndex, clipped);
@@ -121,6 +136,7 @@ public class PurePursuit implements Telemeter {
 
             double clockError = angleWrap(targHeading - currHeading, Math.PI);
             double counterError = angleWrap(currHeading - targHeading, Math.PI);
+
             double error = counterError > clockError ? clockError : -counterError;
 
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
@@ -141,12 +157,12 @@ public class PurePursuit implements Telemeter {
         // save values for dashboard lemon
         vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         targvel = targetVelocity;
-        xvel = robotVelo.x;
-        yvel = robotVelo.y;
+        xvel = currXVelo;
+        yvel = currYVelo;
         targx = targetXVelo;
         targy = targetYVelo;
-        heading = robotPose.heading;
-        targhead = targetAngleLock.heading;
+        heading = angleWrap(robotPose.heading, Math.PI);
+        targhead = angleWrap(targetAngleLock.heading, Math.PI);
         distToEnd = locationProvider.distanceToPoint(path[path.length - 1]);
 
         this.target = target;
@@ -196,13 +212,18 @@ public class PurePursuit implements Telemeter {
         // make sure we include the next path too. but don't go over the last path segment.
         lookAheadUntil = Math.min(path.length - 2, Math.max(lookAheadUntil, pathIndex + 1));
 
+        Log.v("PP", "index: " + pathIndex);
+        Log.v("PP", "look ahead till: " + lookAheadUntil);
+
         // find intersections in this path or the next
         // search the furthest segment first (so the next one)
         // return the first intersection closest to the end of its path segment
         for (int i = lookAheadUntil; i >= pathIndex; i--) {
             Line pathSegment = new Line(path[i], path[i + 1]);
 
+            Log.v("PP", "looking at : " + i);
             ArrayList<Point> pathIntersections = radius.getSegmentIntersections(pathSegment);
+            Log.v("PP", pathIntersections.toString());
 
             if (!pathIntersections.isEmpty()) {
                 //returns point that is closer to the end of the segment
@@ -221,16 +242,21 @@ public class PurePursuit implements Telemeter {
             }
         }
 
+        Log.v("PP", "defaulting");
+
         // if we couldn't find any intersections
         // return the end of the path
-        return path[path.length - 1];
+//        return path[path.length - 1];
+        return path[pathIndex + 1];
     }
 
     public boolean atEnd(LocationProvider locationProvider) {
         WayPoint end = path[path.length - 1];
         AngleLock lastAngle = profile.getLastAngleLock();
+
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
-                || (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
+                || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
+        Log.v("PP", "curr: " + angleWrap(locationProvider.getPose().heading, Math.PI) + " targ: " + lastAngle.heading);
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 3);
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd

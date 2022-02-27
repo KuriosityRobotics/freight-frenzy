@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -16,7 +17,6 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Queue;
 
 public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_RIGHT_EXTENDED_POS = 0.0168;
@@ -109,12 +109,14 @@ public class IntakeModule implements Module, Telemeter {
             }
         }
 
+        boolean atTarget = atTargetPosition();
         // set motor power
-        if (transitionTo == IntakePosition.RETRACTED && !atTargetPosition()) {
+        if (transitionTo == IntakePosition.RETRACTED && !atTarget) {
             intakeMotor.setPower(HOLD_POWER);
         } else {
             intakeMotor.setPower(intakePower);
         }
+
 
         // set intake position
         switch (transitionTo) {
@@ -132,6 +134,7 @@ public class IntakeModule implements Module, Telemeter {
                 }
                 break;
         }
+
     }
 
     private void transitionIntake(IntakePosition position) {
@@ -160,6 +163,8 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     private boolean mineralInIntake() {
+        boolean spinning = intakeSpinning();
+
         double reading = distanceSensor.getSensorReading();
         distanceReadings.add(reading);
 
@@ -172,7 +177,7 @@ public class IntakeModule implements Module, Telemeter {
                     return false;
                 }
             }
-            return true;
+            return spinning;
         } else if (reading < FAR_DISTANCE_THRESHOLD) {
             // if last 10 are all positives it's a go
             Object[] queueArray = distanceReadings.toArray();
@@ -183,9 +188,23 @@ public class IntakeModule implements Module, Telemeter {
                     return false;
                 }
             }
-            return true;
+            return spinning;
         }
         return false;
+    }
+
+    private double lastPos = 0;
+    private long lasttime = 0;
+    private boolean intakeSpinning() {
+        double pos = intakeMotor.getCurrentPosition();
+        long time = SystemClock.elapsedRealtime();
+
+        double velo = (pos - lastPos) / (time - lasttime);
+
+        lastPos = pos;
+        lasttime = time;
+
+        return Math.abs(velo) > 1;
     }
 
     public boolean isOn() {

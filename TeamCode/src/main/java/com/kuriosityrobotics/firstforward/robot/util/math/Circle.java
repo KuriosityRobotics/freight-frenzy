@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 
 public class Circle {
@@ -30,17 +32,18 @@ public class Circle {
     }
 
     public ArrayList<Point> getIntersections(Line line) {
-        ArrayList<Point> intersections = new ArrayList<Point>();
+        ArrayList<Point> intersections = new ArrayList<>();
 
         // circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
         if (!this.intersects(line)) {
+            Log.v("PP", "NO INTSCT!");
             return intersections;
         } else if (line.isVertical()) { // line equation is x=startPoint.x
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
 
             intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
             if (sqrtExpression != 0) {
-                intersections.add(new Point(line.startPoint.x, center.y + sqrtExpression));
+                intersections.add(new Point(line.startPoint.x, center.y - sqrtExpression));
             }
         } else if (line.getSlope() == 0) { // line equation is y = startPoint.y
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.y - center.y, 2));
@@ -65,6 +68,7 @@ public class Circle {
 
     public ArrayList<Point> getSegmentIntersections(Line line){
         ArrayList<Point> intersections = getIntersections(line);
+        Log.v("PP", "raw intsct: " + intersections);
         return line.pointsOnLine(intersections);
     }
 

@@ -1,9 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.util;
 
 public class ClassicalPID {
-    private final double P_FACTOR;
-    private final double I_FACTOR;
-    private final double D_FACTOR;
+    public final double P_FACTOR;
+    public final double I_FACTOR;
+    public final double D_FACTOR;
 
     private boolean reset;
 

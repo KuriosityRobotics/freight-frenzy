@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
@@ -17,8 +19,8 @@ import java.util.ListIterator;
 import java.util.Map;
 
 public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 35;
-    public static final double ROBOT_MAX_ACCEL = 85;
+    public static final double ROBOT_MAX_VEL = 40;
+    public static final double ROBOT_MAX_ACCEL = 80;
     public static final double ROBOT_MAX_DECCEL = 35;
 
     private final double maxVel, maxAccel, maxDeccel;
@@ -217,7 +219,6 @@ public class MotionProfile {
         double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
         for (MotionSegment segment : velocityProfile) {
             if (distAlongPath >= segment.startDistanceAlongPath && distAlongPath <= segment.endDistanceAlongPath) {
-                Log.v("MP", ""+segment.interpolateTargetVelocity(distAlongPath));
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
@@ -247,14 +248,18 @@ public class MotionProfile {
                         if (lastLock.type != AngleLock.AngleLockType.LOCK) {
                             return nextLock;
                         } else {
-                            double distAlong = distAlongPath - lastDist;
                             double totalDist = dist - lastDist;
-                            double headingChange = nextLock.heading - lastLock.heading;
+                            double distAlong = Range.clip(distAlongPath - lastDist, 0, totalDist);
+
+                            double clockError = angleWrap(nextLock.heading - lastLock.heading, Math.PI);
+                            double counterError = angleWrap(lastLock.heading - nextLock.heading, Math.PI);
+
+                            double error = counterError > clockError ? clockError : -counterError;
 
                             if (!i.hasPrevious()) {
                                 return nextLock;
                             } else {
-                                return new AngleLock(((distAlong / totalDist) * headingChange) + lastLock.heading);
+                                return new AngleLock(((distAlong / totalDist) * error) + lastLock.heading);
                             }
                         }
                     default:
