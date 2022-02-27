@@ -7,6 +7,7 @@ import static java.lang.Math.abs;
 
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +17,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
+    LocationProvider locationProvider;
+
     //time constants
     private static final long EXTEND_TIME = 300;
     private static final long DUMP_TIME = 500;
@@ -25,18 +28,21 @@ public class OuttakeModule implements Module, Telemeter {
             CLAMP_CLAMP = .75,
             CLAMP_RELEASE = 0.890738;
     private static final double LINKAGE_IN = .140102,
-            LINKAGE_EXTENDED = .8777921;
+            LINKAGE_EXTENDED = .8777921, LINKAGE_PARTIAL_EXTEND = 0.45;
     // pivot down:  .993
     // pivot in:  .0060539
     private static final double PIVOT_OUT = .993,
             PIVOT_UP = 0.5,
             PIVOT_IN = .0060539;
 
+    private static double ALLIANCE_HUB_TURRET_POSITION = 0.5;
+
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
         STRAIGHT(.482746),
         RIGHT(.78988),
-        LEFT(.186781);
+        LEFT(.186781),
+        ALLIANCEHUBLOCK(0.5);
 
         private final double position;
 
@@ -133,7 +139,9 @@ public class OuttakeModule implements Module, Telemeter {
     // helpers
     private long transitionTime;
 
-    public OuttakeModule(HardwareMap hardwareMap) {
+    public OuttakeModule(LocationProvider locationProvider, HardwareMap hardwareMap) {
+        this.locationProvider = locationProvider;
+
         linkage = hardwareMap.servo.get("outtakeLinkage");
         pivot = hardwareMap.servo.get("outtakePivot");
         clamp = hardwareMap.servo.get("outtakeClamp");
@@ -178,6 +186,7 @@ public class OuttakeModule implements Module, Telemeter {
 
             switch (this.currentState) {
                 case RAISE:
+                    linkage.setPosition(LINKAGE_PARTIAL_EXTEND);
                     clamp.setPosition(CLAMP_CLAMP);
                     slide.setTargetPosition(targetSlideLevel.position);
                     break;

@@ -75,7 +75,7 @@ public class Robot extends LocationProvider {
         drivetrain = new Drivetrain(this, hardwareMap);
         telemetryDump.registerTelemeter(drivetrain);
 
-        outtakeModule = new OuttakeModule(hardwareMap);
+        outtakeModule = new OuttakeModule(this, hardwareMap);
         telemetryDump.registerTelemeter(outtakeModule);
 
         intakeModule = new IntakeModule(hardwareMap, outtakeModule);

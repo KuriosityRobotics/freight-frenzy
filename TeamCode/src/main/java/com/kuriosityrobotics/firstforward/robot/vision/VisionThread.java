@@ -99,17 +99,6 @@ public class VisionThread implements Runnable, Telemeter {
         }
     }
 
-    public RealMatrix getVuforiaMatrix() {
-        if(managedCamera == null || !managedCamera.vuforiaActive)
-            return null;
-
-        return vuforiaLocalizationConsumer.getLocationRealMatrix();
-    }
-
-    public ManagedCamera getManagedCamera() {
-        return this.managedCamera;
-    }
-
 /*    public ConcurrentHashMap<Point, Classifier.Recognition> getDetectedGameElements() {
         return cargoDetectorConsumer.getDetectedGameElements();
     }*/
