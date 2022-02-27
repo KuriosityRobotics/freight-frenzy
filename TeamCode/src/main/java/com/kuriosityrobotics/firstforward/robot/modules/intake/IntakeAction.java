@@ -5,7 +5,7 @@ import android.os.SystemClock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class IntakeAction extends Action {
-    private static final long END_DELAY = 750;
+    private static final long END_DELAY = 0;
 
     Long gotMineralTime;
 
@@ -21,11 +21,13 @@ public class IntakeAction extends Action {
 
         intakeModule.intakePower = 1;
 
+        long currentTime = SystemClock.elapsedRealtime();
+
         // if we've got the goods
         if (intakeModule.hasMineral()) {
-            this.gotMineralTime = SystemClock.elapsedRealtime();
+            this.gotMineralTime = currentTime;
         }
 
-        this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= SystemClock.elapsedRealtime();
+        this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= currentTime;
     }
 }

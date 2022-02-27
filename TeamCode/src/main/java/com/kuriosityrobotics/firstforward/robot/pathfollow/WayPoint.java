@@ -29,6 +29,10 @@ public class WayPoint extends Point {
         this(x, y, heading, velo, new ArrayList<>());
     }
 
+    public WayPoint(Pose pose, double velo) {
+        this(pose.x, pose.y, pose.heading, velo);
+    }
+
     public WayPoint(double x, double y, double velo, ArrayList<Action> actions) {
         this(x, y, new AngleLock(), new VelocityLock(velo), actions);
     }
@@ -37,15 +41,20 @@ public class WayPoint extends Point {
         this(point.x, point.y, velo, actions);
     }
 
-    public WayPoint(Pose pose, double velo, ArrayList<Action> actions){
+    public WayPoint(Pose pose, double velo, ArrayList<Action> actions) {
         this(pose.x, pose.y, pose.heading, velo, actions);
+    }
+
+    public WayPoint(Pose pose, double velo, Action action) {
+        this(pose, velo, new ArrayList<>());
+        actions.add(action);
     }
 
     public WayPoint(double x, double y, AngleLock angleLock) {
         this(x, y, angleLock, new VelocityLock(), new ArrayList<>());
     }
 
-    public WayPoint(Pose pose){
+    public WayPoint(Pose pose) {
         this(pose.x, pose.y, new AngleLock(pose.heading));
     }
 
@@ -59,6 +68,10 @@ public class WayPoint extends Point {
 
     public WayPoint(double x, double y) {
         this(x, y, new AngleLock(), new VelocityLock(), new ArrayList<>());
+    }
+
+    public WayPoint(Point point) {
+        this(point.x, point.y);
     }
 
     public WayPoint(Point point, ArrayList<Action> actions) {
@@ -76,6 +89,12 @@ public class WayPoint extends Point {
 
     public VelocityLock getVelocityLock() {
         return velocityLock;
+    }
+
+    public void resetActions() {
+        for (Action action : actions) {
+            action.reset();
+        }
     }
 
     public ArrayList<Action> getActions() {

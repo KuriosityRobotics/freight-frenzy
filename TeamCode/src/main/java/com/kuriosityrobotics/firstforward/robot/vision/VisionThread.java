@@ -56,6 +56,10 @@ public class VisionThread implements Runnable, Telemeter {
         try {
             OpenCVDumper openCVDumper = new OpenCVDumper();
 
+            if (!robot.running()) {
+                return;
+            }
+
             this.managedCamera = new ManagedCamera(
                     robot.camera,
                     vuforiaLocalizationConsumer,
@@ -77,16 +81,17 @@ public class VisionThread implements Runnable, Telemeter {
                 updateTime = currentTime - lastLoopTime;
                 lastLoopTime = currentTime;
             }
+
             this.vuforiaLocalizationConsumer.deactivate();
             this.managedCamera.close();
             managedCamera = null;
             Log.v("VisionThread", "Exited due to opMode's no longer being active.");
         } catch (Exception e) {
-            if (robot.isOpModeActive()) // if we got interrupted bc the opmode is stopping its fine;  if we're still running, rethrow
-                throw e;
+            e.printStackTrace();
         } finally {
             /*if(cargoDetectionThread != null)
                 cargoDetectionThread.interrupt();*/
+
             if (managedCamera != null) {
                 managedCamera.close();
                 managedCamera = null;

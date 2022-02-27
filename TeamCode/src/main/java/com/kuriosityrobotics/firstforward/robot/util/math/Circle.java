@@ -36,7 +36,6 @@ public class Circle {
 
         // circle equation is (x-center.x)^2 + (y-center.y)^2 = radius^2
         if (!this.intersects(line)) {
-            Log.v("PP", "NO INTSCT!");
             return intersections;
         } else if (line.isVertical()) { // line equation is x=startPoint.x
             double sqrtExpression = Math.sqrt(radius*radius - Math.pow(line.startPoint.x - center.x, 2));
@@ -68,7 +67,6 @@ public class Circle {
 
     public ArrayList<Point> getSegmentIntersections(Line line){
         ArrayList<Point> intersections = getIntersections(line);
-        Log.v("PP", "raw intsct: " + intersections);
         return line.pointsOnLine(intersections);
     }
 

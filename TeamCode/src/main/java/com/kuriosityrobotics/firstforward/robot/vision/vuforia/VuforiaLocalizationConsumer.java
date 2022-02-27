@@ -13,8 +13,6 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TAR
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_TAB_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqualEpsilon;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
@@ -91,14 +89,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
         rotator.setPosition(ROTATOR_CENTER_POS);
-
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        resetEncoders();
     }
 
     @Override
@@ -141,20 +131,30 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         );
     }
 
+    private Long startTime = null;
+
     @Override
     public void update() {
         synchronized (this) {
-            setCameraAngle(calculateOptimalCameraAngle());
-            updateCameraAngleAndVelocity();
+            if (robot.started()) {
+                long currentTimeMillis = SystemClock.elapsedRealtime();
 
-            long currentTimeMillis = SystemClock.elapsedRealtime();
-            trackVuforiaTargets();
+                if (startTime == null) {
+                    resetEncoders();
+                    startTime = currentTimeMillis;
+                } else if (currentTimeMillis >= startTime + 500) {
+                    setCameraAngle(calculateOptimalCameraAngle());
+                    updateCameraAngleAndVelocity();
+                }
 
-            RealMatrix data = getLocationRealMatrix();
+                trackVuforiaTargets();
 
-            // hopefully this doesn't do bad thread stuff
-            if (data != null)
-                robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
+                RealMatrix data = getLocationRealMatrix();
+
+                // hopefully this doesn't do bad thread stuff
+                if (data != null)
+                    robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
+            }
         }
     }
 
