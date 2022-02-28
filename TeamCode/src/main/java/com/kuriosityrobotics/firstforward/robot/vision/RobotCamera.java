@@ -2,7 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.vision;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.*;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
