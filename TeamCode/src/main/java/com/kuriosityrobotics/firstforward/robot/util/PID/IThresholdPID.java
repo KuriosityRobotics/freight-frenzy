@@ -1,9 +1,12 @@
-package com.kuriosityrobotics.firstforward.robot.util;
+package com.kuriosityrobotics.firstforward.robot.util.PID;
 
-public class ClassicalPID {
+import android.util.Log;
+
+public class IThresholdPID {
     public final double P_FACTOR;
     public final double I_FACTOR;
     public final double D_FACTOR;
+    public final double iThreshold;
 
     private boolean reset;
 
@@ -18,10 +21,11 @@ public class ClassicalPID {
      * @param i
      * @param d
      */
-    public ClassicalPID(double p, double i, double d) {
+    public IThresholdPID(double p, double i, double d, double iThreshold) {
         P_FACTOR = p;
         I_FACTOR = i;
         D_FACTOR = d;
+        this.iThreshold = iThreshold;
 
         this.reset = true;
     }
@@ -34,7 +38,11 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        errorSum += error;
+        if (Math.abs(error) < iThreshold) {
+            errorSum += error;
+        } else {
+            errorSum = 0;
+        }
 
         double p = error * P_FACTOR;
         double i = 0;

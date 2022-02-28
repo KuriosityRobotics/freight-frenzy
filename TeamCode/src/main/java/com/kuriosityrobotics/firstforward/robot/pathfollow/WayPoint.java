@@ -5,6 +5,9 @@ import androidx.annotation.NonNull;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
+import org.checkerframework.checker.units.qual.Angle;
+
+import java.sql.Array;
 import java.util.ArrayList;
 
 public class WayPoint extends Point {
@@ -31,6 +34,10 @@ public class WayPoint extends Point {
 
     public WayPoint(Pose pose, double velo) {
         this(pose.x, pose.y, pose.heading, velo);
+    }
+
+    public WayPoint(Pose pose, VelocityLock velocityLock) {
+        this(pose.x, pose.y, new AngleLock(pose.heading), velocityLock, new ArrayList<>());
     }
 
     public WayPoint(double x, double y, double velo, ArrayList<Action> actions) {

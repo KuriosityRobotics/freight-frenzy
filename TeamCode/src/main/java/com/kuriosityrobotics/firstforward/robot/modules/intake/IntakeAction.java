@@ -1,13 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 public class IntakeAction extends Action {
     private static final long END_DELAY = 0;
 
-    Long gotMineralTime;
+    private Long gotMineralTime;
 
     private final IntakeModule intakeModule;
 
@@ -27,6 +28,8 @@ public class IntakeAction extends Action {
         if (intakeModule.hasMineral()) {
             this.gotMineralTime = currentTime;
         }
+
+        Log.v("PP", "Intake: " + gotMineralTime);
 
         this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= currentTime;
     }

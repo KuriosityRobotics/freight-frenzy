@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.util;
+package com.kuriosityrobotics.firstforward.robot.util.PID;
 
 public class FeedForwardPID {
     public final double f;

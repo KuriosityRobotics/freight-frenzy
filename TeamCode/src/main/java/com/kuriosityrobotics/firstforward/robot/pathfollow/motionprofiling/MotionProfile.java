@@ -237,10 +237,9 @@ public class MotionProfile {
             i.next();
 
             double dist = i.getKey();
+            AngleLock nextLock = i.getValue();
 
             if (distAlongPath <= dist) {
-                AngleLock nextLock = i.getValue();
-
                 switch (nextLock.type) {
                     case NO_LOCK:
                         return nextLock;
@@ -266,6 +265,7 @@ public class MotionProfile {
                         throw new Error("Profiled angleLocks contain an angleLock of type that is not LOCK or NO_LOCK! This should be guaranteed by generateAngleLockProfile() in MotionProfile");
                 }
             }
+            lastLock = nextLock;
         }
 
         throw new Error("No angleLock was found in the profile!");

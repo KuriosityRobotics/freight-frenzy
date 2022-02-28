@@ -4,6 +4,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
@@ -197,9 +198,29 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
             long currentTimeMillis = SystemClock.elapsedRealtime();
 
             unprocessedGoodieBag.drainTo(processedGoodieBag);
-
-            processedGoodieBag.removeIf(n -> (n.getTimeStamp() > currentTimeMillis || n.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS));
             processedGoodieBag.sort(Comparator.comparing(KalmanGoodie::getTimeStamp));
+
+            // remove all goodies too old or too new, but keep the latest goodie with a state.
+            ArrayList<KalmanGoodie> toRemove = new ArrayList<>();
+            KalmanGoodie lastStatedExpiringGoodie = null;
+            for (KalmanGoodie goodie : processedGoodieBag) {
+                if (goodie.getTimeStamp() > currentTimeMillis || goodie.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS) {
+                    if (!goodie.isStateNull()) { // it's a stated goodie
+                        if (lastStatedExpiringGoodie != null) {
+                            toRemove.add(lastStatedExpiringGoodie);
+                        }
+                        lastStatedExpiringGoodie = goodie;
+                    } else {
+                        toRemove.add(goodie);
+                    }
+                }
+            }
+            // remove the goodies marked for removal
+            for (KalmanGoodie goodie : toRemove) {
+                processedGoodieBag.remove(goodie);
+            }
+
+//            processedGoodieBag.removeIf(n -> (n.getTimeStamp() > currentTimeMillis || n.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS));
 
             if (processedGoodieBag.isEmpty())
                 processedGoodieBag.add(new KalmanGoodie(null, currentTimeMillis, state));
@@ -227,9 +248,13 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
             }
 
             KalmanGoodie lastGoodie = processedGoodieBag.peekLast();
-
             assert lastGoodie != null;
             state = lastGoodie.getState();
+
+            if (state == null) {
+                Log.e("KF", "state nul! " + processedGoodieBag.toString());
+            }
+
             stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
         }
 
