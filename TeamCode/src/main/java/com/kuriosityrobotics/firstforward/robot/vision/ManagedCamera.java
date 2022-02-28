@@ -75,7 +75,7 @@ public final class ManagedCamera {
 
                 openCvCamera.setPipeline(new CameraConsumerProcessor());
                 try {
-                    openCvCamera.startStreaming(960, 720);
+                    openCvCamera.startStreaming(800, 448);
                 } catch(Exception e) {
                     Log.e("Managed Camera", "An error occured! " + e);
                 }
