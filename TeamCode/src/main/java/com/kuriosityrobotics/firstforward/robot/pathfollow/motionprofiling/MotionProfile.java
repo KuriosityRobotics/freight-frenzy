@@ -2,12 +2,10 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
-import android.util.Log;
-
-import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.qualcomm.robotcore.util.Range;
 
 import org.apache.commons.collections4.OrderedMapIterator;
@@ -19,9 +17,9 @@ import java.util.ListIterator;
 import java.util.Map;
 
 public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 40;
-    public static final double ROBOT_MAX_ACCEL = 80;
-    public static final double ROBOT_MAX_DECCEL = 35;
+    public static final double ROBOT_MAX_VEL = 45;
+    public static final double ROBOT_MAX_ACCEL = 82;
+    public static final double ROBOT_MAX_DECCEL = 40;
 
     private final double maxVel, maxAccel, maxDeccel;
 
@@ -194,7 +192,7 @@ public class MotionProfile {
         } else {
             // starting velocity can't be 0 or else the robot will never start moving
             // can look into using lookahead instead
-            velocityCheckPoints.put(0., new VelocityLock(5, true));
+            velocityCheckPoints.put(0., new VelocityLock(10, true));
         }
 
         for (int i = 0; i < path.length - 1; i++) {

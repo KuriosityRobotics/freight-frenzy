@@ -46,7 +46,7 @@ public class Pose extends Point {
         return new Pose(this.x / a, this.y / a, this.heading / a);
     }
 
-    public Pose between(Pose other){ return new Pose(this.x/2 + other.x/2, this.y/2 + other.y/2, other.heading); }
+    public Pose between(Pose other){ return new Pose(this.x/2 + other.x/2, this.y/2 + other.y/2, (this.heading + other.heading)/2); }
 
     public Pose wrapped() {
         return new Pose(x, y, angleWrap(heading));

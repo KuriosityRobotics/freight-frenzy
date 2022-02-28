@@ -27,7 +27,7 @@ public class SensorThread implements Runnable, Telemeter {
 
     private final Robot robot;
 
-    private final Odometry odometry;
+    public final Odometry odometry;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
