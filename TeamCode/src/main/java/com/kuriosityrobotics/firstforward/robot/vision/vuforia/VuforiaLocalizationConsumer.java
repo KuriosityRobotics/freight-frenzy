@@ -32,6 +32,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.vuforia.Vuforia;
 
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
@@ -83,6 +84,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private Point targetVuMark = new Point(0, 0);
     private long lastUpdateTime = 0;
 
+    private long lastVuforiaFrameTime = -1;
+
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
@@ -110,6 +113,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
         this.freightFrenzyTargets.activate();
+
+        Vuforia.registerCallback(ignored -> lastVuforiaFrameTime = SystemClock.elapsedRealtime());
 
         // Identify the targets so vuforia can use them
         identifyTarget(0, "Blue Storage",
@@ -147,14 +152,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             setCameraAngle(calculateOptimalCameraAngle());
             updateCameraAngleAndVelocity();
 
-            long currentTimeMillis = SystemClock.elapsedRealtime();
             trackVuforiaTargets();
 
             RealMatrix data = getLocationRealMatrix();
 
             // hopefully this doesn't do bad thread stuff
             if (data != null)
-                robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
+                robot.sensorThread.addGoodie(new KalmanData(1, data), lastVuforiaFrameTime);
         }
     }
 
