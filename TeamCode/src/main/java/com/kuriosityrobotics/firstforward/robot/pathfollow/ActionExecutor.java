@@ -31,7 +31,6 @@ public class ActionExecutor {
                 action.tick();
 
                 if (action.isCompleted()) {
-                    Log.v("action", ""+action.getClass().getName()+" completed");
                     i.remove();
                 }
             }
@@ -40,6 +39,7 @@ public class ActionExecutor {
 
     public static boolean doneExecuting() {
         synchronized(executing) {
+            Log.v("PP", "actions: " + executing.toString());
             return executing.isEmpty();
         }
     }

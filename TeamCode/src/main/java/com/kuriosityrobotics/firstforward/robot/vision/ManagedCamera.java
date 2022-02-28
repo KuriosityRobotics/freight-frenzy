@@ -96,7 +96,7 @@ public final class ManagedCamera {
 
     public void close() {
 //        this.openCvCamera.closeCameraDevice();
-//        this.vuforia.close();
+        this.vuforia.close();
     }
 
     private final class CameraConsumerProcessor extends OpenCvPipeline {
