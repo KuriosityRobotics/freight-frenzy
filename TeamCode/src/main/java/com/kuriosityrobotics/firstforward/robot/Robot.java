@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.leds.LEDModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -68,6 +69,8 @@ public class Robot extends LocationProvider {
             throw new RuntimeException("One or more of the REV hubs could not be found. More info: " + e);
         }
 
+        ActionExecutor.reset();
+
         // init sensorThread up here since drivetrain depends on it
         sensorThread = new SensorThread(this, configLocation);
 
@@ -84,7 +87,7 @@ public class Robot extends LocationProvider {
         carouselModule = new CarouselModule(hardwareMap);
         //telemetryDump.registerTelemeter(carouselModule);
 
-        ledModule = new LEDModule(hardwareMap, intakeModule);
+        ledModule = new LEDModule(this);
 //        telemetryDump.registerTelemeter(ledModule);
 
         Module[] modules = new Module[]{
@@ -166,7 +169,7 @@ public class Robot extends LocationProvider {
 
     public void followPath(PurePursuit path) {
         telemetryDump.registerTelemeter(path);
-        while (isOpModeActive() && path.update(this, drivetrain));
+        while (isOpModeActive() && path.update(sensorThread.odometry, drivetrain));
         telemetryDump.removeTelemeter(path);
     }
 }

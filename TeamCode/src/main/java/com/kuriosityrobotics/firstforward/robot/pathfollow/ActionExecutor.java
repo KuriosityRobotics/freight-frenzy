@@ -39,8 +39,11 @@ public class ActionExecutor {
 
     public static boolean doneExecuting() {
         synchronized(executing) {
-            Log.v("PP", "actions: " + executing.toString());
             return executing.isEmpty();
         }
+    }
+
+    public static void reset() {
+        executing.clear();
     }
 }

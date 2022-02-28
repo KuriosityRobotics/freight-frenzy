@@ -26,6 +26,8 @@ public class VisionThread implements Runnable, Telemeter {
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
+    public boolean started = false;
+
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
 //        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot, PhysicalCamera.of(robot));
@@ -67,6 +69,8 @@ public class VisionThread implements Runnable, Telemeter {
                     getTeamMarkerDetector()
 //                    cargoDetectorConsumer
             );
+
+            started = true;
 
 //            cargoDetectionThread = new Thread(cargoDetectorConsumer);
 //            cargoDetectionThread.start();

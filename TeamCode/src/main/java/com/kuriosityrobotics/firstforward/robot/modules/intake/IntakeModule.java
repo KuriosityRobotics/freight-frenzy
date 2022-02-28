@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -29,10 +28,10 @@ public class IntakeModule implements Module, Telemeter {
     private static final double CLOSE_DISTANCE_THRESHOLD = 42;
     private static final double FAR_DISTANCE_THRESHOLD = 70;
 
-    public static final long INTAKE_EXTEND_TIME = 1500;
+    public static final long INTAKE_EXTEND_TIME = 750;
     public static final long INTAKE_RETRACT_TIME = 1000;
 
-    private static final double HOLD_POWER = 1;
+    private static final double HOLD_POWER = 0.8;
 
     // states
     public volatile double intakePower;
@@ -103,10 +102,13 @@ public class IntakeModule implements Module, Telemeter {
             hasMineral = mineralInIntake();
             if (hasMineral && transitionTo == IntakePosition.EXTENDED) {
                 if (outtakeModule.collapsed()) {
+                    intakePower = 0;
                     targetIntakePosition = IntakePosition.RETRACTED;
                     transitionIntake(targetIntakePosition);
                 }
             }
+        } else {
+            hasMineral = false;
         }
 
         boolean atTarget = atTargetPosition();
@@ -162,8 +164,10 @@ public class IntakeModule implements Module, Telemeter {
         return hasMineral;
     }
 
+    public boolean spinning;
+
     private boolean mineralInIntake() {
-        boolean spinning = intakeSpinning();
+        spinning = intakeSpinning();
 
         double reading = distanceSensor.getSensorReading();
         distanceReadings.add(reading);
@@ -172,7 +176,7 @@ public class IntakeModule implements Module, Telemeter {
         if (reading < CLOSE_DISTANCE_THRESHOLD) {
             // if last 4 are all positives it's a go
             Object[] queueArray = distanceReadings.toArray();
-            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 2, 0); i--) {
+            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 5, 0); i--) {
                 if (((double) queueArray[i]) > CLOSE_DISTANCE_THRESHOLD) {
                     return false;
                 }
@@ -195,6 +199,7 @@ public class IntakeModule implements Module, Telemeter {
 
     private double lastPos = 0;
     private long lasttime = 0;
+
     private boolean intakeSpinning() {
         double pos = intakeMotor.getCurrentPosition();
         long time = SystemClock.elapsedRealtime();
@@ -204,7 +209,7 @@ public class IntakeModule implements Module, Telemeter {
         lastPos = pos;
         lasttime = time;
 
-        return Math.abs(velo) > 1;
+        return Math.abs(velo) > 0.9;
     }
 
     public boolean isOn() {

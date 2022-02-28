@@ -152,8 +152,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 RealMatrix data = getLocationRealMatrix();
 
                 // hopefully this doesn't do bad thread stuff
-                if (data != null)
+                if (data != null) {
                     robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
+                    Log.v("KF", "vuf saw!");
+                }
             }
         }
     }

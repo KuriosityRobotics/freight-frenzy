@@ -22,7 +22,7 @@ import java.util.HashMap;
 
 public class PurePursuit implements Telemeter {
     // constants
-    private static final double STOP_THRESHOLD = 3;
+    private static final double STOP_THRESHOLD = 3.2;
     private static final double ANGLE_THRESHOLD = Math.toRadians(5);
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
@@ -34,9 +34,12 @@ public class PurePursuit implements Telemeter {
     // motion magic
     private final MotionProfile profile;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
-    private final FeedForwardPID yPID = new FeedForwardPID(0.021, 0.015, 0, 0.00);
-    private final FeedForwardPID xPID = new FeedForwardPID(0.07, 0.027, 0.0000, 0);
-    private final IThresholdPID headingPID = new IThresholdPID(0.4, 0.001, 0.19, Math.toRadians(10));
+//    private final FeedForwardPID yPID = new FeedForwardPID(0.021, 0.007, 0, 0.00);
+//    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
+    private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.027, 0.0000, 0);
+//    private final IThresholdPID headingPID = new IThresholdPID(0.45, 0.001, 0.195, Math.toRadians(10));
+    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 
     Point target = new Point(0, 0);
@@ -83,8 +86,6 @@ public class PurePursuit implements Telemeter {
         }
 
         boolean atEnd = atEnd(locationProvider);
-        Log.v("PP", "atend: " + atEnd);
-        Log.v("PP", "lastation: " + executedLastAction);
         if (atEnd && !executedLastAction) {
             ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
@@ -252,11 +253,11 @@ public class PurePursuit implements Telemeter {
 
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
                 || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
-        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 3);
+        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1.5);
 
-        Log.v("PP", "loc: " + locationProvider.getPose());
-        Log.v("PP", "angleEnd: " + angleEnd);
-        Log.v("PP", "stopped: " + stopped);
+//        Log.v("PP", "loc: " + locationProvider.getPose());
+//        Log.v("PP", "angleEnd: " + angleEnd);
+//        Log.v("PP", "stopped: " + stopped);
 
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd

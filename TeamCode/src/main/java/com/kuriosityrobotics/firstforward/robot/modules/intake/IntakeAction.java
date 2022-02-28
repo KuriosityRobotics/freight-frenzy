@@ -27,6 +27,7 @@ public class IntakeAction extends Action {
         // if we've got the goods
         if (intakeModule.hasMineral()) {
             this.gotMineralTime = currentTime;
+            intakeModule.intakePower = 0;
         }
 
         Log.v("PP", "Intake: " + gotMineralTime);
