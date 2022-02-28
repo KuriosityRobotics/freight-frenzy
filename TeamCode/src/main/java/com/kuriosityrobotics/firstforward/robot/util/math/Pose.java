@@ -1,8 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.*;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 

@@ -3,19 +3,26 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.BLUE_HUB_X_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.BLUE_HUB_Y_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.RED_HUB_X_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.RED_HUB_Y_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.abs;
-
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
 
@@ -38,14 +45,14 @@ public class OuttakeModule implements Module, Telemeter {
             PIVOT_UP = 0.5,
             PIVOT_IN = .0060539;
 
-    private static double ALLIANCE_HUB_TURRET_POSITION = 0.5;
+    private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
 
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
         STRAIGHT(.482746),
         RIGHT(.78988),
         LEFT(.186781),
-        ALLIANCEHUBLOCK(0.5);
+        ALLIANCE_LOCK(0.5);
 
         private final double position;
 
@@ -238,6 +245,37 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setTargetPosition(targetSlideLevel.position);
             slide.setPower(1);
         }
+
+        if (currentState == EXTEND && atTargetState()) {
+
+            double targetTurretServoPosition = targetTurret.position;
+
+            if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
+                Pose robotPose = locationProvider.getPose();
+                Pose turretPose = new Pose(
+                        robotPose.x - EXTENDED_TURRET_OFFSET_Y * Math.sin(robotPose.heading),
+                        robotPose.y - EXTENDED_TURRET_OFFSET_Y * Math.cos(robotPose.heading),
+                        robotPose.heading + Math.PI
+                );
+
+                ArrayList<Point> hubs = new ArrayList<Point>();
+                hubs.add(new Point(RED_HUB_X_MM / MM_PER_INCH, RED_HUB_Y_MM / MM_PER_INCH));
+                hubs.add(new Point(BLUE_HUB_X_MM / MM_PER_INCH, BLUE_HUB_Y_MM / MM_PER_INCH));
+
+                Point targetHub = turretPose.nearestPoint(hubs);
+
+                double targetTurretHeading = angleWrap(turretPose.relativeHeadingToPoint(targetHub));
+                targetTurretHeading = Range.clip(targetTurretHeading, -Math.PI / 2, Math.PI / 2);
+
+                targetTurretServoPosition = turretHeadingToServoPos(targetTurretHeading);
+            }
+
+            turret.setPosition(targetTurretServoPosition);
+        }
+    }
+
+    private double turretHeadingToServoPos(double turretHeading) {
+        return TurretPosition.STRAIGHT.position + turretHeading * (TurretPosition.RIGHT.position - TurretPosition.LEFT.position) / Math.PI;
     }
 
     public boolean atTargetState() {

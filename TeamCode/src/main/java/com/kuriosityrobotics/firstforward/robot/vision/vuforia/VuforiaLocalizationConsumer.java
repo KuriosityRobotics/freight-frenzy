@@ -1,17 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.FULL_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.HALF_TILE_MEAT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TARGET_HEIGHT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_MEAT_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.TILE_TAB_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.*;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -31,6 +22,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.vuforia.Vuforia;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
@@ -57,10 +49,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private static final Point[] TARGETS = {
             // all in our coordinate system
-            new Point(0, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / 25.4),
-            new Point((TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM) / 25.4, FULL_FIELD_MM / 25.4),
-            new Point((FULL_FIELD_MM - (TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM)) / 25.4, FULL_FIELD_MM / 25.4),
-            new Point(FULL_FIELD_MM / 25.4, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / 25.4)
+            new Point(0, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH),
+            new Point((TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH, FULL_FIELD_MM / MM_PER_INCH),
+            new Point((FULL_FIELD_MM - (TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM)) / MM_PER_INCH, FULL_FIELD_MM / MM_PER_INCH),
+            new Point(FULL_FIELD_MM / MM_PER_INCH, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH)
     };
     private static final double CAMERA_ENCODER_TO_RADIAN = 2.0 * PI / 8192.0;
     private static final double ROTATOR_CENTER_POS = .295;
@@ -182,8 +174,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         double robotY = locationProvider.getPose().y;
         double robotHeading = locationProvider.getPose().heading;
 
-        double pivotX = robotX + SERVO_FORWARD_DISPLACEMENT_MM / 25.4 * Math.sin(robotHeading) + SERVO_LEFT_DISPLACEMENT_MM / 25.4 * Math.cos(robotHeading);
-        double pivotY = robotY + SERVO_FORWARD_DISPLACEMENT_MM / 25.4 * Math.cos(robotHeading) - SERVO_LEFT_DISPLACEMENT_MM / 25.4 * Math.sin(robotHeading);
+        double pivotX = robotX + SERVO_FORWARD_DISPLACEMENT_MM / MM_PER_INCH * Math.sin(robotHeading) + SERVO_LEFT_DISPLACEMENT_MM / MM_PER_INCH * Math.cos(robotHeading);
+        double pivotY = robotY + SERVO_FORWARD_DISPLACEMENT_MM / MM_PER_INCH * Math.cos(robotHeading) - SERVO_LEFT_DISPLACEMENT_MM / MM_PER_INCH * Math.sin(robotHeading);
 
         Pose cameraPose = new Pose(pivotX, pivotY, robotHeading);
         ArrayList<Point> possibilities = new ArrayList<>();

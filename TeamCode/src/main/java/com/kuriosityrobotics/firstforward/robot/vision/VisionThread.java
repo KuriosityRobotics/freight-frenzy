@@ -67,7 +67,8 @@ public class VisionThread implements Runnable, Telemeter {
                 return;
             }
 
-            this.managedCamera = new ManagedCamera(
+            this.managedCamera = new
+                    ManagedCamera(
                     robot.camera,
                     vuforiaLocalizationConsumer,
                     openCVDumper,

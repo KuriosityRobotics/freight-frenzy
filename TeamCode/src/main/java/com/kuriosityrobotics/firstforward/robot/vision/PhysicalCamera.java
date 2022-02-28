@@ -1,6 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.*;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 
 import static java.lang.Math.PI;
