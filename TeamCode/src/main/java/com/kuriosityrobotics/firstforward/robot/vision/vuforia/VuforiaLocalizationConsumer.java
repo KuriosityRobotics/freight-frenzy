@@ -154,7 +154,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
                     robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
-                    Log.v("KF", "vuf saw!");
+                    Log.v("KF", "adding vuf goodie, passed filters");
                 }
             }
         }
@@ -237,6 +237,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
 
                 if (robotLocationTransform != null) {
+
+                    Log.v("KF", "vuf saw");
+
                     VectorF trans = vuMarkPoseRelativeToCamera.getTranslation();
 
                     this.detectedData = robotLocationTransform;
@@ -316,16 +319,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             try {
                 // filter out by peripherals
                 if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(10) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(10)) {
+                    Log.v("kf", "DISCARD by perif, " + Math.abs(detectedHorizPeripheralAngle) + ", " + Math.abs(detectedVertPeripheralAngle));
                     return null;
                 }
 
                 // filter out by translational speed
-                if (Math.hypot(robot.sensorThread.getVelocity().x, robot.sensorThread.getVelocity().y) > 0.125) {
+                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 0.125) {
+                    Log.v("kf", "DISCARD by trans vel, " + Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y));
                     return null;
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(robot.sensorThread.getVelocity().heading) > 0.01 || Math.abs(cameraAngleVelocity) > 0.05) {
+                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.01 || Math.abs(cameraAngleVelocity) > 0.05) {
+                    Log.v("kf", "DISCARD by heading vel, " + Math.abs(robot.sensorThread.getOdometryVelocity().heading) + ", " + Math.abs(cameraAngleVelocity));
                     return null;
                 }
 
