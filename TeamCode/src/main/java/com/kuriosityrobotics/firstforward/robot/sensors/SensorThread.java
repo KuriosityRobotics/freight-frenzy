@@ -110,6 +110,10 @@ public class SensorThread implements Runnable, Telemeter {
         return theKalmanFilter.getRollingVelocity();
     }
 
+    public Pose getOdometryVelocity(){
+        return odometry.getRollingVelocity();
+    }
+
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
