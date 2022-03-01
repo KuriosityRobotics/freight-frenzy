@@ -21,9 +21,9 @@ public class KalmanData {
 
     @Override
     public String toString() {
-        return "KalmanData{" +
-                "dataType=" + dataType +
-                ", data=" + data +
-                '}';
+        return "KalmanData {" +
+                "\ndataType = " + dataType +
+                "\n, data = " + data +
+                "\n}";
     }
 }

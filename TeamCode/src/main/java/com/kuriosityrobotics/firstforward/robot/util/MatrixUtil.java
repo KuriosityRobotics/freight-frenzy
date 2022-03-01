@@ -10,16 +10,15 @@ import java.text.DecimalFormat;
 public class MatrixUtil {
     @SuppressLint("DefaultLocale")
     public static String toPoseString(RealMatrix m){
-        return String.format("x:  %.2f, y:  %.2f, θ:  %.2f", m.getEntry(0, 0), m.getEntry(1, 0), m.getEntry(2, 0));
+        return String.format("x:  %.4f, y:  %.4f, θ:  %.4f", m.getEntry(0, 0), m.getEntry(1, 0), Math.toDegrees(m.getEntry(2, 0)));
     }
 
+    @SuppressLint("DefaultLocale")
     public static String toCovarianceString(RealMatrix m){
         if (m == null) {
             return "";
         }
 
-        return "x" + m.getEntry(0, 0) +
-                'y' + m.getEntry(1, 1) +
-                't' + m.getEntry(2, 2);
+        return String.format("x:  %.4f, y:  %.4f, θ:  %.4f", m.getEntry(0, 0), m.getEntry(1, 1), m.getEntry(2, 2));
     }
 }

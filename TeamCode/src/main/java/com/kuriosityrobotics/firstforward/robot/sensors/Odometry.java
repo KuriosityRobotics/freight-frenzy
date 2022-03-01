@@ -15,7 +15,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
-public class Odometry implements Telemeter {
+public class Odometry extends RollingVelocityCalculator implements Telemeter {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
@@ -86,7 +86,7 @@ public class Odometry implements Telemeter {
         robot.sensorThread.addGoodie(new KalmanData(0, getDeltaMatrix()), currentTimeMillis);
 
         calculateInstantaneousVelocity();
-//        this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+        this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
 
     }
 

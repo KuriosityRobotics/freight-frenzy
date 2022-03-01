@@ -65,7 +65,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final double ROTATOR_LEFT_POS = 0.15745917129498305;
     private static final double ROTATOR_RIGHT_POS = 0.8217672476721208;
     private static final double ROTATOR_CENTER_POS = 0.48961320987;
-    private static final double ROTATOR_ANGLE_RANGE = Math.PI / 4;
+    private static final double ROTATOR_ANGLE_RANGE_MIN = -Math.PI / 4;
+    private static final double ROTATOR_ANGLE_RANGE_MAX = Math.PI / 2;
+
+
     private final WebcamName cameraName;
     // change states here
     private final Servo rotator;
@@ -114,7 +117,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets = vuforia.loadTrackablesFromAsset("FreightFrenzy");
         this.freightFrenzyTargets.activate();
 
-        Vuforia.registerCallback(ignored -> lastVuforiaFrameTime = SystemClock.elapsedRealtime());
+        //Vuforia.registerCallback(ignored -> lastVuforiaFrameTime = SystemClock.elapsedRealtime());
 
         // Identify the targets so vuforia can use them
         identifyTarget(0, "Blue Storage",
@@ -157,8 +160,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             RealMatrix data = getLocationRealMatrix();
 
             // hopefully this doesn't do bad thread stuff
-            if (data != null)
-                robot.sensorThread.addGoodie(new KalmanData(1, data), lastVuforiaFrameTime);
+            if (data != null) {
+                Log.v("Kalman Filter", "adding vuforia goodie");
+                robot.sensorThread.addGoodie(new KalmanData(1, data), SystemClock.elapsedRealtime());
+            }
         }
     }
 
@@ -180,7 +185,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
         for (Point target : TARGETS) {
             double relHeading = cameraPose.relativeHeadingToPoint(target);
-            if (Math.abs(relHeading) < ROTATOR_ANGLE_RANGE) {
+            if (relHeading >  ROTATOR_ANGLE_RANGE_MIN && relHeading < ROTATOR_ANGLE_RANGE_MAX) {
                 possibilities.add(target);
             }
         }
@@ -318,16 +323,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             try {
                 // filter out by peripherals
                 if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(10) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(10)) {
+                    Log.v("Kalman Filter", "DISCARD: does not pass peripheral test");
                     return null;
                 }
 
                 // filter out by translational speed
-                if (Math.hypot(robot.sensorThread.getVelocity().x, robot.sensorThread.getVelocity().y) > 0.125) {
+                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 0.125) {
+                    Log.v("Kalman Filter", "DISCARD: does not pass xy velocity test " + Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y));
                     return null;
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(robot.sensorThread.getVelocity().heading) > 0.01 || Math.abs(cameraAngleVelocity) > 0.05) {
+                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.01 || Math.abs(cameraAngleVelocity) > 0.05) {
+                    Log.v("Kalman Filter", "DISCARD: does not pass angle velocity test " + Math.abs(robot.sensorThread.getOdometryVelocity().heading) + ", " + Math.abs(cameraAngleVelocity));
                     return null;
                 }
 

@@ -4,6 +4,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
@@ -40,7 +41,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     private final LinkedList<KalmanGoodie> processedGoodieBag;
 
     private KalmanState state;
-    private int stateAge = 0;
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
         synchronized (this) {
@@ -174,24 +174,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         return new RealMatrix[]{correct, correctCov};
     }
 
-    /**
-     * Generates prediction and corrects it Simply runs prediction and correction back to back
-     *
-     * @param prev:   the previous discrete-time step estimate Pose2D represented in a SimpleMatrix
-     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
-     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
-     *                dHeading odo math generates)
-     * @param obs:    the observation that is used to correct (vuforia) column 1 is the actual
-     *                tracker information (position on field) column 2 is where the robot is in the
-     *                trackers coordinate system
-     * @return corrected prediction
-     */
-    public static RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
-        RealMatrix[] prediction = prediction(prev, update);
-        RealMatrix[] correction = correction(prediction, obs);
-        return correction;
-    }
-
     void update() {
         synchronized (this) {
             long currentTimeMillis = SystemClock.elapsedRealtime();
@@ -230,7 +212,12 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
 
             assert lastGoodie != null;
             state = lastGoodie.getState();
-            stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
+
+//            String s = "Processed Goodie Bag at time t = " + currentTimeMillis + "\n";
+//            for (KalmanGoodie goodie : processedGoodieBag){
+//                s += goodie + "\n";
+//            }
+//            Log.v("Kalman", "" + s);
         }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -261,7 +248,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (this) {
             ArrayList<String> data = new ArrayList<>();
 
-            data.add("state age: " + stateAge);
             data.add("unprocessed: " + unprocessedGoodieBag.size() + " goodies");
             data.add("processed: " + processedGoodieBag.size() + " goodies");
             data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));

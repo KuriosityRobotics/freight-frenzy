@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter;
 
+import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
+
 import org.apache.commons.math3.linear.RealMatrix;
 
 public class KalmanState {
@@ -29,9 +31,9 @@ public class KalmanState {
 
     @Override
     public String toString() {
-        return "KalmanState{" +
-                "mean=" + mean +
-                ", cov=" + cov +
-                '}';
+        return "KalmanState {" +
+                " mean = " + MatrixUtil.toPoseString(mean) +
+                ", cov = " + MatrixUtil.toCovarianceString(cov) +
+                "}";
     }
 }

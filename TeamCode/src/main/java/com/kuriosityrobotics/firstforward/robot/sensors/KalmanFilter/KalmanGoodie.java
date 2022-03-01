@@ -61,10 +61,10 @@ public class KalmanGoodie {
 
     @Override
     public String toString() {
-        return "KalmanGoodie{" +
-                "data=" + data +
-                ", timeStamp=" + timeStamp +
-                ", state=" + state +
-                '}';
+        return "KalmanGoodie {" +
+                "\ndata = " + data +
+                "\n, timeStamp = " + timeStamp +
+                "\n, state=" + state +
+                "\n}";
     }
 }
