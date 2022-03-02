@@ -168,6 +168,8 @@ public class Robot extends LocationProvider {
     }
 
     public void followPath(PurePursuit path) {
+        path.reset();
+
         telemetryDump.registerTelemeter(path);
         while (isOpModeActive() && path.update(this, drivetrain));
         telemetryDump.removeTelemeter(path);

@@ -24,7 +24,7 @@ public class OuttakeModule implements Module, Telemeter {
     private static final long DUMP_TIME = 500;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
-    private static final double CLAMP_INTAKE = .814367,
+    private static final double CLAMP_INTAKE = .818367,
             CLAMP_CLAMP = .75,
             CLAMP_RELEASE = 0.890738;
     private static final double LINKAGE_IN = .140102,

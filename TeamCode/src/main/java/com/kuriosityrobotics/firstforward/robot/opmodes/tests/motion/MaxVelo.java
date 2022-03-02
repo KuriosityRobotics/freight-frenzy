@@ -1,8 +1,8 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
+package com.kuriosityrobotics.firstforward.robot.opmodes.tests.motion;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
-import com.kuriosityrobotics.firstforward.robot.opmodes.RedAuto;
+import com.kuriosityrobotics.firstforward.robot.opmodes.auto.RedCarousel;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 public class MaxVelo extends LinearOpMode {
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap, telemetry, this);
-        robot.resetPose(RedAuto.START);
+        robot.resetPose(RedCarousel.START);
 
         waitForStart();
 

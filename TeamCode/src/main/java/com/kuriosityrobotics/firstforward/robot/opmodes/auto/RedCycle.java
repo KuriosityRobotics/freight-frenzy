@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes.tests.TestAutos;
+package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -21,7 +21,7 @@ public class RedCycle extends LinearOpMode {
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
     public static final Point RED_EXIT_WALLGAP = new Point(9, 60);
     public static final Pose RED_WALL_GAP = new Pose(6, 46.5, Math.toRadians(180));
-    private Pose redWarehouse = new Pose(8, 34, Math.toRadians(175));
+    private Pose redWarehouse = new Pose(8, 38, Math.toRadians(178));
 
     public void runOpMode() {
         Robot robot = null;
@@ -45,13 +45,13 @@ public class RedCycle extends LinearOpMode {
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(10, false)),
                 new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(20, true)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(RED_WALL_GAP, robot.intakeModule.intakeAction()),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(redWarehouse, 0)
+                new WayPoint(RED_WALL_GAP, robot.intakeModule.intakePowerAction(1)),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
         exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
-        exitActions.add(robot.intakeModule.stopIntakeAction());
+        exitActions.add(robot.intakeModule.intakePowerAction(0));
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(redWarehouse),
                 new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
@@ -63,17 +63,21 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
-        for (int i = 0; i < 3; i++) {
-            wobbleToWarehouse.reset();
+        for (int i = 0; i < 5; i++) {
             robot.followPath(wobbleToWarehouse);
+            AutoPaths.intakePath(robot, redWarehouse.add(new Pose(0, -8, 0)), 3000);
 
-            redWarehouse = redWarehouse.add(new Pose(0, -5, 0));
+            redWarehouse = redWarehouse.add(new Pose(0, -4, 0));
 
-            warehouseToWobble.reset();
-            robot.followPath(warehouseToWobble);
+            PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
+                    new WayPoint(robot.getPose()),
+                    new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                    new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                    new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
+            }, true, 4);
+            robot.followPath(backToWobble);
         }
 
-        wobbleToWarehouse.reset();
         robot.followPath(wobbleToWarehouse);
 
         /*

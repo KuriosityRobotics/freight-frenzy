@@ -38,7 +38,7 @@ class MotionSegment {
         double pathDist = (this.endDistanceAlongPath - this.startDistanceAlongPath);
         double distanceSinceStart = distanceAlongPath - this.startDistanceAlongPath;
 
-        if (distanceSinceStart > pathDist) {
+        if (distanceSinceStart >= pathDist) {
             return endVelocity;
         }
 

@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes;
+package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -14,15 +14,15 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import java.util.ArrayList;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
-public class RedAuto extends LinearOpMode {
-    public static final Pose START = new Pose(6, 94.5, Math.toRadians(90));
+public class BlueCarousel extends LinearOpMode {
+    public static final Pose START = new Pose(140.5-6, 94.5, Math.toRadians(-90));
 
-    public static final Pose CAROUSEL = new Pose(12.8, 124, Math.toRadians(-75));
+    public static final Pose CAROUSEL = new Pose(140.5-12.8-3.25, 124, Math.toRadians(68));
 
-    public static final Pose WOBBLE = new Pose(32, 111, Math.toRadians(-27));
+    public static final Pose WOBBLE = new Pose(140.5-31.6, 107.75, Math.toRadians(25));
 
     public static final Pose WALL_ENT = new Pose(10, 100, Math.toRadians(180));
-    public static final Pose WAREHOUSE_PARK = new Pose(31, 126, Math.toRadians(0));
+    public static final Pose WAREHOUSE_PARK = new Pose(140.5-32, 126, Math.toRadians(0));
     public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
 
     public void runOpMode() {
@@ -30,14 +30,16 @@ public class RedAuto extends LinearOpMode {
         try {
             robot = new Robot(hardwareMap, telemetry, this);
         } catch (Exception e) {
-            this.stop();
+            stop();
             e.printStackTrace();
             return;
         }
 
+        Robot.isBlue = true;
+
         robot.resetPose(START);
-        robot.carouselModule.clockwise = false;
-        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_DUCKS;
+        robot.carouselModule.clockwise = true;
+        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.BLUE_DUCKS;
 
         waitForStart();
 
@@ -45,8 +47,8 @@ public class RedAuto extends LinearOpMode {
         carouselActions.add(robot.carouselModule.carouselAction());
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
-                new WayPoint(START.x + 20, START.y + 7),
-                new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 10),
+                new WayPoint(START.x - 20, START.y + 4, new VelocityLock(0.5 * MotionProfile.ROBOT_MAX_VEL)),
+                new WayPoint(CAROUSEL.x, CAROUSEL.y - 7.5, CAROUSEL.heading, 4),
                 new WayPoint(CAROUSEL.x, CAROUSEL.y, CAROUSEL.heading, 0, carouselActions)
         }, 4);
 
@@ -56,7 +58,7 @@ public class RedAuto extends LinearOpMode {
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL, other),
-                new WayPoint(CAROUSEL.between(WOBBLE)),
+                new WayPoint(CAROUSEL.between(WOBBLE), 0.3 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(WOBBLE, 0, wobbleActions)
         }, 4);
 
@@ -68,7 +70,7 @@ public class RedAuto extends LinearOpMode {
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
-                new WayPoint(CAROUSEL.between(WAREHOUSE_PARK)),
+                new WayPoint(CAROUSEL.between(WAREHOUSE_PARK), 9, new ArrayList<>()),
                 new WayPoint(WAREHOUSE_PARK, 0, new ArrayList<>())
         }, 4);
 
@@ -78,8 +80,8 @@ public class RedAuto extends LinearOpMode {
         robot.followPath(toCarousel);
 
         // to wobble
-        robot.followPath(toWobble);
-
-        robot.followPath(toPark);
+//        robot.followPath(toWobble);
+//
+//        robot.followPath(toPark);
     }
 }
