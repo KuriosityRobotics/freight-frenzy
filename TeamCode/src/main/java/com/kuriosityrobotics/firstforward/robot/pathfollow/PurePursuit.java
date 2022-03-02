@@ -22,7 +22,7 @@ import java.util.HashMap;
 
 public class PurePursuit implements Telemeter {
     // constants
-    private static final double STOP_THRESHOLD = 3.2;
+    private static final double STOP_THRESHOLD = 3;
     private static final double ANGLE_THRESHOLD = Math.toRadians(5);
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
@@ -38,8 +38,8 @@ public class PurePursuit implements Telemeter {
 //    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
     private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.027, 0.0000, 0);
-//    private final IThresholdPID headingPID = new IThresholdPID(0.45, 0.001, 0.195, Math.toRadians(10));
-    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
+    private final IThresholdPID headingPID = new IThresholdPID(0.67, 0.0005, 0.10, Math.toRadians(3));
+//    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 
     Point target = new Point(0, 0);
@@ -79,6 +79,10 @@ public class PurePursuit implements Telemeter {
         }
     }
 
+    /**
+     * Tick pure pursuit once. Returns true if this should be called again. Returns false if the
+     * path is done.
+     */
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
         if (!started) {
             ActionExecutor.execute(path[0]);
@@ -253,7 +257,7 @@ public class PurePursuit implements Telemeter {
 
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
                 || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
-        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1.5);
+        boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1);
 
 //        Log.v("PP", "loc: " + locationProvider.getPose());
 //        Log.v("PP", "angleEnd: " + angleEnd);

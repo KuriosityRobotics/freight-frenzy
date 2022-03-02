@@ -1,8 +1,7 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes;
+package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 public class SimpleAuto extends LinearOpMode {
     private static final Pose START = new Pose((11.5 / 2), 71, Math.toRadians(180));
 
-    private static final Pose PARK = RedAuto.PARK;
+    private static final Pose PARK = RedCarousel.PARK;
 
     public void runOpMode() {
         Robot robot = null;

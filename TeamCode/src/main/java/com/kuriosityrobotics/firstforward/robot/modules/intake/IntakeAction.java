@@ -30,8 +30,6 @@ public class IntakeAction extends Action {
             intakeModule.intakePower = 0;
         }
 
-        Log.v("PP", "Intake: " + gotMineralTime);
-
         this.completed = gotMineralTime != null && gotMineralTime + END_DELAY <= currentTime;
     }
 }

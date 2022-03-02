@@ -29,7 +29,7 @@ public class IntakeModule implements Module, Telemeter {
     private static final double FAR_DISTANCE_THRESHOLD = 70;
 
     public static final long INTAKE_EXTEND_TIME = 750;
-    public static final long INTAKE_RETRACT_TIME = 1000;
+    public static final long INTAKE_RETRACT_TIME = 1350;
 
     private static final double HOLD_POWER = 0.8;
 
@@ -209,7 +209,7 @@ public class IntakeModule implements Module, Telemeter {
         lastPos = pos;
         lasttime = time;
 
-        return Math.abs(velo) > 0.9;
+        return Math.abs(velo) > 1;
     }
 
     public boolean isOn() {
@@ -237,7 +237,7 @@ public class IntakeModule implements Module, Telemeter {
         return new IntakeAction(this);
     }
 
-    public StopIntakeAction stopIntakeAction() {
-        return new StopIntakeAction(this);
+    public IntakePowerAction intakePowerAction(double power) {
+        return new IntakePowerAction(this, power);
     }
 }

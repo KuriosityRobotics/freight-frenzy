@@ -1,4 +1,4 @@
-package com.kuriosityrobotics.firstforward.robot.opmodes.tests;
+package com.kuriosityrobotics.firstforward.robot.opmodes.tests.outtake;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
