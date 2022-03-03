@@ -10,7 +10,11 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemeter {
-    static final double SENSOR_DIAGONAL = 6 * 0.0393700787;
-    static final double FRAME_WIDTH = 1920;
-    static final double FRAME_HEIGHT = 1080;
-    static final double O_X = 1132.95174  ;
-    static final double O_Y = 692.88525;
-    static final double FOCAL_LENGTH_X = 1803.64953;
-    static final double FOCAL_LENGTH_Y = 1689.62755;
 
     private final PinholeCamera pinholeCamera;
     private final ConcurrentHashMap<Point, Recognition> detectedGameElements = new ConcurrentHashMap<>();
@@ -36,17 +33,7 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
         latestFrame = new AtomicReference<>();
 
         this.locationProvider = locationProvider;
-        this.pinholeCamera = new PinholeCamera(
-                FOCAL_LENGTH_X,
-                FOCAL_LENGTH_Y,
-                O_X,
-                O_Y,
-                FRAME_WIDTH,
-                FRAME_HEIGHT,
-                SENSOR_DIAGONAL,
-                physicalCamera.robotToCameraRotation().applyTo(locationProvider.getRotation()),
-                physicalCamera.robotToCameraTranslation().add(locationProvider.getTranslation())
-        );
+        this.pinholeCamera = physicalCamera.pinholeCamera();
     }
 
     public void run() {
@@ -73,8 +60,8 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
             var u = (double)detection.getLocation().centerX();
             var v =  (double)detection.getLocation().bottom;
 
-            u = (u / 416) * FRAME_WIDTH;
-            v = (v / 416) * FRAME_HEIGHT;
+            u = (u / 416) * PhysicalCamera.FRAME_WIDTH;
+            v = (v / 416) * PhysicalCamera.FRAME_HEIGHT;
 
             var fieldAbsolutePosition = pinholeCamera.unprojectFramePixelsToRay(u, v);
 
@@ -85,12 +72,20 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
 
     @Override
     public void processFrame(Mat frame) {
+        //1920x1080
+
         var oldFrame = latestFrame.getAndSet(Pair.create(
                 frame.clone(),
                 locationProvider.getPose()));
 
         if (oldFrame != null)
             oldFrame.first.release();
+
+        var loc = pinholeCamera.getLocationOnFrame(new Vector3D(35, 0, 50.5));
+        Imgproc.circle(frame, new org.opencv.core.Point(
+                loc.getX(),
+                loc.getY()
+        ), 4, new Scalar(255, 255, 255));
 
         /*Imgproc.resize(frame, frame, new Size(416, 416));
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);

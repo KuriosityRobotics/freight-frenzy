@@ -14,7 +14,6 @@ import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
-@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class PlebDetect extends LinearOpMode {
     @Override

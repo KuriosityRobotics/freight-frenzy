@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
@@ -17,8 +18,8 @@ import java.util.ArrayList;
 public class VisionThread implements Runnable, Telemeter {
     private final TeamMarkerDetector teamMarkerDetector;
 
-//    private final CargoDetectorConsumer cargoDetectorConsumer;
-//    private Thread cargoDetectionThread;
+    private final CargoDetectorConsumer cargoDetectorConsumer;
+    private Thread cargoDetectionThread;
 
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
@@ -30,7 +31,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-//        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot, PhysicalCamera.of(robot));
+        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot, PhysicalCamera.of(robot));
         this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
         this.teamMarkerDetector = new TeamMarkerDetector();
     }
@@ -66,17 +67,17 @@ public class VisionThread implements Runnable, Telemeter {
                     robot.camera,
                     vuforiaLocalizationConsumer,
                     openCVDumper,
-                    getTeamMarkerDetector()
-//                    cargoDetectorConsumer
+                    getTeamMarkerDetector(),
+                    cargoDetectorConsumer
             );
 
             started = true;
 
-//            cargoDetectionThread = new Thread(cargoDetectorConsumer);
-//            cargoDetectionThread.start();
+            cargoDetectionThread = new Thread(cargoDetectorConsumer);
+            cargoDetectionThread.start();
 
             robot.telemetryDump.registerTelemeter(this);
-//            robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
+            robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
 
             Log.v("VisionThread", "Done initing camera");
 
@@ -93,8 +94,8 @@ public class VisionThread implements Runnable, Telemeter {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            /*if(cargoDetectionThread != null)
-                cargoDetectionThread.interrupt();*/
+            if(cargoDetectionThread != null)
+                cargoDetectionThread.interrupt();
 
             if (managedCamera != null) {
                 managedCamera.close();

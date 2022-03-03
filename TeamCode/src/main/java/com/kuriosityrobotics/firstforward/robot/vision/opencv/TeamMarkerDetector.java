@@ -49,7 +49,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     int runCount = 0;
     @Override
     public void processFrame(Mat frame) {
-        // lol weird hack so we only run detect once but not the first time
+        /*// lol weird hack so we only run detect once but not the first time
         if (runCount != 20) {
             runCount++;
             return;
@@ -103,6 +103,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         }
         Imgproc.cvtColor(frame, frame, Imgproc.COLOR_HSV2RGB);
 
-        runCount++;
+        runCount++;*/
     }
 }

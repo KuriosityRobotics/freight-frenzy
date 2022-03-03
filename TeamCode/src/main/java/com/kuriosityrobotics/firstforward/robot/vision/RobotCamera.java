@@ -7,6 +7,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SER
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
 
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
@@ -15,6 +16,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 class RobotCamera extends PhysicalCamera {
+
     private final Robot robot;
 
     protected RobotCamera(Robot robot) {
@@ -31,14 +33,19 @@ class RobotCamera extends PhysicalCamera {
     @Override
     public Vector3D robotToCameraTranslation() {
         return new Vector3D(
-                SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(cameraAngle()),
                 SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(cameraAngle()),
-                SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM
-        ).scalarMultiply(1/MM_PER_INCH);
+                SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM,
+                SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(cameraAngle())
+                ).scalarMultiply(1/MM_PER_INCH);
     }
 
     @Override
     public Rotation robotToCameraRotation() {
-        return new Rotation(RotationOrder.XZY, RotationConvention.VECTOR_OPERATOR,  Math.toRadians(33), cameraAngle(), 0);
+        return new Rotation(new Vector3D(1, 0, 0), Math.PI/6).applyTo(new Rotation(new Vector3D(0, 1, 0), -(cameraAngle() + robot.getPose().heading)));
+    }
+
+    @Override
+    public LocationProvider robotLocationProvider() {
+        return robot;
     }
 }
