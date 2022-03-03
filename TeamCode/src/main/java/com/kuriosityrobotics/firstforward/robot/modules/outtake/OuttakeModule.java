@@ -11,7 +11,9 @@ import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.ArrayList;
@@ -134,7 +136,7 @@ public class OuttakeModule implements Module, Telemeter {
     private final Servo turret;
 
     //motors
-    private final DcMotor slide;
+    private final DcMotorEx slide;
 
     // helpers
     private long transitionTime;
@@ -147,11 +149,12 @@ public class OuttakeModule implements Module, Telemeter {
         clamp = hardwareMap.servo.get("outtakeClamp");
         turret = hardwareMap.servo.get("outtakeTurret");
 
-        slide = hardwareMap.dcMotor.get("lift");
+        slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setTargetPosition(0);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(13, 0, 1.5, 30));
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PIVOT_IN);

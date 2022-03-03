@@ -1,13 +1,21 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
+import static java.lang.Math.PI;
+
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
+import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
+
+import org.apache.commons.math3.geometry.euclidean.threed.Line;
+import org.apache.commons.math3.geometry.euclidean.threed.Plane;
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
+import org.opencv.core.Point;
 
 public class PinholeCamera {
-    private final Rotation cameraRotation;
-    private final Vector3D cameraPosition;
+    private final PhysicalCamera physicalCamera;
 
     // in pixels (yes, focal length is in px)
     private final double fx, fy, originX, originY, width, height;
@@ -16,7 +24,7 @@ public class PinholeCamera {
     private final double sensorDiagonalUnits;
 
     public PinholeCamera(double fx, double fy, double originX, double originY, double width, double height,
-                         double sensorDiagonalUnits, Rotation cameraRotation, Vector3D cameraPosition) {
+                         double sensorDiagonalUnits, PhysicalCamera physicalCamera) {
         this.originX = originX;
         this.originY = originY;
         this.width = width;
@@ -24,11 +32,7 @@ public class PinholeCamera {
         this.sensorDiagonalUnits = sensorDiagonalUnits;
         this.fx = fx;
         this.fy = fy;
-        this.cameraRotation = cameraRotation;
-        this.cameraPosition = cameraPosition;
-
-        if (cameraPosition != null && cameraPosition.getY() == 0)
-            throw new IllegalArgumentException("camera position y-coordinate musn't be 0");
+        this.physicalCamera = physicalCamera;
     }
 
     private static RealMatrix framePixelCoordsToMatrix(double u, double v) {
@@ -41,6 +45,10 @@ public class PinholeCamera {
 
     private double unitsToPx(double units) {
         return units * Math.hypot(width, height) / sensorDiagonalUnits;
+    }
+
+    private Vector3D unitsToPx(Vector3D units) {
+        return units.scalarMultiply(Math.hypot(width, height) / sensorDiagonalUnits);
     }
 
     private RealMatrix pxToUnits(RealMatrix pixels) {
@@ -69,14 +77,20 @@ public class PinholeCamera {
         var rayPixels =
                 normalisedFrameTo3DPixel().multiply(normaliseFrameCoordinates()).multiply(framePixelCoordsToMatrix(u, v));
         var rayUnits = pxToUnits(rayPixels);
-        rayUnits = rayUnits.scalarMultiply(1 / (rayUnits.getEntry(2, 0))); // we want Z to be 1 unit
 
-        var vec = cameraRotation.applyInverseTo(new Vector3D(rayUnits.getColumn(0)));
-        if (cameraPosition != null) {
-            vec = vec.scalarMultiply(-cameraPosition.getY() / vec.getY()); // we want y to equal zero.
-            vec = vec.add(cameraPosition);
-        }
-        return vec;
+        var vec = physicalCamera.robotToCameraRotation().applyInverseTo(new Vector3D(rayUnits.getColumn(0)));
+        var field = new Plane(new Vector3D(0, 1, 0));
+        var line = new Line(physicalCamera.robotToCameraTranslation(), physicalCamera.robotToCameraTranslation().add(vec.normalize()));
+        return field.intersection(line)
+                .add(physicalCamera.robotLocationProvider().getTranslation());
     }
+
+    public Vector2D getLocationOnFrame(Vector3D position) {
+        var t = unitsToPx(physicalCamera.robotToCameraRotation().applyTo(position.subtract(physicalCamera.robotLocationProvider().getTranslation()).subtract(physicalCamera.robotToCameraTranslation())));
+        t = t.scalarMultiply(fx / t.getZ());
+        var coords = new Vector2D(t.getX(), t.getY());
+        return new Vector2D(coords.getX() - originX, -coords.getY() + originY);
+    }
+
 
 }

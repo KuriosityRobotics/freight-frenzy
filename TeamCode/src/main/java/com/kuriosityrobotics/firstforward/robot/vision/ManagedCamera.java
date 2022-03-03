@@ -107,7 +107,7 @@ public final class ManagedCamera {
                 // !!
                 Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
 //                    Mat matCopy = input.clone();
-//                    consumer.processFrame(input);
+                    consumer.processFrame(input);
 //                    matCopy.release(); // c++ moment
                 }));
 
