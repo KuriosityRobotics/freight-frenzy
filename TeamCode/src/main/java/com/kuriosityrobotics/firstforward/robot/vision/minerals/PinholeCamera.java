@@ -1,18 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
-import static java.lang.Math.PI;
-
-import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Line;
 import org.apache.commons.math3.geometry.euclidean.threed.Plane;
-import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.opencv.core.Point;
 
 public class PinholeCamera {
     private final PhysicalCamera physicalCamera;
@@ -86,10 +81,10 @@ public class PinholeCamera {
     }
 
     public Vector2D getLocationOnFrame(Vector3D position) {
-        var t = unitsToPx(physicalCamera.robotToCameraRotation().applyTo(position.subtract(physicalCamera.robotLocationProvider().getTranslation()).subtract(physicalCamera.robotToCameraTranslation())));
-        t = t.scalarMultiply(fx / t.getZ());
-        var coords = new Vector2D(t.getX(), t.getY());
-        return new Vector2D(coords.getX() - originX, -coords.getY() + originY);
+        position = position.subtract(physicalCamera.robotLocationProvider().getTranslation());
+        position = position.subtract(physicalCamera.robotToCameraTranslation());
+        position = physicalCamera.robotToCameraRotation().applyTo(position);
+        return new Vector2D(position.getX() * (fx / position.getZ()), position.getY() * (fy / position.getZ()));
     }
 
 
