@@ -39,13 +39,15 @@ public class TelemetryDump implements PoseWatcher {
     }
 
     public void update() {
-        List<Telemeter> index0 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 0).collect(Collectors.toList());
-        List<Telemeter> index1 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 1).collect(Collectors.toList());
-        List<Telemeter> index2 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 2).collect(Collectors.toList());
+        StringBuilder update = new StringBuilder();
 
-        String update = getData(index0) + getData(index1) + getData(index2);
+        List<Integer> indexes = telemeters.stream().map(Telemeter::getShowIndex).sorted().collect(Collectors.toList());
+        for (int i : indexes) {
+            List<Telemeter> index = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == i).collect(Collectors.toList());
+            update.append(getData(index));
+        }
 
-        telemetry.addLine(update);
+        telemetry.addLine(update.toString());
         telemetry.update();
     }
 
