@@ -1,5 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
+import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -10,6 +14,7 @@ import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -38,16 +43,12 @@ public class TelemetryDump implements PoseWatcher {
         this.dashboard.setTelemetryTransmissionInterval(25);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void update() {
-        StringBuilder update = new StringBuilder();
-
-        List<Integer> indexes = telemeters.stream().map(Telemeter::getShowIndex).sorted().collect(Collectors.toList());
-        for (int i : indexes) {
-            List<Telemeter> index = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == i).collect(Collectors.toList());
-            update.append(getData(index));
-        }
-
-        telemetry.addLine(update.toString());
+        telemetry.addLine(telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
+                .map(telemeter ->
+                        String.join("\n", telemeter.getTelemetryData())
+                ).collect(Collectors.joining("----------------------\n")));
         telemetry.update();
     }
 
