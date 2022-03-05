@@ -41,7 +41,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     private final LinkedList<KalmanGoodie> processedGoodieBag;
 
     private KalmanState state;
-    private int stateAge = 0;
+    private int vuforiaGoodiesProcessed = 0, odometryGoodiesProcessed = 0;
 
     protected LocalizeKalmanFilter(RealMatrix matrixPose) {
         synchronized (this) {
@@ -239,8 +239,13 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 KalmanState goodieState = prevGoodie.getState();
                 KalmanData data = goodie.getData();
 
-                if (data.getDataType() == 0) goodieState = prediction(goodieState, data);
-                if (data.getDataType() == 1) goodieState = correction(goodieState, data);
+                if (data.getDataType() == 0) {
+                    odometryGoodiesProcessed++;
+                    goodieState = prediction(goodieState, data);
+                } else if (data.getDataType() == 1) {
+                    vuforiaGoodiesProcessed++;
+                    goodieState = correction(goodieState, data);
+                }
 
                 processedGoodieBag.set(i, new KalmanGoodie(goodie.getData(), goodie.getTimeStamp(), goodieState));
 
@@ -255,7 +260,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 Log.e("KF", "state nul! " + processedGoodieBag.toString());
             }
 
-            stateAge = (int) (currentTimeMillis - lastGoodie.getTimeStamp());
         }
 
         calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -286,7 +290,8 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (this) {
             ArrayList<String> data = new ArrayList<>();
 
-            data.add("state age: " + stateAge);
+            data.add("vuf processed goodies:  " + vuforiaGoodiesProcessed);
+            data.add("odo processed goodies:  " + odometryGoodiesProcessed);
             data.add("unprocessed: " + unprocessedGoodieBag.size() + " goodies");
             data.add("processed: " + processedGoodieBag.size() + " goodies");
             data.add("pose: " + MatrixUtil.toPoseString(state.getMean()));

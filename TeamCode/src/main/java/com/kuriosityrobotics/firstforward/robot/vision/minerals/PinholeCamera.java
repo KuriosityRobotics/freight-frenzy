@@ -84,7 +84,7 @@ public class PinholeCamera {
         position = position.subtract(physicalCamera.robotLocationProvider().getTranslation());
         position = position.subtract(physicalCamera.robotToCameraTranslation());
         position = physicalCamera.robotToCameraRotation().applyTo(position);
-        return new Vector2D(position.getX() * (fx / position.getZ()), position.getY() * (fy / position.getZ()));
+        return new Vector2D((position.getX() * (fx / position.getZ())) - originX, -(position.getY() * (fy / position.getZ())) + originY);
     }
 
 

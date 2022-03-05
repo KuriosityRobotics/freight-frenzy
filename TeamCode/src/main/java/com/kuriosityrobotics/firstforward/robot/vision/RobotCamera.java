@@ -31,7 +31,7 @@ class RobotCamera extends PhysicalCamera {
     @Override
     public Vector3D robotToCameraTranslation() {
         return new Vector3D(
-                SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(robotRelativeCameraAngle()),
+                -(SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(robotRelativeCameraAngle())),
                 SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM,
                 SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(robotRelativeCameraAngle())
                 ).scalarMultiply(1/MM_PER_INCH);
