@@ -1,8 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.*;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.*;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
@@ -46,7 +46,9 @@ public class Pose extends Point {
         return new Pose(this.x / a, this.y / a, this.heading / a);
     }
 
-    public Pose between(Pose other){ return new Pose(this.x/2 + other.x/2, this.y/2 + other.y/2, (this.heading + other.heading)/2); }
+    public Pose between(Pose other) {
+        return new Pose(this.x / 2 + other.x / 2, this.y / 2 + other.y / 2, (this.heading + other.heading) / 2);
+    }
 
     public Pose wrapped() {
         return new Pose(x, y, angleWrap(heading));
@@ -90,7 +92,7 @@ public class Pose extends Point {
     }
 
     /**
-     * The heading the robot would have to turn by to face the point directly.
+     * The heading a robot at this pose would have to turn by to face the point directly. Returned value is angleWrapped.
      *
      * @param point
      * @return relative heading to that point

@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
-import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -61,6 +60,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     Button dpad_up = new Button();
+    Button yButton = new Button();
 
     private void updateOuttakeStates() {
         if ((gamepad2.left_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
@@ -103,12 +103,16 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
 
-        if (y) {
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-
-            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
-            robot.outtakeModule.targetState = EXTEND;
+        if (yButton.isSelected(y)) {
+            if (robot.outtakeModule.atState(OuttakeModule.OuttakeState.EXTEND)) {
+                if (robot.outtakeModule.targetTurret == OuttakeModule.TurretPosition.STRAIGHT) {
+                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
+                } else {
+                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                }
+            } else {
+                robot.outtakeModule.defaultFullExtend();
+            }
         }
     }
 
