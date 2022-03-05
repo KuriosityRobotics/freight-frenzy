@@ -3,12 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.BLUE_HUB_X_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.BLUE_HUB_Y_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.RED_HUB_X_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.RED_HUB_Y_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HUBS;
 import static java.lang.Math.abs;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -247,7 +242,6 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
         if (currentState == EXTEND && atTargetState()) {
-
             double targetTurretServoPosition = targetTurret.position;
 
             if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
@@ -258,13 +252,9 @@ public class OuttakeModule implements Module, Telemeter {
                         robotPose.heading + Math.PI
                 );
 
-                ArrayList<Point> hubs = new ArrayList<Point>();
-                hubs.add(new Point(RED_HUB_X_MM / MM_PER_INCH, RED_HUB_Y_MM / MM_PER_INCH));
-                hubs.add(new Point(BLUE_HUB_X_MM / MM_PER_INCH, BLUE_HUB_Y_MM / MM_PER_INCH));
+                Point targetHub = turretPose.nearestPoint(HUBS);
 
-                Point targetHub = turretPose.nearestPoint(hubs);
-
-                double targetTurretHeading = angleWrap(turretPose.relativeHeadingToPoint(targetHub));
+                double targetTurretHeading = turretPose.relativeHeadingToPoint(targetHub);
                 targetTurretHeading = Range.clip(targetTurretHeading, -Math.PI / 2, Math.PI / 2);
 
                 targetTurretServoPosition = turretHeadingToServoPos(targetTurretHeading);

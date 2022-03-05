@@ -2,8 +2,14 @@ package com.kuriosityrobotics.firstforward.robot.util;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+/**
+ * All units are in inches and radians unless otherwise specified.
+ */
 public class Constants {
 
     public static class OpModes {
@@ -14,19 +20,21 @@ public class Constants {
         public static final double ROBOT_RADIUS = 6; // in
     }
 
-    public static final class Units{
+    public static final class Units {
         public static final float MM_PER_INCH = 25.4f;
     }
 
-    public static class Field{
-
-        // Constants for perimeter targets
-        public static final float TARGET_HEIGHT_MM = 5.75f * MM_PER_INCH;
+    public static class Field {
+        // field constants
         public static final float TILE_MEAT_MM = 23f * MM_PER_INCH;
         public static final float HALF_TILE_MEAT_MM = TILE_MEAT_MM * 0.5f;
         public static final float TILE_TAB_MM = 0.5f * MM_PER_INCH;
+
         public static final float FULL_FIELD_MM = 6f * TILE_MEAT_MM + 5f * TILE_TAB_MM;
         public static final float HALF_FIELD_MM = FULL_FIELD_MM * 0.5f;
+
+        // Constants for perimeter targets
+        public static final float TARGET_HEIGHT_MM = 5.75f * MM_PER_INCH;
 
         // Hub Positions
         public static final float RED_HUB_X_MM = 2f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM;
@@ -37,6 +45,10 @@ public class Constants {
 
         public static final float SHARE_HUB_X_MM = HALF_FIELD_MM;
         public static final float SHARE_HUB_Y_MM = HALF_TILE_MEAT_MM;
+
+        public static final ArrayList<Point> HUBS = new ArrayList<>(Arrays.asList(
+                new Point(RED_HUB_X_MM / MM_PER_INCH, RED_HUB_Y_MM / MM_PER_INCH),
+                new Point(BLUE_HUB_X_MM / MM_PER_INCH, BLUE_HUB_Y_MM / MM_PER_INCH)));
     }
 
     public static class Webcam {
@@ -59,9 +71,5 @@ public class Constants {
                         "ReAehAZ6FwBRGtZFyIkWNIWZiuAPXKvGI+YqqNdL7ufeGxITzc/iAuhJz" +
                         "NZOxGXfnW4sHGn6Tp+meZWHFwCYbkslYHvV5/Sii2hR5HGApDW0oDml6g" +
                         "OlDmy1Wmw6TwJTwzACYLKl43dLL35G";
-    }
-
-    public static class Detect {
-        public static final Vector3D RED = new Vector3D(255, 0, 0);
     }
 }
