@@ -50,6 +50,8 @@ public class IntakeModule implements Module, Telemeter {
     private boolean wasDoneTransitioning;
 
     private boolean hasMineral;
+
+    public volatile boolean newMineral = false;
     CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(15);
 
     public enum IntakePosition {
@@ -101,6 +103,7 @@ public class IntakeModule implements Module, Telemeter {
             // if we're done extending and there's a mineral in the intake
             hasMineral = mineralInIntake();
             if (hasMineral && transitionTo == IntakePosition.EXTENDED) {
+                newMineral = true;
                 if (outtakeModule.collapsed()) {
                     intakePower = 0;
                     targetIntakePosition = IntakePosition.RETRACTED;
