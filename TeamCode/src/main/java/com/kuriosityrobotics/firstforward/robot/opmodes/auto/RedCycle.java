@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -19,33 +20,37 @@ public class RedCycle extends LinearOpMode {
     public static final Pose RED_START_W = new Pose(9.5, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose RED_WOBBLE_W = new Pose(22, 73, Math.toRadians(-110));
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
-    public static final Point RED_EXIT_WALLGAP = new Point(9, 60);
+    public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
-    private Pose redWarehouse = new Pose(8, 24 + 7.5, Math.toRadians(178));
+    private Pose redWarehouse = new Pose(8, 24 + 7.5, Math.toRadians(175));
 
     public void runOpMode() {
         Robot robot = null;
         try {
             robot = new Robot(hardwareMap, telemetry, this);
-            robot.resetPose(RED_START_W);
         } catch (Exception e) {
             this.stop();
             e.printStackTrace();
             return;
         }
 
+        robot.resetPose(RED_START_W);
+        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_CYCLE;
+
+        waitForStart();
+
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W),
-                new WayPoint(RED_START_W.between(RED_WOBBLE_W), robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP)),
+                new WayPoint(RED_START_W.between(RED_WOBBLE_W), robot.outtakeModule.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel())),
                 new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(10, false)),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(20, true)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(RED_WALL_GAP, robot.intakeModule.intakePowerAction(1)),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(20, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
 
@@ -58,8 +63,6 @@ public class RedCycle extends LinearOpMode {
                 new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
         }, true, 4);
-
-        waitForStart();
 
         robot.followPath(redStartwToWobble);
 
