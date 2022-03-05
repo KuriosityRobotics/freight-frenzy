@@ -270,7 +270,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-
     private double angleToCameraPos(double a) {
         return (a * (ROTATOR_BACK_POS - ROTATOR_CENTER_POS)) / PI + ROTATOR_CENTER_POS;
     }
@@ -341,19 +340,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     }
                 }*/
                 // filter out by peripherals
-                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(30) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(25)) {
+                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(28) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(25)) {
                     Log.v("kf", "DISCARD by perif, " + Math.abs(Math.toDegrees(detectedHorizPeripheralAngle)) + ", " + Math.abs(Math.toDegrees(detectedVertPeripheralAngle)));
                     return null;
                 }
 
                 // filter out by translational speed
-                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 0.125) {
+                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 0.3) {
                     Log.v("kf", "DISCARD by trans vel, " + Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y));
                     return null;
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.01 || Math.abs(cameraAngleVelocity) > 0.05) {
+                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.015 || Math.abs(cameraAngleVelocity) > 0.05) {
                     Log.v("kf", "DISCARD by heading vel, " + Math.abs(robot.sensorThread.getOdometryVelocity().heading) + ", " + Math.abs(cameraAngleVelocity));
                     return null;
                 }

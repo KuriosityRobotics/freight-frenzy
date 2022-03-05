@@ -11,7 +11,6 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -26,7 +25,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     //time constants
     private static final long EXTEND_TIME = 300;
-    private static final long DUMP_TIME = 500;
+    private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = .818367,
@@ -38,7 +37,8 @@ public class OuttakeModule implements Module, Telemeter {
     // pivot in:  .0060539
     private static final double PIVOT_OUT = .993,
             PIVOT_UP = 0.5,
-            PIVOT_IN = .0060539;
+            PIVOT_IN = .0060539,
+            PIVOT_CAP = 0.816;
 
     private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
 
@@ -57,6 +57,8 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
+        CAP(-1400),
+        CAP_DROP(-1035),
         TOP_TOP(-1150),
         TOP(-900),
         MID(-350),
@@ -109,17 +111,17 @@ public class OuttakeModule implements Module, Telemeter {
                 } else {
                     return turretTimerComplete && slidesAtTarget;
                 }
-            case RETRACT:
-                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP) {
-                    return true;
-                } else {
-                    return timerComplete;
-                }
             case TURRET_IN:
                 if (targetTurret == TurretPosition.STRAIGHT)
                     return true;
                 else
                     return turretTimerComplete;
+            case RETRACT:
+                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP || targetSlideLevel == VerticalSlideLevel.CAP) {
+                    return true;
+                } else {
+                    return timerComplete;
+                }
             default:
                 return timerComplete;
         }
@@ -129,6 +131,7 @@ public class OuttakeModule implements Module, Telemeter {
     public VerticalSlideLevel targetSlideLevel;
     public OuttakeState targetState;
     public TurretPosition targetTurret;
+    public boolean capping = false;
 
     private OuttakeState currentState;
 
@@ -186,6 +189,7 @@ public class OuttakeModule implements Module, Telemeter {
         this.targetTurret = TurretPosition.STRAIGHT;
         this.targetSlideLevel = VerticalSlideLevel.TOP;
         this.targetState = EXTEND;
+        this.capping = false;
     }
 
     String lastRan = "";
@@ -227,10 +231,6 @@ public class OuttakeModule implements Module, Telemeter {
             transitionTime = System.currentTimeMillis();
         }
 
-        if (currentState == EXTEND && atTargetState()) {
-            turret.setPosition(targetTurret.position);
-        }
-
         // if current position is higher than the target
         if (currentState == COLLAPSE) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -261,6 +261,18 @@ public class OuttakeModule implements Module, Telemeter {
             }
 
             turret.setPosition(targetTurretServoPosition);
+
+            if (capping) {
+                pivot.setPosition(PIVOT_CAP);
+            } else {
+                pivot.setPosition(PIVOT_OUT);
+            }
+
+            if (targetSlideLevel == VerticalSlideLevel.CAP_DROP && capping) {
+                clamp.setPosition(CLAMP_RELEASE);
+            } else {
+                clamp.setPosition(CLAMP_CLAMP);
+            }
         }
     }
 
@@ -313,16 +325,6 @@ public class OuttakeModule implements Module, Telemeter {
 
     public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel) {
         return new ExtendOuttakeAction(this, slideLevel);
-    }
-
-    public ExtendOuttakeAction extendOuttakeToDetectedPosition(TeamMarkerDetector detector) {
-        return new ExtendOuttakeAction(this, detector.getLocation().slideLevel()) {
-            @Override
-            public void tick() {
-                this.slideLevel = detector.getLocation().slideLevel();
-                super.tick();
-            }
-        };
     }
 
 }
