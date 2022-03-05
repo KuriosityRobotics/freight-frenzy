@@ -298,4 +298,9 @@ public class PurePursuit implements Telemeter {
 
         return map;
     }
+
+    @Override
+    public int getShowIndex() {
+        return 0;
+    }
 }

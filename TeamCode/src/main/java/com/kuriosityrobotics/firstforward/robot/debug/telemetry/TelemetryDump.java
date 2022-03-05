@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
@@ -38,24 +39,13 @@ public class TelemetryDump implements PoseWatcher {
     }
 
     public void update() {
-        StringBuilder msg = new StringBuilder();
+        List<Telemeter> index0 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 0).collect(Collectors.toList());
+        List<Telemeter> index1 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 1).collect(Collectors.toList());
+        List<Telemeter> index2 = telemeters.stream().filter(telemeter -> telemeter.getShowIndex() == 2).collect(Collectors.toList());
 
-        for (Telemeter telemeter : telemeters) {
-            if (telemeter.isOn()) {
-                // ---Name---\n
-                msg.append("---").append(telemeter.getName()).append("---\n");
+        String update = getData(index0) + getData(index1) + getData(index2);
 
-                for (String line : telemeter.getTelemetryData()) {
-                    // telemetry_line\n
-                    msg.append(line).append("\n");
-                }
-
-                // newline for every section
-                msg.append("\n");
-            }
-        }
-
-        telemetry.addLine(msg.toString());
+        telemetry.addLine(update);
         telemetry.update();
     }
 
@@ -93,4 +83,25 @@ public class TelemetryDump implements PoseWatcher {
 //                    }
 //                })).entrySet();
 //    }
+
+    private String getData(List<Telemeter> telemetors) {
+        StringBuilder msg = new StringBuilder();
+
+        for (Telemeter telemeter : telemetors) {
+            if (telemeter.isOn()) {
+                // ---Name---\n
+                msg.append("---").append(telemeter.getName()).append("---\n");
+
+                for (String line : telemeter.getTelemetryData()) {
+                    // telemetry_line\n
+                    msg.append(line).append("\n");
+                }
+
+                // newline for every section
+                msg.append("\n");
+            }
+        }
+
+        return msg.append("\n\n").toString();
+    }
 }

@@ -289,4 +289,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
     public boolean isOn() {
         return true;
     }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex();
+    }
 }

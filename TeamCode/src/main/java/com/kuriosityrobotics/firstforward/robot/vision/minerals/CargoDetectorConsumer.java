@@ -123,4 +123,9 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
             detectedGameElements.entrySet().stream().map(Object::toString).forEach(this::add);
         }};
     }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex();
+    }
 }

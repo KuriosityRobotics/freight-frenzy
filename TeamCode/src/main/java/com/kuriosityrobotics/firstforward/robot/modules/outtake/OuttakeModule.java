@@ -5,6 +5,7 @@ import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeMo
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 import static java.lang.Math.abs;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -17,6 +18,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import java.util.ArrayList;
 
 public class OuttakeModule implements Module, Telemeter {
+    private long updateDuration = 0;
+    private long timeOfLastUpdate = 0;
+
     LocationProvider locationProvider;
 
     //time constants
@@ -228,6 +232,10 @@ public class OuttakeModule implements Module, Telemeter {
         if (currentState == EXTEND && atTargetState()) {
             turret.setPosition(targetTurret.position);
         }
+
+        long currentTime = SystemClock.elapsedRealtime();
+        updateDuration = currentTime - timeOfLastUpdate;
+        timeOfLastUpdate = currentTime;
     }
 
     public boolean atTargetState() {
@@ -259,6 +267,8 @@ public class OuttakeModule implements Module, Telemeter {
     @Override
     public Iterable<String> getTelemetryData() {
         return new ArrayList<>() {{
+            add("Update Time" + updateDuration);
+            add("--");
             add("Target State: " + targetState.toString());
             add("State:  " + currentState.toString());
 //            add("last:  " + lastRan);
@@ -268,6 +278,11 @@ public class OuttakeModule implements Module, Telemeter {
 //            add("slide target:  " + slide.getTargetPosition());
 //            add("current slide:  " + slide.getCurrentPosition());
         }};
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 
     public DumpOuttakeAction dumpOuttakeAction() {

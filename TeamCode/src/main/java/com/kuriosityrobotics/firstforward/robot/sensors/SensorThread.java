@@ -147,4 +147,9 @@ public class SensorThread implements Runnable, Telemeter {
     public boolean isOn() {
         return true;
     }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex();
+    }
 }

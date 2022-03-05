@@ -16,4 +16,8 @@ public interface Telemeter {
     default HashMap<String, Object> getDashboardData(){
         return new HashMap<>();
     }
+
+    default int getShowIndex() {
+        return 2;
+    }
 }

@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -12,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
+    private long updateDuration = 0;
+    private long timeOfLastUpdate = 0;
+
     final LocationProvider locationProvider;
     private final DrivetrainModule drivetrainModule;
 
@@ -64,6 +69,10 @@ public class Drivetrain implements Module, Telemeter {
             //stallDetector.update(getCurrentPose(), xMov, yMov, turnMov);
             drivetrainModule.update();
         }
+
+        long currentTime = SystemClock.elapsedRealtime();
+        updateDuration = currentTime - timeOfLastUpdate;
+        timeOfLastUpdate = currentTime;
     }
 
     public StallDetector getStallDetector() {
@@ -82,7 +91,8 @@ public class Drivetrain implements Module, Telemeter {
 
     @Override
     public List<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
+        ArrayList<String> data = new ArrayList<>() {{add("Update Time" + updateDuration);
+            add("--");}};
 
         data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
 
@@ -95,5 +105,10 @@ public class Drivetrain implements Module, Telemeter {
         data.add("Stall Status: " + stallDetector.isStalled());
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 }
