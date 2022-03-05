@@ -65,6 +65,22 @@ public class PurePursuit implements Telemeter {
         this(path, false, followRadius);
     }
 
+    /**
+     * Copies an existing PurePursuit and offsets waypoints
+     * use this to correct for drift
+     * @param template
+     * @param xDrift
+     * @param yDrift
+     */
+    public PurePursuit(PurePursuit template, double xDrift, double yDrift) {
+        this(template.path.clone(), template.backwards, template.followRadius);
+
+        for (int i = 0; i < path.length; i++) {
+            WayPoint wayPoint = path[i];
+            path[i] = new WayPoint(wayPoint.x - xDrift, wayPoint.y - yDrift, wayPoint.angleLock, wayPoint.velocityLock, wayPoint.actions);
+        }
+    }
+
     public void reset() {
         this.pathIndex = 0;
         this.executedLastAction = false;

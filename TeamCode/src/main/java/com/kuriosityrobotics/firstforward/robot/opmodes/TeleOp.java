@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -19,7 +20,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         try {
             robot = new Robot(hardwareMap, telemetry, this, true);
-            robot.resetPose(new Pose(28, 60, Math.toRadians(90)));
+            robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
@@ -78,7 +79,6 @@ public class TeleOp extends LinearOpMode {
             }
         } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
             robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
-
             if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
                 robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
             }
@@ -98,12 +98,17 @@ public class TeleOp extends LinearOpMode {
                 robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
             }
 
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
+            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
         }
 
         if (y) {
-            robot.outtakeModule.defaultFullExtend();
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+
+            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+            robot.outtakeModule.targetState = EXTEND;
         }
     }
 

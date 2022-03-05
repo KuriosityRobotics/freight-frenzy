@@ -11,8 +11,6 @@ import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 
 import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationOrder;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 class RobotCamera extends PhysicalCamera {
@@ -23,7 +21,7 @@ class RobotCamera extends PhysicalCamera {
         this.robot = robot;
     }
 
-    private float cameraAngle() {
+    public float robotRelativeCameraAngle() {
         if(robot.visionThread == null)
             return 0f;
         else
@@ -33,15 +31,15 @@ class RobotCamera extends PhysicalCamera {
     @Override
     public Vector3D robotToCameraTranslation() {
         return new Vector3D(
-                SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(cameraAngle()),
+                SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.sin(robotRelativeCameraAngle()),
                 SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM,
-                SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(cameraAngle())
+                SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float)Math.cos(robotRelativeCameraAngle())
                 ).scalarMultiply(1/MM_PER_INCH);
     }
 
     @Override
     public Rotation robotToCameraRotation() {
-        return new Rotation(new Vector3D(1, 0, 0), Math.PI/6).applyTo(new Rotation(new Vector3D(0, 1, 0), -(cameraAngle() + robot.getPose().heading)));
+        return new Rotation(new Vector3D(1, 0, 0), Math.PI/6).applyTo(new Rotation(new Vector3D(0, 1, 0), -(robotRelativeCameraAngle() + robot.getPose().heading)));
     }
 
     @Override

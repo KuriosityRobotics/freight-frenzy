@@ -102,6 +102,9 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
+            if (input.empty())
+                return input;
+
             if (vuforiaActive) {
                 Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
                 // !!

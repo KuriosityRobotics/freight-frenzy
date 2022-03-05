@@ -15,6 +15,7 @@ import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.VisionThread;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -139,6 +140,10 @@ public class Robot extends LocationProvider {
 
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
+    }
+
+    public boolean isAuto() {
+        return linearOpMode.getClass().isAnnotationPresent(Autonomous.class);
     }
 
     public boolean running() {

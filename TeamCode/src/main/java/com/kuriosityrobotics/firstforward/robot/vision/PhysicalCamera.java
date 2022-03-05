@@ -46,7 +46,7 @@ public abstract class PhysicalCamera {
                 .rotated(AxesReference.INTRINSIC, AxesOrder.XZY, RADIANS, (float)PI/2, (float)PI/2, 0);
     }
 
-    public OpenGLMatrix translationMatrix() {
+        public OpenGLMatrix translationMatrix() {
         Vector3D translationVector = robotToCameraTranslation();
         return OpenGLMatrix.translation(
                 (float) translationVector.getX(),
@@ -57,6 +57,7 @@ public abstract class PhysicalCamera {
 
     public static PhysicalCamera of(Vector3D translation, Rotation rotation) {
         return new PhysicalCamera() {
+
             @Override
             public Vector3D robotToCameraTranslation() {
                 return translation;

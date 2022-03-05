@@ -9,7 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 public class AutoPaths {
-    public static final double INTAKE_VELO = 15;
+    public static final double INTAKE_VELO = 20;
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
         PurePursuit path = new PurePursuit(new WayPoint[]{

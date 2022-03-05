@@ -60,10 +60,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             new Point(FULL_FIELD_MM / 25.4, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / 25.4)
     };
     private static final double CAMERA_ENCODER_TO_RADIAN = 2.0 * PI / 8192.0;
-    private static final double ROTATOR_LEFT_POS = 0.15745917129498305;
-    private static final double ROTATOR_RIGHT_POS = 0.8217672476721208;
-    private static final double ROTATOR_CENTER_POS = 0.48961320987;
-    private static final double ROTATOR_ANGLE_RANGE = PI / 4;
+    private static final double ROTATOR_CENTER_POS = .295;
+    private static final double ROTATOR_BACK_POS = .96;
+    private static final double ROTATOR_ANGLE_RANGE = 3*PI / 2;
     private final WebcamName cameraName;
     // change states here
     private final Servo rotator;
@@ -82,6 +81,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private Point targetVuMark = new Point(0, 0);
     private long lastUpdateTime = 0;
     private Long startTime = null;
+    private double cameraAngleOffset = 0;
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
@@ -90,7 +90,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
-        rotator.setPosition(ROTATOR_CENTER_POS);
+        rotator.setPosition(robot.isAuto() ? ROTATOR_BACK_POS : ROTATOR_CENTER_POS);
+
+        startTime = SystemClock.elapsedRealtime();
     }
 
     @Override
@@ -133,19 +135,21 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         );
     }
 
+    boolean cameraEncoderSetYet = false;
+
     @Override
     public void update() {
         synchronized (this) {
-            long currentTimeMillis = SystemClock.elapsedRealtime();
+             if (SystemClock.elapsedRealtime() >= startTime + 500) {
+                if (!cameraEncoderSetYet) {
+                    resetEncoders(robot.isAuto() ? PI : 0);
+                    cameraEncoderSetYet = true;
+                }
 
-            if (startTime == null) {
-                resetEncoders();
-                startTime = currentTimeMillis;
-            } else if (currentTimeMillis >= startTime + 500) {
-                if (robot.started())
+                if (robot.started() || !robot.isAuto())
                     setCameraAngle(calculateOptimalCameraAngle());
                 else
-                    setCameraAngle(0);
+                    setCameraAngle(PI);
 
                 updateCameraAngleAndVelocity();
             }
@@ -153,11 +157,12 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             if (robot.started()) {
                 trackVuforiaTargets();
 
+                long fetchTime = SystemClock.elapsedRealtime();
                 RealMatrix data = getLocationRealMatrix();
 
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
-                    robot.sensorThread.addGoodie(new KalmanData(1, data), currentTimeMillis);
+                    robot.sensorThread.addGoodie(new KalmanData(1, data), fetchTime);
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }
             }
@@ -193,10 +198,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
 
         targetVuMark = cameraPose.nearestPoint(possibilities);
-        return cameraPose.relativeHeadingToPoint(targetVuMark);
+
+        double relativeHeading = cameraPose.relativeHeadingToPoint(targetVuMark);
+
+        if (
+                relativeHeading > PI/2 || // otherwise we hit the outtake
+                relativeHeading < -PI/4 // otherwise we hit the cables
+        )
+            return 0;
+
+        return relativeHeading;
     }
 
-    public double getCameraAngle() {
+    public double getTargetCameraAngle() {
         return cameraAngle;
     }
 
@@ -208,7 +222,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         long currentUpdateTime = SystemClock.elapsedRealtime();
         double dTime = (currentUpdateTime - lastUpdateTime) / 1000.0;
 
-        cameraAngle = -(double) cameraEncoder.getCurrentPosition() * CAMERA_ENCODER_TO_RADIAN;
+        cameraAngle = -(double) (cameraEncoder.getCurrentPosition()) * CAMERA_ENCODER_TO_RADIAN;
+        cameraAngle -= cameraAngleOffset;
 
         cameraAngleVelocity = (cameraAngle - oldCameraAngle) / dTime;
 
@@ -262,7 +277,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
 
     private double angleToCameraPos(double a) {
-        return a * (ROTATOR_RIGHT_POS - ROTATOR_LEFT_POS) / (PI) + ROTATOR_CENTER_POS;
+        return (a * (ROTATOR_BACK_POS - ROTATOR_CENTER_POS)) / PI + ROTATOR_CENTER_POS;
     }
 
     /**
@@ -359,7 +374,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         }
     }
 
-    private void resetEncoders() {
+    private void resetEncoders(double currentAngle) {
+        cameraAngleOffset = currentAngle;
         cameraEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         cameraEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
