@@ -145,16 +145,16 @@ public class OuttakeModule implements Module, Telemeter {
     public OuttakeModule(LocationProvider locationProvider, HardwareMap hardwareMap) {
         this.locationProvider = locationProvider;
 
-//        linkage = hardwareMap.servo.get("outtakeLinkage");
-//        pivot = hardwareMap.servo.get("outtakePivot");
-//        clamp = hardwareMap.servo.get("outtakeClamp");
-//        turret = hardwareMap.servo.get("outtakeTurret");
+        linkage = hardwareMap.servo.get("outtakeLinkage");
+        pivot = hardwareMap.servo.get("outtakePivot");
+        clamp = hardwareMap.servo.get("outtakeClamp");
+        turret = hardwareMap.servo.get("outtakeTurret");
 
-        //FIXME: change this back when outtake doesnt try to tear itself to shreds
-        linkage = hardwareMap.servo.get("nothingServo");
+        //use this when outtake is fucked
+        /*linkage = hardwareMap.servo.get("nothingServo");
         pivot = hardwareMap.servo.get("nothingServo");
         clamp = hardwareMap.servo.get("nothingServo");
-        turret = hardwareMap.servo.get("nothingServo");
+        turret = hardwareMap.servo.get("nothingServo");*/
 
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
 
