@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -16,8 +17,17 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     int runCount = 0;
     private volatile TeamMarkerLocation location;
 
+    public TeamMarkerDetector() {
+    }
+
     public TeamMarkerLocation getLocation() {
         return location == null ? TeamMarkerLocation.LEVEL_3 : location;
+    }
+
+    private boolean active = true;
+
+    public void deactivate() {
+        active = false;
     }
 
     /**
@@ -25,15 +35,14 @@ public class TeamMarkerDetector implements OpenCvConsumer {
      * @param _img input frame
      */
     public void processFrame(Mat _img) {
-        if (location != null)
+        if (!active)
             return;
-        Imgproc.resize(_img, _img, new Size(720, 480));
 
         var img = _img.clone();
         Core.bitwise_not(img, img);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV);
-        var bounding1 = new Rect(260, 125, 80, 100);
-        var bounding2 = new Rect(405, 130, 75, 100);
+        var bounding1 = new Rect(314, 126, 65, 86);
+        var bounding2 = new Rect(454, 127, 71, 86);
         Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
         Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
 
@@ -42,9 +51,13 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         var sub1 = img.submat(bounding1);
         var sub2 = img.submat(bounding2);
 
-        var isSub1 = Core.countNonZero(sub1) / ((double) sub1.width() * sub1.height()) > .5;
-        var isSub2 = Core.countNonZero(sub2) / ((double) sub2.width() * sub2.height()) > .5;
+        var p1 = Core.countNonZero(sub1) / ((double) sub1.width() * sub1.height());
+        var p2 = Core.countNonZero(sub2) / ((double) sub2.width() * sub2.height());
+        var isSub1 = p1 > .4;
+        var isSub2 = p2 > .4;
 
+        sub1.release();
+        sub2.release();
         img.release();
 
         if (isSub1)
@@ -53,7 +66,15 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         if (isSub2)
             Imgproc.rectangle(_img, bounding2, new Scalar(0, 0, 0));
 
-        if ((isSub1 && isSub2) || (!isSub1 && !isSub2))
+
+        if (isSub1 && isSub2) {
+            if (p1 > p2)
+                isSub2 = false;
+            else
+                isSub1 = false;
+        }
+
+        if (!isSub1 && !isSub2)
             this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3;
         else if (isSub1)
             this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;

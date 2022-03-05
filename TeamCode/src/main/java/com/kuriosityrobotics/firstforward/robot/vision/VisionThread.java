@@ -10,7 +10,6 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
-import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.ArrayList;
@@ -82,6 +81,9 @@ public class VisionThread implements Runnable, Telemeter {
             Log.v("VisionThread", "Done initing camera");
 
             while (robot.running()) {
+                if (robot.isOpModeActive())
+                    teamMarkerDetector.deactivate();
+
                 long currentTime = SystemClock.elapsedRealtime();
                 updateTime = currentTime - lastLoopTime;
                 lastLoopTime = currentTime;
@@ -109,7 +111,7 @@ public class VisionThread implements Runnable, Telemeter {
     }*/
 
     public double getCameraAngle() {
-        return vuforiaLocalizationConsumer.getCameraAngle();
+        return vuforiaLocalizationConsumer.getTargetCameraAngle();
     }
 
     public TeamMarkerDetector getTeamMarkerDetector() {

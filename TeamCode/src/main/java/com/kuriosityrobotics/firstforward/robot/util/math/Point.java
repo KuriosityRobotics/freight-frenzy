@@ -97,5 +97,9 @@ public class Point {
     public double getY() {
         return this.y;
     }
+
+    public Point add(Point point) {
+        return new Point(this.x + point.x, this.y + point.y);
+    }
 }
 

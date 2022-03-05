@@ -10,6 +10,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -144,17 +145,23 @@ public class OuttakeModule implements Module, Telemeter {
     public OuttakeModule(LocationProvider locationProvider, HardwareMap hardwareMap) {
         this.locationProvider = locationProvider;
 
-        linkage = hardwareMap.servo.get("outtakeLinkage");
-        pivot = hardwareMap.servo.get("outtakePivot");
-        clamp = hardwareMap.servo.get("outtakeClamp");
-        turret = hardwareMap.servo.get("outtakeTurret");
+//        linkage = hardwareMap.servo.get("outtakeLinkage");
+//        pivot = hardwareMap.servo.get("outtakePivot");
+//        clamp = hardwareMap.servo.get("outtakeClamp");
+//        turret = hardwareMap.servo.get("outtakeTurret");
+
+        //FIXME: change this back when outtake doesnt try to tear itself to shreds
+        linkage = hardwareMap.servo.get("nothingServo");
+        pivot = hardwareMap.servo.get("nothingServo");
+        clamp = hardwareMap.servo.get("nothingServo");
+        turret = hardwareMap.servo.get("nothingServo");
 
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setTargetPosition(0);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(13, 0, 1.5, 30));
+        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(10, 0, 0, 20));
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PIVOT_IN);
@@ -218,18 +225,18 @@ public class OuttakeModule implements Module, Telemeter {
             transitionTime = System.currentTimeMillis();
         }
 
-        if (slide.getTargetPosition() >= -15) {
-            slide.setPower(0);
-        } else {
-            slide.setPower(1);
-        }
-
-        if (currentState != COLLAPSE) {
-            slide.setTargetPosition(targetSlideLevel.position);
-        }
-
         if (currentState == EXTEND && atTargetState()) {
             turret.setPosition(targetTurret.position);
+        }
+
+        // if current position is higher than the target
+        if (currentState == COLLAPSE) {
+            slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            slide.setPower(0);
+        } else {
+            slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slide.setTargetPosition(targetSlideLevel.position);
+            slide.setPower(1);
         }
     }
 
@@ -268,7 +275,6 @@ public class OuttakeModule implements Module, Telemeter {
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
 //            add("--");
-//            add("slide target:  " + slide.getTargetPosition());
 //            add("current slide:  " + slide.getCurrentPosition());
         }};
     }
@@ -279,6 +285,16 @@ public class OuttakeModule implements Module, Telemeter {
 
     public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel) {
         return new ExtendOuttakeAction(this, slideLevel);
+    }
+
+    public ExtendOuttakeAction extendOuttakeToDetectedPosition(TeamMarkerDetector detector) {
+        return new ExtendOuttakeAction(this, detector.getLocation().slideLevel()) {
+            @Override
+            public void tick() {
+                this.slideLevel = detector.getLocation().slideLevel();
+                super.tick();
+            }
+        };
     }
 
 }
