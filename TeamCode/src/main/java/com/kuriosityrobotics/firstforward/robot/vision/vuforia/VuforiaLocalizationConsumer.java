@@ -32,12 +32,15 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
@@ -335,9 +338,19 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public RealMatrix getLocationRealMatrix() {
         synchronized (this) {
             try {
+/*
+                {
+                    var trackableLocation = new Vector3D(0, 5.75, 58);
+                    var centre = physicalCamera.pinholeCamera().getLocationOnFrame(trackableLocation);
+
+                    if (centre.distance(new Vector2D(800 / 2., 448/2.)) > 150) {
+                        Log.v("kf", "DISCARD by projection, " + centre + " " + centre.distance(new Vector2D(800 / 2., 448/2.)));
+                        return null;
+                    }
+                }*/
                 // filter out by peripherals
-                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(10) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(10)) {
-                    Log.v("kf", "DISCARD by perif, " + Math.abs(detectedHorizPeripheralAngle) + ", " + Math.abs(detectedVertPeripheralAngle));
+                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(30) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(25)) {
+                    Log.v("kf", "DISCARD by perif, " + Math.abs(Math.toDegrees(detectedHorizPeripheralAngle)) + ", " + Math.abs(Math.toDegrees(detectedVertPeripheralAngle)));
                     return null;
                 }
 
@@ -372,6 +385,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 return null;
             }
         }
+    }
+
+    private static Point ftcToOurs(Point point) {
+        return new Point(
+                (point.y + HALF_FIELD_MM) / MM_PER_INCH,
+                -point.x + HALF_FIELD_MM
+        );
     }
 
     private void resetEncoders(double currentAngle) {

@@ -19,7 +19,7 @@ import java.util.ListIterator;
 import java.util.Map;
 
 public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 80;
+    public static final double ROBOT_MAX_VEL = 65;
     public static final double ROBOT_MAX_ACCEL = 80;
     public static final double ROBOT_MAX_DECCEL = 45;
 

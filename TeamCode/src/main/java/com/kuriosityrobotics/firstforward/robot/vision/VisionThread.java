@@ -31,8 +31,13 @@ public class VisionThread implements Runnable, Telemeter {
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
         this.cargoDetectorConsumer = new CargoDetectorConsumer(robot, PhysicalCamera.of(robot));
-        this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
         this.teamMarkerDetector = new TeamMarkerDetector();
+
+        if (camera.isAttached()) {
+            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
+        } else {
+            this.vuforiaLocalizationConsumer = null;
+        }
     }
 
     @Override
@@ -58,7 +63,7 @@ public class VisionThread implements Runnable, Telemeter {
         try {
             OpenCVDumper openCVDumper = new OpenCVDumper();
 
-            if (!robot.running()) {
+            if (vuforiaLocalizationConsumer == null || !robot.running()) {
                 return;
             }
 
