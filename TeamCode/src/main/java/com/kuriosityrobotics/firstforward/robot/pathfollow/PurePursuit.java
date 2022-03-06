@@ -146,6 +146,9 @@ public class PurePursuit implements Telemeter {
         double currXVelo = veloMag * Math.sin(alpha);
         double currYVelo = veloMag * Math.cos(alpha);
 
+        Log.v("MP", "targX: " + targetXVelo + " targY: " + targetYVelo);
+        Log.v("MP", "currX: " + currXVelo + " currY: " + currYVelo);
+
         double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo)), -1, 1);
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
@@ -172,12 +175,9 @@ public class PurePursuit implements Telemeter {
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
         }
 
-        Log.v("MP", "x: " + xPow + " y: " + yPow);
-
         double normPow = Math.abs(xPow) + Math.abs(yPow);
         double leftOver = 1 - Math.abs(angPow);
         double scale = (normPow != 0 && normPow > leftOver) ? (leftOver / normPow) : 1;
-        Log.v("MP", "scale: " + scale);
         xPow *= scale;
         yPow *= scale;
 

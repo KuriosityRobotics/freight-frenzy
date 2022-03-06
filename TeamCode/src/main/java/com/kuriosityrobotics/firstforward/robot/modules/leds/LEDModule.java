@@ -7,13 +7,17 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 
 public class LEDModule implements Module, Telemeter {
-    RevBlinkinLedDriver.BlinkinPattern VUF_INITING = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
-    RevBlinkinLedDriver.BlinkinPattern INTAKE_OCCUPIED = RevBlinkinLedDriver.BlinkinPattern.GREEN;
-    RevBlinkinLedDriver.BlinkinPattern IDLE = RevBlinkinLedDriver.BlinkinPattern.BREATH_RED;
+    BlinkinPattern VUF_INITING = BlinkinPattern.DARK_BLUE;
+    BlinkinPattern INTAKE_OCCUPIED = BlinkinPattern.GREEN;
+    BlinkinPattern IDLE = BlinkinPattern.BREATH_RED;
 
-    private static final long SHOW_VUF = 750;
+    BlinkinPattern VUF_USED = BlinkinPattern.BLUE;
+    BlinkinPattern VUF_SAW = BlinkinPattern.GOLD;
+
+    private static final long SHOW_VUF = 500;
 
     // modules
     Robot robot;
@@ -35,9 +39,9 @@ public class LEDModule implements Module, Telemeter {
         } else if (!robot.visionThread.started) {
             led.setPattern(VUF_INITING);
         } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() + SHOW_VUF) {
-            led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+            led.setPattern(VUF_USED);
         } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastDetectedTime() + SHOW_VUF) {
-            led.setPattern(RevBlinkinLedDriver.BlinkinPattern.GOLD);
+            led.setPattern(VUF_SAW);
         } else {
             led.setPattern(IDLE);
         }

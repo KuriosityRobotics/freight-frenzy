@@ -98,7 +98,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         public OuttakeModule.VerticalSlideLevel slideLevel() {
             switch (this) {
                 case LEVEL_1:
-                    return OuttakeModule.VerticalSlideLevel.DOWN;
+                    return OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND;
                 case LEVEL_2:
                     return OuttakeModule.VerticalSlideLevel.MID;
                 case LEVEL_3:

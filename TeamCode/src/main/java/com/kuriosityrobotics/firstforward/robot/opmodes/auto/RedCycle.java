@@ -43,11 +43,13 @@ public class RedCycle extends LinearOpMode {
 
         waitForStart();
 
+        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
+
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(RED_START_W),
-                new WayPoint(RED_START_W.between(RED_WOBBLE_W), robot.outtakeModule.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel())),
+                new WayPoint(RED_START_W, robot.outtakeModule.extendOuttakeAction(detection)),
+                new WayPoint(RED_START_W.between(RED_WOBBLE_W)),
                 new WayPoint(FIRST_WOBBLE, 0, wobbleActions)
         }, 4);
 
@@ -70,7 +72,11 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
-        sleep(1500);
+        if (detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
+            sleep(1750);
+        } else {
+            sleep(1250);
+        }
 
         for (int i = 0; i < 5; i++) {
             robot.followPath(wobbleToWarehouse);
@@ -87,7 +93,7 @@ public class RedCycle extends LinearOpMode {
             }, true, 4);
             robot.followPath(backToWobble);
 
-            sleep(500);
+            sleep(250);
         }
 
         robot.followPath(wobbleToWarehouse);
