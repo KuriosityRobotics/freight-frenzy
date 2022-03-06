@@ -61,8 +61,9 @@ public class OuttakeModule implements Module, Telemeter {
         CAP_DROP(-1035),
         TOP_TOP(-1150),
         TOP(-900),
-        MID(-350),
-        DOWN(-2);
+        MID(-400),
+        DOWN(-2),
+        DOWN_NO_EXTEND(-2);
 
         private final int position;
 
@@ -207,8 +208,13 @@ public class OuttakeModule implements Module, Telemeter {
                     slide.setTargetPosition(targetSlideLevel.position);
                     break;
                 case EXTEND:
-                    linkage.setPosition(LINKAGE_EXTENDED);
-                    pivot.setPosition(PIVOT_OUT);
+                    if (targetSlideLevel == VerticalSlideLevel.DOWN_NO_EXTEND) {
+                        linkage.setPosition(LINKAGE_PARTIAL_EXTEND);
+                        pivot.setPosition(PIVOT_OUT);
+                    } else {
+                        linkage.setPosition(LINKAGE_EXTENDED);
+                        pivot.setPosition(PIVOT_OUT);
+                    }
                     break;
                 case DUMP:
                     clamp.setPosition(CLAMP_RELEASE);

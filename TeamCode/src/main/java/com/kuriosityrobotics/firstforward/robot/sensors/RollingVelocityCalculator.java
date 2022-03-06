@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
@@ -41,6 +42,11 @@ public abstract class RollingVelocityCalculator {
             velos.add(current.difference(last).divide(current.timestamp - last.timestamp));
 
             last = current;
+        }
+
+        if (velos.isEmpty()) {
+            Log.e("MP", "No velocities!");
+            return;
         }
 
         Pose sum = new Pose(0, 0, 0);
