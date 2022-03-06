@@ -31,6 +31,7 @@ public class TeleOp extends LinearOpMode {
             updateDrivetrainStates();
             updateIntakeStates();
             updateOuttakeStates();
+            updateCapStates();
             updateCarouselStates();
         }
     }
@@ -40,7 +41,7 @@ public class TeleOp extends LinearOpMode {
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
         double turnMov = gamepad1.right_stick_x;
 
-        if (gamepad1.right_bumper) {
+        if (gamepad1.left_bumper) {
             yMov /= 2;
             xMov /= 2;
             turnMov /= 2;
@@ -64,26 +65,8 @@ public class TeleOp extends LinearOpMode {
     Button lBump = new Button();
 
     private void updateOuttakeStates() {
-        if (gamepad2.right_bumper && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
+        if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
-
-        if (lBump.isSelected(gamepad2.left_bumper)) {
-            switch (robot.outtakeModule.targetState) {
-                case COLLAPSE:
-                    robot.outtakeModule.capping = false;
-                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
-                    robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-                    break;
-                case EXTEND:
-                    if (!robot.outtakeModule.capping) {
-                        robot.outtakeModule.capping = true;
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
-                    } else {
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
-                    }
-                    break;
-            }
-        }
 
         if (dpad_up.isSelected(gamepad2.dpad_up)) {
             if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
@@ -125,7 +108,7 @@ public class TeleOp extends LinearOpMode {
         }
 
         if (yButton.isSelected(y)) {
-            if (robot.outtakeModule.atState(OuttakeModule.OuttakeState.EXTEND)) {
+            if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.EXTEND) {
                 if (robot.outtakeModule.targetTurret == OuttakeModule.TurretPosition.STRAIGHT) {
                     robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
                 } else {
@@ -133,6 +116,26 @@ public class TeleOp extends LinearOpMode {
                 }
             } else {
                 robot.outtakeModule.defaultFullExtend();
+            }
+        }
+    }
+
+    private void updateCapStates() {
+        if (lBump.isSelected(gamepad2.left_bumper)) {
+            switch (robot.outtakeModule.targetState) {
+                case COLLAPSE:
+                    robot.outtakeModule.capping = false;
+                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+                    robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+                    break;
+                case EXTEND:
+                    if (!robot.outtakeModule.capping) {
+                        robot.outtakeModule.capping = true;
+                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
+                    } else {
+                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
+                    }
+                    break;
             }
         }
     }

@@ -1,16 +1,19 @@
 package com.kuriosityrobotics.firstforward.robot.modules.leds;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class LEDModule implements Module, Telemeter {
     RevBlinkinLedDriver.BlinkinPattern VUF_INITING = RevBlinkinLedDriver.BlinkinPattern.DARK_BLUE;
     RevBlinkinLedDriver.BlinkinPattern INTAKE_OCCUPIED = RevBlinkinLedDriver.BlinkinPattern.GREEN;
     RevBlinkinLedDriver.BlinkinPattern IDLE = RevBlinkinLedDriver.BlinkinPattern.BREATH_RED;
+
+    private static final long SHOW_VUF = 750;
 
     // modules
     Robot robot;
@@ -31,6 +34,10 @@ public class LEDModule implements Module, Telemeter {
             led.setPattern(INTAKE_OCCUPIED);
         } else if (!robot.visionThread.started) {
             led.setPattern(VUF_INITING);
+        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() + SHOW_VUF) {
+            led.setPattern(RevBlinkinLedDriver.BlinkinPattern.BLUE);
+        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastDetectedTime() + SHOW_VUF) {
+            led.setPattern(RevBlinkinLedDriver.BlinkinPattern.GOLD);
         } else {
             led.setPattern(IDLE);
         }

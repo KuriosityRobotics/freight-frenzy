@@ -22,17 +22,13 @@ import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.vuforia.Vuforia;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaCurrentGame;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
@@ -57,7 +53,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final double CAMERA_ENCODER_TO_RADIAN = 2.0 * PI / 8192.0;
     private static final double ROTATOR_CENTER_POS = .295;
     private static final double ROTATOR_BACK_POS = .96;
-    private static final double ROTATOR_ANGLE_RANGE = 3*PI / 2;
+    private static final double ROTATOR_ANGLE_RANGE = 3 * PI / 2;
     private final WebcamName cameraName;
     // change states here
     private final Servo rotator;
@@ -77,6 +73,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private long lastUpdateTime = 0;
     private Long startTime = null;
     private double cameraAngleOffset = 0;
+    private long lastAcceptedTime = 0;
+    private long lastDetectedTime = 0;
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
@@ -135,7 +133,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     @Override
     public void update() {
         synchronized (this) {
-             if (SystemClock.elapsedRealtime() >= startTime + 500) {
+            if (SystemClock.elapsedRealtime() >= startTime + 500) {
                 if (!cameraEncoderSetYet) {
                     resetEncoders(robot.isAuto() ? PI : 0);
                     cameraEncoderSetYet = true;
@@ -158,6 +156,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
                     robot.sensorThread.addGoodie(new KalmanData(1, data), fetchTime);
+                    lastAcceptedTime = SystemClock.elapsedRealtime();
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }
             }
@@ -197,8 +196,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         double relativeHeading = cameraPose.relativeHeadingToPoint(targetVuMark);
 
         if (
-                relativeHeading > PI/2 || // otherwise we hit the outtake
-                relativeHeading < -PI/4 // otherwise we hit the cables
+                relativeHeading > PI / 2 || // otherwise we hit the outtake
+                        relativeHeading < -PI / 4 // otherwise we hit the cables
         )
             return 0;
 
@@ -228,10 +227,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     private void trackVuforiaTargets() {
 
-        this.detectedData = null;
-        this.detectedHorizPeripheralAngle = null;
-        this.detectedVertPeripheralAngle = null;
-        this.detectedTrackable = null;
+//        this.detectedData = null;
+//        this.detectedHorizPeripheralAngle = null;
+//        this.detectedVertPeripheralAngle = null;
+//        this.detectedTrackable = null;
 
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             OpenGLMatrix cameraLoc = OpenGLMatrix
@@ -241,11 +240,15 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 //            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, physicalCamera.translationMatrix().multiplied(physicalCamera.rotationMatrix()));
         }
 
+        boolean sawAny = false;
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             if (listener.isVisible()) {
 
+                sawAny = true;
+
                 detectedTrackable = trackable;
+                lastDetectedTime = SystemClock.elapsedRealtime();
 
                 OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
                 OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
@@ -267,6 +270,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 break;
             }
+        }
+
+        if (!sawAny) {
+            this.detectedData = null;
+            this.detectedHorizPeripheralAngle = null;
+            this.detectedVertPeripheralAngle = null;
+            this.detectedTrackable = null;
         }
     }
 
@@ -389,5 +399,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         cameraAngleOffset = currentAngle;
         cameraEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         cameraEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    public long getLastAcceptedTime() {
+        return lastAcceptedTime;
+    }
+
+    public long getLastDetectedTime() {
+        return lastDetectedTime;
     }
 }

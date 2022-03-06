@@ -144,6 +144,8 @@ public class PurePursuit implements Telemeter {
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
 
+        Log.v("MP", "targvel: " + targetVelocity);
+
         pathEnding = locationProvider.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD || pathEnding;
         if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK && pathEnding) {
             // if we overshoot the end point we don't want to turn back around to face it
@@ -166,15 +168,20 @@ public class PurePursuit implements Telemeter {
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
         }
 
+        Log.v("MP", "x: " + xPow + " y: " + yPow);
+
         double normPow = Math.abs(xPow) + Math.abs(yPow);
         double leftOver = 1 - Math.abs(angPow);
         double scale = (normPow != 0 && normPow > leftOver) ? (leftOver / normPow) : 1;
+        Log.v("MP", "scale: " + scale);
         xPow *= scale;
         yPow *= scale;
 
 //        if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK) {
 //            angPow *= 0.6; // idk? it's less important??
 //        }
+
+        Log.v("MP", "xf: " + xPow + " yF: " + yPow + " af: " + angPow);
 
         drivetrain.setMovements(xPow, yPow, angPow);
 
