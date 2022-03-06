@@ -130,9 +130,15 @@ public class PurePursuit implements Telemeter {
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
         AngleLock targetAngleLock = profile.interpolateTargetAngleLock(closestIndex, clipped);
 
+        Log.v("MP", "curr: " + robotPose);
+        Log.v("MP", "targ: " + target);
+        Log.v("MP", "targvel: " + targetVelocity);
+
         double headingToPoint = robotPose.relativeHeadingToPoint(target);
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
+
+        Log.v("MP", "Head: " +headingToPoint);
 
         double veloMag = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         double veloHeading = Math.atan2(robotVelo.x, robotVelo.y);
@@ -143,8 +149,6 @@ public class PurePursuit implements Telemeter {
         double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo)), -1, 1);
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
         double angPow;
-
-        Log.v("MP", "targvel: " + targetVelocity);
 
         pathEnding = locationProvider.distanceToPoint(path[path.length - 1]) < STOP_THRESHOLD || pathEnding;
         if (targetAngleLock.type == AngleLock.AngleLockType.NO_LOCK && pathEnding) {

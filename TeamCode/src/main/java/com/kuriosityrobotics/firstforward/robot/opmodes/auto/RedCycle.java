@@ -18,11 +18,15 @@ import java.util.ArrayList;
 public class RedCycle extends LinearOpMode {
 
     public static final Pose RED_START_W = new Pose(9.5, 64.5, Math.toRadians(-90)); //start near warehouse
+    public static final Pose FIRST_WOBBLE = new Pose(26, 70, Math.toRadians(-115));
+
     public static final Pose RED_WOBBLE_W = new Pose(22, 73, Math.toRadians(-110));
+
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
-    public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
     private Pose redWarehouse = new Pose(8, 24 + 7.5, Math.toRadians(175));
+
+    public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
 
     public void runOpMode() {
         Robot robot = null;
@@ -44,7 +48,7 @@ public class RedCycle extends LinearOpMode {
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W),
                 new WayPoint(RED_START_W.between(RED_WOBBLE_W), robot.outtakeModule.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel())),
-                new WayPoint(new Pose(26, 70, Math.toRadians(-110)), 0, wobbleActions)
+                new WayPoint(FIRST_WOBBLE, 0, wobbleActions)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
@@ -66,7 +70,7 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
-        sleep(1000);
+        sleep(1500);
 
         for (int i = 0; i < 5; i++) {
             robot.followPath(wobbleToWarehouse);
