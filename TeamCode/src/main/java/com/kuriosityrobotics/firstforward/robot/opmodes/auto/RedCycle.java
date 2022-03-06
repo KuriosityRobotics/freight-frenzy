@@ -44,7 +44,7 @@ public class RedCycle extends LinearOpMode {
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W),
                 new WayPoint(RED_START_W.between(RED_WOBBLE_W), robot.outtakeModule.extendOuttakeAction(robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel())),
-                new WayPoint(RED_WOBBLE_W, 0, wobbleActions)
+                new WayPoint(new Pose(26, 70, Math.toRadians(-110)), 0, wobbleActions)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
@@ -66,11 +66,13 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
+        sleep(1000);
+
         for (int i = 0; i < 5; i++) {
             robot.followPath(wobbleToWarehouse);
             AutoPaths.intakePath(robot, redWarehouse.add(new Pose(0, -8, 0)), 3000);
 
-            if (redWarehouse.y > 7.5)
+//            if (redWarehouse.y > 7.5)
             redWarehouse = redWarehouse.add(new Pose(0, -2, 0));
 
             PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
@@ -80,6 +82,8 @@ public class RedCycle extends LinearOpMode {
                     new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
             }, true, 4);
             robot.followPath(backToWobble);
+
+            sleep(500);
         }
 
         robot.followPath(wobbleToWarehouse);

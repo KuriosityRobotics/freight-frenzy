@@ -28,9 +28,9 @@ public class OuttakeModule implements Module, Telemeter {
     private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
-    private static final double CLAMP_INTAKE = .818367,
-            CLAMP_CLAMP = .75,
-            CLAMP_RELEASE = 0.890738;
+    private static final double CLAMP_INTAKE = 0.85465,
+            CLAMP_CLAMP = 0.7658,
+            CLAMP_RELEASE = 0.90492;
     private static final double LINKAGE_IN = .140102,
             LINKAGE_EXTENDED = .8777921, LINKAGE_PARTIAL_EXTEND = 0.45;
     // pivot down:  .993
@@ -166,7 +166,7 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setTargetPosition(0);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(10, 0, 0, 20));
+        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PIVOT_IN);

@@ -55,6 +55,9 @@ class MotionSegment {
             return 0;
         }
 
+        Log.v("MP", "distSinceStart: " + distanceSinceStart);
+        Log.v("MP", "pathdist: " + pathDist);
+
         return Math.sqrt(Math.pow(this.startVelocity, 2) + (2 * accel * distanceSinceStart));
     }
 

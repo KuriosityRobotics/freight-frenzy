@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class PlebOuttakeHopperDumpTuner extends LinearOpMode {
     Servo dump;
 
-    double dumpPos = 0.5;
+    double dumpPos = 0.85;
 
     @Override
     public void runOpMode() {
