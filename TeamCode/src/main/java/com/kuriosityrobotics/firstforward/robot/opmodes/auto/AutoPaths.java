@@ -8,9 +8,11 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
     public static final double INTAKE_VELO = 10;
+    public static final long VUF_DELAY = 100;
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
         PurePursuit path = new PurePursuit(new WayPoint[]{
@@ -32,5 +34,32 @@ public class AutoPaths {
         }
         robot.drivetrain.setMovements(0, 0, 0);
         robot.intakeModule.intakePower = 0;
+    }
+
+    public static void waitForVuforia(Robot robot, LinearOpMode linearOpMode, long killSwitch, Pose offsetPoseByIfKilled) {
+        long startTime = SystemClock.elapsedRealtime();
+        Long sawTime = null;
+
+        while (robot.running()) {
+            long currentTime = SystemClock.elapsedRealtime();
+
+            if (currentTime - startTime >= killSwitch) {
+                robot.sensorThread.resetPose(robot.getPose().add(offsetPoseByIfKilled));
+                return;
+            }
+
+            if (sawTime == null) {
+                long lastAccepted = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime();
+                if (lastAccepted > startTime) {
+                    sawTime = lastAccepted;
+                }
+            } else {
+                if (currentTime >= sawTime + VUF_DELAY) {
+                    return;
+                }
+            }
+
+            linearOpMode.sleep(50);
+        }
     }
 }
