@@ -38,7 +38,7 @@ public class PurePursuit implements Telemeter {
 //    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
     private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.026, 0.0000, 0);
-    private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.0004, 0.10, Math.toRadians(4), Math.toRadians(10));
+    private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
 //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 

@@ -22,20 +22,26 @@ public class AutoPaths {
         }, 4);
 
         robot.intakeModule.intakePower = 1;
+        robot.intakeModule.newMineral = false;
 
         long start = SystemClock.elapsedRealtime();
 
         while (robot.running() && !path.atEnd(robot)) {
-            if (robot.intakeModule.newMineral || SystemClock.elapsedRealtime() - start >= killswitchMillis) {
-                robot.intakeModule.newMineral = false;
+            if (robot.intakeModule.newMineral) {
                 robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
+                robot.intakeModule.intakePower = 0;
+                Log.v("auto", "LEAVING!: " + robot.intakeModule.newMineral + " time?? " + (SystemClock.elapsedRealtime() - start >= killswitchMillis));
+
+                robot.intakeModule.newMineral = false;
+                break;
+            } else if (SystemClock.elapsedRealtime() - start >= killswitchMillis) {
                 break;
             } else {
                 path.update(robot, robot.drivetrain);
             }
         }
+        Log.v("auto", "DONE!");
         robot.drivetrain.setMovements(0, 0, 0);
-        robot.intakeModule.intakePower = 0;
     }
 
     public static void waitForVuforia(Robot robot, LinearOpMode linearOpMode, long killSwitch, Pose offsetPoseByIfKilled) {
