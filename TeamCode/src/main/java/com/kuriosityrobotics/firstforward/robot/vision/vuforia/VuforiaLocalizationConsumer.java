@@ -356,13 +356,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 }
 
                 // filter out by translational speed
-                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 0.3) {
+                if (Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y) > 1) {
                     Log.v("kf", "DISCARD by trans vel, " + Math.hypot(robot.sensorThread.getOdometryVelocity().x, robot.sensorThread.getOdometryVelocity().y));
                     return null;
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.015 || Math.abs(cameraAngleVelocity) > 0.05) {
+                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.032 || Math.abs(cameraAngleVelocity) > 0.05) {
                     Log.v("kf", "DISCARD by heading vel, " + Math.abs(robot.sensorThread.getOdometryVelocity().heading) + ", " + Math.abs(cameraAngleVelocity));
                     return null;
                 }

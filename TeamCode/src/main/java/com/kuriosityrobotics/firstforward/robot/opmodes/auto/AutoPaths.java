@@ -4,6 +4,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -12,7 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
     public static final double INTAKE_VELO = 10;
-    public static final long VUF_DELAY = 100;
+    public static final long VUF_DELAY = 150;
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
         PurePursuit path = new PurePursuit(new WayPoint[]{
@@ -27,6 +28,7 @@ public class AutoPaths {
         while (robot.running() && !path.atEnd(robot)) {
             if (robot.intakeModule.newMineral || SystemClock.elapsedRealtime() - start >= killswitchMillis) {
                 robot.intakeModule.newMineral = false;
+                robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
                 break;
             } else {
                 path.update(robot, robot.drivetrain);
@@ -60,6 +62,23 @@ public class AutoPaths {
             }
 
             linearOpMode.sleep(50);
+        }
+    }
+
+    public static void wallRidePath(Robot robot, PurePursuit path) {
+        path.reset();
+        while (robot.running()) {
+            boolean callAgain = path.update(robot, robot.drivetrain);
+
+            Pose currPose = robot.sensorThread.getPose();
+
+            if (Math.abs(currPose.y - 48) < 1) {
+                robot.sensorThread.resetPose(new Pose(currPose.x, currPose.y, Math.toRadians(180)));
+            }
+
+            if (!callAgain) {
+                return;
+            }
         }
     }
 }

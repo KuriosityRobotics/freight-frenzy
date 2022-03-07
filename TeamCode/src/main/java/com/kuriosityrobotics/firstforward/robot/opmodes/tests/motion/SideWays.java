@@ -1,15 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests.motion;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-//@Disabled
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SideWays extends LinearOpMode {
     public void runOpMode() {
