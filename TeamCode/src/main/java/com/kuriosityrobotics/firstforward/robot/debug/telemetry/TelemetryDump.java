@@ -43,12 +43,20 @@ public class TelemetryDump implements PoseWatcher {
         this.dashboard.setTelemetryTransmissionInterval(25);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void update() {
-        telemetry.addLine(telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
+        StringBuilder stringBuilder = new StringBuilder();
+        telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
+                .filter(Telemeter::isOn)
                 .map(telemeter ->
-                        String.join("\n", telemeter.getTelemetryData())
-                ).collect(Collectors.joining("----------------------\n")));
+                        stringBuilder
+                                .append("---")
+                                .append(telemeter.getName())
+                                .append("---\n\n")
+                                .append(telemeter.getTelemetryData())
+                                .append("\n----------------------")
+                                .append("\n\n")
+                );
+        telemetry.addLine(stringBuilder.toString());
         telemetry.update();
     }
 
