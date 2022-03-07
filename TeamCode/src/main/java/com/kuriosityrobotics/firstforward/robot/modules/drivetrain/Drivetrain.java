@@ -52,9 +52,8 @@ public class Drivetrain implements Module, Telemeter {
     public void update() {
         if (opmodeStarted) {
             if (movementsZero() && !locationProvider.getVelocity().equals(Pose.ZERO)) {
-//                Pose brakeMovements = brake.getBrakeMovement(getCurrentPose().wrapped(), getVelocity());
-//                drivetrainModule.setMovements(brakeMovements);
-                drivetrainModule.setMovements(0, 0, 0);
+                Pose brakeMovements = brake.getBrakeMovement(locationProvider.getPose().wrapped(), locationProvider.getVelocity());
+                drivetrainModule.setMovements(brakeMovements);
             } else {
                 if (brake.isBraking())
                     brake.stopBraking();
