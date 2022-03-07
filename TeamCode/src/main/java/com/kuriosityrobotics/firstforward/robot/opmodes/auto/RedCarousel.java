@@ -24,7 +24,7 @@ public class RedCarousel extends LinearOpMode {
     public static final Point PRE_CAROUSEL = new Point(18, 118);
     public static final Pose CAROUSEL = new Pose(12.8, 124, Math.toRadians(-75));
 
-    public static final Pose PARK = new Pose(8, 28, Math.toRadians(180));
+    public static final Pose PARK = new Pose(36, 5*23.5 + 12, Math.toRadians(-90));
 
     public void runOpMode() {
         Robot robot = null;
@@ -46,13 +46,22 @@ public class RedCarousel extends LinearOpMode {
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START, robot.outtakeModule.extendOuttakeAction(detected)),
-                new WayPoint(WOBBLE, robot.outtakeModule.dumpOuttakeAction())
+                new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
         }, true, 4);
 
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(PRE_CAROUSEL, 10),
-                new WayPoint(CAROUSEL)
+                new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
         }, false, 4);
+
+        PurePursuit toPark = new PurePursuit(new WayPoint[]{
+                new WayPoint(CAROUSEL),
+                new WayPoint(PARK)
+        }, true, 4);
+
+        robot.followPath(toWobble);
+        robot.followPath(toCarousel);
+        robot.followPath(toPark);
     }
 }

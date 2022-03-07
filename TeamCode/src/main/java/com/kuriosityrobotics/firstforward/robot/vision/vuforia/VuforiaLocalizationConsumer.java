@@ -362,7 +362,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 }
 
                 // filter out by angle speeds
-                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.032 || Math.abs(cameraAngleVelocity) > 0.05) {
+                if (Math.abs(robot.sensorThread.getOdometryVelocity().heading) > 0.02 || Math.abs(cameraAngleVelocity) > 0.05) {
                     Log.v("kf", "DISCARD by heading vel, " + Math.abs(robot.sensorThread.getOdometryVelocity().heading) + ", " + Math.abs(cameraAngleVelocity));
                     return null;
                 }
