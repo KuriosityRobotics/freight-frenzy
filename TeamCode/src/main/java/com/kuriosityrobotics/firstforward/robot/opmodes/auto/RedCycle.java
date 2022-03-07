@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
@@ -72,12 +74,15 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
+//        long startSleep = SystemClock.elapsedRealtime();
         if (detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             sleep(1750);
         } else {
             sleep(1250);
         }
+//        boolean
 
+//        int numCycles =
         for (int i = 0; i < 5; i++) {
             robot.followPath(wobbleToWarehouse);
             AutoPaths.intakePath(robot, redWarehouse.add(new Pose(0, -8, 0)), 3000);
@@ -93,7 +98,7 @@ public class RedCycle extends LinearOpMode {
             }, true, 4);
             robot.followPath(backToWobble);
 
-            sleep(250);
+            AutoPaths.waitForVuforia(robot, this, 250, new Pose(0.25, 0, 0));
         }
 
         robot.followPath(wobbleToWarehouse);

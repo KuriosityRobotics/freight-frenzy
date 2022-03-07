@@ -1,8 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import android.os.SystemClock;
+import android.util.Log;
 
-import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -58,11 +58,12 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
 
     // Constants
     private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
-    private static final double LR_ENCODER_DIST_FROM_CENTER = (4.75 / 2) * (740. / 720.) * (363. / 360) * (360. / 358.) * (356. / 360);
-    private static final double B_ENCODER_DIST_FROM_CENTER = 3 * (1786.59 / 1800.);
+    private static final double LR_ENCODER_DIST_FROM_CENTER = 2.4367390324945863115640954444386315979381132912686705686229716745 * (3631.6415304167253 / 3600.);
+    private static final double B_ENCODER_DIST_FROM_CENTER = 2.9761730787305137386664648856740921319601002407647215925090672904 * (3622.009011720834 / 3600.);
 
 
     private final Robot robot;
+
     public Odometry(Robot robot, HardwareMap hardwareMap, Pose pose) {
         this.robot = robot;
         this.worldX = pose.x;
@@ -131,6 +132,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
         lastUpdateTime = currentUpdateTime;
     }
 
+    private double thetaLR = 0;
+    private double thetaFB = 0;
+
     private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumBackPod, double dMecanumFrontPod) {
         // convert all inputs to inches
         double dLeftPodInches = dLeftPod * INCHES_PER_ENCODER_TICK;
@@ -146,15 +150,18 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter {
         double dThetaLR = (dLeftPodInches - dRightPodInches) / (2 * P);
         double dThetaFB = (dMecanumFrontPodInches - dMecanumBackPodInches) / (2 * Q);
 
+        thetaLR += dThetaLR;
+        thetaFB += dThetaFB;
+
         double X = Math.abs(dLeftPodInches + dRightPodInches);
         double Y = Math.abs(dMecanumFrontPodInches + dMecanumBackPodInches);
 
         double weightLR = 0.5;
         double weightFB = 0.5;
 
-        if (X+Y != 0){
-            weightLR = X/(X+Y);
-            weightFB = Y/(X+Y);
+        if (X + Y != 0) {
+            weightLR = X / (X + Y);
+            weightFB = Y / (X + Y);
         }
 
         double dTheta = weightLR * dThetaLR + weightFB * dThetaFB;
