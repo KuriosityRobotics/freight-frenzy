@@ -24,15 +24,16 @@ public class OuttakeModule implements Module, Telemeter {
     LocationProvider locationProvider;
 
     //time constants
+    public boolean isShared = false;
     private static final long EXTEND_TIME = 300;
     private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = 0.85465,
-            CLAMP_CLAMP = 0.7658,
+            CLAMP_CLAMP = 0.77,
             CLAMP_RELEASE = 0.90492;
     private static final double LINKAGE_IN = .140102,
-            LINKAGE_EXTENDED = .8777921, LINKAGE_PARTIAL_EXTEND = 0.45;
+            LINKAGE_EXTENDED = .8777921, LINKAGE_PARTIAL_EXTEND = 0.45, LINKAGE_SHARED_EXTEND = 0.6;
     // pivot down:  .993
     // pivot in:  .0060539
     private static final double PIVOT_OUT = .993,
@@ -47,6 +48,8 @@ public class OuttakeModule implements Module, Telemeter {
         STRAIGHT(.482746),
         RIGHT(.78988),
         LEFT(.186781),
+        SHARED_RIGHT(0.62),
+        SHARED_LEFT(0.356),
         ALLIANCE_LOCK(0.5);
 
         private final double position;
@@ -59,9 +62,10 @@ public class OuttakeModule implements Module, Telemeter {
     public enum VerticalSlideLevel {
         CAP(-1400),
         CAP_DROP(-1035),
-        TOP_TOP(-1150),
-        TOP(-900),
+        TOP_TOP(-1200),
+        TOP(-950),
         MID(-400),
+        SHARED(-200),
         DOWN(-2),
         DOWN_NO_EXTEND(-2);
 
@@ -82,6 +86,7 @@ public class OuttakeModule implements Module, Telemeter {
         DUMP(DUMP_TIME),
         TURRET_IN(0),
         RETRACT(EXTEND_TIME),
+        SHARED(EXTEND_TIME),
         COLLAPSE(0);
 
         public final long completionTime;
@@ -187,8 +192,12 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public void defaultFullExtend() {
-        this.targetTurret = TurretPosition.STRAIGHT;
-        this.targetSlideLevel = VerticalSlideLevel.TOP;
+//        this.targetTurret = TurretPosition.;
+        if(isShared){
+            this.targetSlideLevel = VerticalSlideLevel.SHARED;
+        }else{
+            this.targetSlideLevel = VerticalSlideLevel.TOP;
+        }
         this.targetState = EXTEND;
         this.capping = false;
     }
@@ -211,7 +220,10 @@ public class OuttakeModule implements Module, Telemeter {
                     if (targetSlideLevel == VerticalSlideLevel.DOWN_NO_EXTEND) {
                         linkage.setPosition(LINKAGE_PARTIAL_EXTEND);
                         pivot.setPosition(PIVOT_OUT);
-                    } else {
+                    }else if(isShared){
+                        linkage.setPosition(LINKAGE_SHARED_EXTEND);
+                        pivot.setPosition(PIVOT_UP);
+                    }else {
                         linkage.setPosition(LINKAGE_EXTENDED);
                         pivot.setPosition(PIVOT_OUT);
                     }
@@ -248,6 +260,10 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
         if (currentState == EXTEND && atTargetState()) {
+            if(isShared){
+                pivot.setPosition(PIVOT_OUT);
+                linkage.setPosition(LINKAGE_SHARED_EXTEND);
+            }
             double targetTurretServoPosition = targetTurret.position;
 
             if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
@@ -320,6 +336,8 @@ public class OuttakeModule implements Module, Telemeter {
 //            add("last:  " + lastRan);
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
+            add("isShared: " + isShared);
+            add("pivot postiong: " + pivot.getPosition());
 //            add("--");
 //            add("current slide:  " + slide.getCurrentPosition());
         }};
