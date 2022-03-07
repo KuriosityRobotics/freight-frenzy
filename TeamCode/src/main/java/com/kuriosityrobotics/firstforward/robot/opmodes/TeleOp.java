@@ -63,7 +63,9 @@ public class TeleOp extends LinearOpMode {
     Button dpad_up = new Button();
     Button yButton = new Button();
     Button lBump = new Button();
-
+    Button xGamepad2 = new Button();
+    Button yGamepad2 = new Button();
+    Button bGamepad2 = new Button();
     private void updateOuttakeStates() {
         if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
@@ -92,13 +94,23 @@ public class TeleOp extends LinearOpMode {
                 x = gamepad2.x,
                 b = gamepad2.b;
 
+        if(xGamepad2.isSelected(gamepad2.x)){
+            robot.outtakeModule.isShared = true;
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
+        }else if(bGamepad2.isSelected(gamepad2.b)){
+            robot.outtakeModule.isShared = true;
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
+        }else if(yGamepad2.isSelected(gamepad2.y)){
+            robot.outtakeModule.isShared = false;
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+        }
         if (x || b) {
-            if (x) {
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.LEFT;
-            }
-            if (b) {
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.RIGHT;
-            }
+//            if (x) {
+//                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
+//            }
+//            if (b) {
+//                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
+//            }
 
             if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
                 robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
