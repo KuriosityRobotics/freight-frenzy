@@ -92,6 +92,7 @@ public class IntakeModule implements Module, Telemeter {
             transitionIntake(targetIntakePosition);
         }
 
+        hasMineral = mineralInIntake();
         // if we're done transitioning, there are a handful of listeners that apply
         if (!transitioning()) {
             // if we're done retracting but trying to intake
@@ -101,7 +102,6 @@ public class IntakeModule implements Module, Telemeter {
             }
 
             // if we're done extending and there's a mineral in the intake
-            hasMineral = mineralInIntake();
             if (hasMineral && transitionTo == IntakePosition.EXTENDED) {
                 newMineral = true;
                 if (outtakeModule.collapsed()) {
@@ -110,8 +110,6 @@ public class IntakeModule implements Module, Telemeter {
                     transitionIntake(targetIntakePosition);
                 }
             }
-        } else {
-            hasMineral = false;
         }
 
         boolean atTarget = atTargetPosition();
@@ -121,7 +119,6 @@ public class IntakeModule implements Module, Telemeter {
         } else {
             intakeMotor.setPower(intakePower);
         }
-
 
         // set intake position
         switch (transitionTo) {

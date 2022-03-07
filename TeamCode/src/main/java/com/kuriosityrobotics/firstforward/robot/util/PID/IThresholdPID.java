@@ -1,12 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.util.PID;
 
-import android.util.Log;
-
 public class IThresholdPID {
     public final double P_FACTOR;
     public final double I_FACTOR;
     public final double D_FACTOR;
-    public final double iThreshold;
+    public final double ignoreIThreshold, startIThreshold;
 
     private boolean reset;
 
@@ -21,11 +19,12 @@ public class IThresholdPID {
      * @param i
      * @param d
      */
-    public IThresholdPID(double p, double i, double d, double iThreshold) {
+    public IThresholdPID(double p, double i, double d, double ignoreIThreshold, double startIThreshold) {
         P_FACTOR = p;
         I_FACTOR = i;
         D_FACTOR = d;
-        this.iThreshold = iThreshold;
+        this.ignoreIThreshold = ignoreIThreshold;
+        this.startIThreshold = startIThreshold;
 
         this.reset = true;
     }
@@ -38,7 +37,7 @@ public class IThresholdPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        if (Math.abs(error) < iThreshold) {
+        if (Math.abs(error) < startIThreshold && Math.abs(error) > ignoreIThreshold) {
             errorSum += error;
         } else {
             errorSum = 0;

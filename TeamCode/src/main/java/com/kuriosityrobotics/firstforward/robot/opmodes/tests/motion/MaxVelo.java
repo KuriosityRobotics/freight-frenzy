@@ -7,6 +7,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class MaxVelo extends LinearOpMode {
     public void runOpMode() {

@@ -26,7 +26,7 @@ public class RedCycle extends LinearOpMode {
 
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
-    private Pose redWarehouse = new Pose(8, 24 + 7.5, Math.toRadians(175));
+    private Pose redWarehouse = new Pose(8, 33, Math.toRadians(175));
 
     public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
 
@@ -74,31 +74,61 @@ public class RedCycle extends LinearOpMode {
 
         robot.followPath(redStartwToWobble);
 
-//        long startSleep = SystemClock.elapsedRealtime();
+        long startSleep = SystemClock.elapsedRealtime();
         if (detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             sleep(1750);
         } else {
             sleep(1250);
         }
-//        boolean
+        assert robot.visionThread.vuforiaLocalizationConsumer != null;
+        boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
 
-//        int numCycles =
-        for (int i = 0; i < 5; i++) {
-            robot.followPath(wobbleToWarehouse);
-            AutoPaths.intakePath(robot, redWarehouse.add(new Pose(0, -8, 0)), 3000);
+        int numCycles = 4;
+        for (int i = 0; i < numCycles; i++) {
+            if (sawFirst) {
+                robot.followPath(wobbleToWarehouse);
+            } else {
+                AutoPaths.wallRidePath(robot, wobbleToWarehouse);
+            }
+
+            Pose intakeVary;
+            if (i % 2 == 1) {
+                intakeVary = new Pose(2, -4, Math.toRadians(-20));
+            } else {
+                intakeVary = new Pose(0, -8, 0);
+            }
+            AutoPaths.intakePath(robot, redWarehouse.add(intakeVary), 3000);
 
 //            if (redWarehouse.y > 7.5)
-            redWarehouse = redWarehouse.add(new Pose(0, -2, 0));
+            if (i % 2 == 1) {
+                redWarehouse = redWarehouse.add(new Pose(0, -2, 0));
+            }
 
-            PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
-                    new WayPoint(robot.getPose()),
-                    new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                    new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                    new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
-            }, true, 4);
-            robot.followPath(backToWobble);
+            if (sawFirst) {
+                PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
+                        new WayPoint(robot.getPose()),
+                        new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
+                }, true, 4);
 
-            AutoPaths.waitForVuforia(robot, this, 250, new Pose(0.25, 0, 0));
+                robot.followPath(backToWobble);
+            } else {
+                PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
+                        new WayPoint(robot.getPose()),
+                        new WayPoint(RED_WALL_GAP.add(new Pose(-1.5, 0, 0))),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_EXIT_WALLGAP.add(new Pose(-1.5, 0, 0)), exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WOBBLE_W.add(new Pose(-1.5, 0, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
+                }, true, 4);
+
+                AutoPaths.wallRidePath(robot, backToWobble);
+            }
+
+            if (!sawFirst) {
+                AutoPaths.waitForVuforia(robot, this, 400, new Pose(0.25, 0, 0));
+            } else {
+                robot.sensorThread.resetPose(robot.sensorThread.getPose().add(new Pose(0.2, 0, 0)));
+            }
         }
 
         robot.followPath(wobbleToWarehouse);
