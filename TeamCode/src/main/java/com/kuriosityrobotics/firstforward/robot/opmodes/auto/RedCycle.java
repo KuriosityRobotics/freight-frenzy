@@ -136,7 +136,6 @@ public class RedCycle extends LinearOpMode {
 
             if (sawFirst) {
                 AutoPaths.waitForVuforia(robot, this, 400, new Pose(0.25, 0, 0));
-                robot.sensorThread.resetPose(robot.sensorThread.getPose().add(new Pose(0.2, 0, 0)));
             } else {
                 sleep(150);
             }
