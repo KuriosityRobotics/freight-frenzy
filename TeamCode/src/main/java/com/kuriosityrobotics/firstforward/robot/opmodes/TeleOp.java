@@ -98,31 +98,46 @@ public class TeleOp extends LinearOpMode {
 
         if(xGamepad2.isSelected(gamepad2.x)){
             robot.outtakeModule.isShared = true;
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
+            robot.outtakeModule.capping = false;
+            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_LEFT;
         }else if(bGamepad2.isSelected(gamepad2.b)){
             robot.outtakeModule.isShared = true;
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
-        }else if(yGamepad2.isSelected(gamepad2.y)){
-            robot.outtakeModule.isShared = false;
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-        }else if(lTriggerGamepad2.isSelected(gamepad2.left_trigger > 0)){
-            robot.outtakeModule.isShared = true;
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-        }
-        if (x || b) {
-//            if (x) {
-//                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
-//            }
-//            if (b) {
-//                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
-//            }
-
-            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
-
             robot.outtakeModule.capping = false;
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_RIGHT;
+        }else if(yGamepad2.isSelected(gamepad2.y || gamepad2.dpad_down)){
+            robot.outtakeModule.isShared = false;
+            robot.outtakeModule.capping = false;
+            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.STRAIGHT;
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+        }else if(gamepad2.left_trigger != 0){
+            robot.outtakeModule.isShared = true;
+            robot.outtakeModule.extendSharedLinkage = true;
+            if(robot.outtakeModule.targetTurret != OuttakeModule.TurretPosition.STRAIGHT) {
+                robot.outtakeModule.lastTurretPosition = robot.outtakeModule.targetTurret;
+            }
+            if(robot.outtakeModule.lastTurretPosition == OuttakeModule.TurretPosition.SHARED_LEFT){
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
+            }else if(robot.outtakeModule.lastTurretPosition == OuttakeModule.TurretPosition.SHARED_RIGHT){
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
+            }
+        }else{
+            robot.outtakeModule.extendSharedLinkage = false;
+            robot.outtakeModule.targetTurret = robot.outtakeModule.lastTurretPosition;
         }
+//        if (x || b) {
+////            if (x) {
+////                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
+////            }
+////            if (b) {
+////                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
+////            }
+//
+//            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
+//                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+//
+//            robot.outtakeModule.capping = false;
+//            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+//        }
 
         if (yButton.isSelected(y)) {
             if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.EXTEND) {
@@ -144,10 +159,14 @@ public class TeleOp extends LinearOpMode {
                     robot.outtakeModule.capping = false;
                     robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
                     robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+                    robot.outtakeModule.isPickupCap = true;
                     break;
                 case EXTEND:
                     if (!robot.outtakeModule.capping) {
+                        robot.outtakeModule.isPickupCap = false;
                         robot.outtakeModule.capping = true;
+                        robot.outtakeModule.isShared = false;
+                        robot.outtakeModule.extendSharedLinkage = false;
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
                     } else {
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
@@ -158,11 +177,11 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCarouselStates() {
-        if (gamepad2.right_trigger > 0.01) {
+        if (gamepad2.right_stick_x > 0) {
             robot.carouselModule.clockwise = true;
-        } else if (gamepad2.left_trigger > 0.01) {
+        } else if (gamepad2.right_stick_x < 0) {
             robot.carouselModule.clockwise = false;
         }
-        robot.carouselModule.spin = gamepad2.left_trigger > 0.01 || gamepad2.right_trigger > 0.01;
+        robot.carouselModule.spin = gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0;
     }
 }

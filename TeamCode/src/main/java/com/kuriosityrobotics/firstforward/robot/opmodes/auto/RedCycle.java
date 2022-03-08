@@ -134,10 +134,11 @@ public class RedCycle extends LinearOpMode {
                 AutoPaths.wallRidePath(robot, backToWobble);
             }
 
-            if (!sawFirst) {
+            if (sawFirst) {
                 AutoPaths.waitForVuforia(robot, this, 400, new Pose(0.25, 0, 0));
-            } else {
                 robot.sensorThread.resetPose(robot.sensorThread.getPose().add(new Pose(0.2, 0, 0)));
+            } else {
+                sleep(150);
             }
         }
 
