@@ -78,8 +78,8 @@ public class AutoPaths {
 
             Pose currPose = robot.sensorThread.getPose();
 
-            if (Math.abs(currPose.y - 48) < 1) {
-                robot.sensorThread.resetPose(new Pose(6.5, currPose.y, Math.toRadians(180)));
+            if (Math.abs(currPose.y - 49) < 1) {
+                robot.sensorThread.resetPose(new Pose(7.25, currPose.y, Math.toRadians(180)));
             }
 
             if (!callAgain) {
