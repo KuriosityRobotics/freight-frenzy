@@ -23,6 +23,8 @@ public class RedCycle extends LinearOpMode {
     public static final Pose FIRST_WOBBLE = new Pose(26, 70, Math.toRadians(-115));
 
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
+    public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
+
 
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
@@ -62,8 +64,16 @@ public class RedCycle extends LinearOpMode {
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
 
+        PurePursuit wobbleToWarehouseOdometryOnly = new PurePursuit(new WayPoint[]{
+                new WayPoint(RED_WOBBLE_W, new VelocityLock(25, true)),
+                new WayPoint(RED_WOBBLE_WALL_POINT, new VelocityLock(25, true)),
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
+        }, 4);
+
         ArrayList<Action> exitActions = new ArrayList<>();
-        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
+//        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
         exitActions.add(robot.intakeModule.intakePowerAction(0));
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(redWarehouse),
@@ -88,7 +98,7 @@ public class RedCycle extends LinearOpMode {
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);
             } else {
-                AutoPaths.wallRidePath(robot, wobbleToWarehouse);
+                AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
             }
 
             Pose intakeVary;

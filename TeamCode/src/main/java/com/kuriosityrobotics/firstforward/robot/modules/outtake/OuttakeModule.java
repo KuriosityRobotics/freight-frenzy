@@ -48,8 +48,8 @@ public class OuttakeModule implements Module, Telemeter {
         STRAIGHT(.482746),
         RIGHT(.78988),
         LEFT(.186781),
-        SHARED_RIGHT(0.62),
-        SHARED_LEFT(0.356),
+        SHARED_RIGHT(0.55),
+        SHARED_LEFT(0.426),
         ALLIANCE_LOCK(0.5);
 
         private final double position;
@@ -221,7 +221,7 @@ public class OuttakeModule implements Module, Telemeter {
                         linkage.setPosition(LINKAGE_PARTIAL_EXTEND);
                         pivot.setPosition(PIVOT_OUT);
                     }else if(isShared){
-                        linkage.setPosition(LINKAGE_SHARED_EXTEND);
+                        linkage.setPosition(LINKAGE_PARTIAL_EXTEND);
                         pivot.setPosition(PIVOT_UP);
                     }else {
                         linkage.setPosition(LINKAGE_EXTENDED);
@@ -261,8 +261,8 @@ public class OuttakeModule implements Module, Telemeter {
 
         if (currentState == EXTEND && atTargetState()) {
             if(isShared){
+                linkage.setPosition(LINKAGE_IN);
                 pivot.setPosition(PIVOT_OUT);
-                linkage.setPosition(LINKAGE_SHARED_EXTEND);
             }
             double targetTurretServoPosition = targetTurret.position;
 

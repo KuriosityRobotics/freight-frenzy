@@ -66,6 +66,8 @@ public class TeleOp extends LinearOpMode {
     Button xGamepad2 = new Button();
     Button yGamepad2 = new Button();
     Button bGamepad2 = new Button();
+    Button lTriggerGamepad2 = new Button();
+
     private void updateOuttakeStates() {
         if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
@@ -102,6 +104,9 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
         }else if(yGamepad2.isSelected(gamepad2.y)){
             robot.outtakeModule.isShared = false;
+            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+        }else if(lTriggerGamepad2.isSelected(gamepad2.left_trigger > 0)){
+            robot.outtakeModule.isShared = true;
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
         }
         if (x || b) {
