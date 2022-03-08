@@ -13,7 +13,6 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
-import com.kuriosityrobotics.firstforward.robot.util.PID.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.PID.FeedForwardPID;
 import com.qualcomm.robotcore.util.Range;
 
@@ -23,7 +22,7 @@ import java.util.HashMap;
 public class PurePursuit implements Telemeter {
     // constants
     private static final double STOP_THRESHOLD = 3;
-    private static final double ANGLE_THRESHOLD = Math.toRadians(5);
+    private final double angleThreshold;
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 
@@ -38,7 +37,7 @@ public class PurePursuit implements Telemeter {
 //    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
     private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.026, 0.0000, 0);
-    private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
+    private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(20));
 //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 
@@ -50,15 +49,20 @@ public class PurePursuit implements Telemeter {
     private boolean pathEnding;
     private boolean started = false;
 
-    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double angleThreshold) {
         this.path = path;
         this.followRadius = followRadius;
 
         this.profile = new MotionProfile(path);
 
         this.backwards = backwards;
+        this.angleThreshold = angleThreshold;
 
         this.reset();
+    }
+
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
+        this(path, backwards, followRadius, Math.toRadians(5));
     }
 
     public PurePursuit(WayPoint[] path, double followRadius) {
@@ -283,7 +287,7 @@ public class PurePursuit implements Telemeter {
         AngleLock lastAngle = profile.getLastAngleLock();
 
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
-                || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
+                || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= angleThreshold && locationProvider.getVelocity().heading < Math.toRadians(1.5));
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1);
 
         Log.v("PP", "loc: " + locationProvider.getPose().toDegrees());

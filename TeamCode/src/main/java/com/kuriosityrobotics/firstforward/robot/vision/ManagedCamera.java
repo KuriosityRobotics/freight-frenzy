@@ -11,6 +11,9 @@ import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.FocusControl;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.WhiteBalanceControl;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -62,6 +65,12 @@ public final class ManagedCamera {
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
             vuforiaConsumer.setup(vuforia);
+         /*   var exposureControl = vuforia.getCamera().getControl(WhiteBalanceControl.class);
+
+            vuforia.getCamera().getControl(ExposureControl.class).setMode(ExposureControl.Mode.Manual);
+            exposureControl.setMode(WhiteBalanceControl.Mode.MANUAL);
+            exposureControl.setWhiteBalanceTemperature(4500);*/
+            vuforia.getCamera().getControl(FocusControl.class).setMode(FocusControl.Mode.Infinity);
             openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
         } else {
