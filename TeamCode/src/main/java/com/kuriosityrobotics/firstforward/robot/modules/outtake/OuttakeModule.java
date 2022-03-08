@@ -5,6 +5,7 @@ import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeMo
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HUBS;
 import static java.lang.Math.abs;
+import static java.lang.Math.round;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -39,9 +40,15 @@ public class OuttakeModule implements Module, Telemeter {
     private static final double PIVOT_OUT = .993,
             PIVOT_UP = 0.5,
             PIVOT_IN = .0060539,
+            PIVOT_CAP_PICKUP = 0.9575,
             PIVOT_CAP = 0.816;
 
+    public boolean extendSharedLinkage = false;
+    public boolean isPickupCap = false;
+
     private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
+
+    public TurretPosition lastTurretPosition = TurretPosition.STRAIGHT;
 
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
@@ -50,6 +57,8 @@ public class OuttakeModule implements Module, Telemeter {
         LEFT(.186781),
         SHARED_RIGHT(0.55),
         SHARED_LEFT(0.426),
+        SHARED_RIGHT_MORE_EXTREME_ANGLE(0.65),
+        SHARED_LEFT_MORE_EXTREME_ANGLE(0.326),
         ALLIANCE_LOCK(0.5);
 
         private final double position;
@@ -261,8 +270,13 @@ public class OuttakeModule implements Module, Telemeter {
 
         if (currentState == EXTEND && atTargetState()) {
             if(isShared){
-                linkage.setPosition(LINKAGE_IN);
-                pivot.setPosition(PIVOT_OUT);
+                if(extendSharedLinkage){
+                    linkage.setPosition(LINKAGE_EXTENDED);
+                    pivot.setPosition(PIVOT_OUT);
+                }else{
+                    linkage.setPosition(LINKAGE_IN);
+                    pivot.setPosition(PIVOT_OUT);
+                }
             }
             double targetTurretServoPosition = targetTurret.position;
 
@@ -286,6 +300,8 @@ public class OuttakeModule implements Module, Telemeter {
 
             if (capping) {
                 pivot.setPosition(PIVOT_CAP);
+            } else if(isPickupCap) {
+                pivot.setPosition(PIVOT_CAP_PICKUP);
             } else {
                 pivot.setPosition(PIVOT_OUT);
             }
@@ -338,6 +354,8 @@ public class OuttakeModule implements Module, Telemeter {
             add("Turret: " + targetTurret.name());
             add("isShared: " + isShared);
             add("pivot postiong: " + pivot.getPosition());
+            add("last turret position: " + lastTurretPosition.position);
+            add("capping: " + capping);
 //            add("--");
 //            add("current slide:  " + slide.getCurrentPosition());
         }};
