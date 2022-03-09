@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import static org.apache.commons.math3.analysis.FunctionUtils.add;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -9,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
@@ -94,5 +97,16 @@ public class Drivetrain implements Module, Telemeter {
         data.add("Stall Status: " + stallDetector.isStalled());
 
         return data;
+    }
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        return new HashMap<>() {{
+            put("m1", drivetrainModule.m1);
+            put("m2", drivetrainModule.m2);
+            put("m3", drivetrainModule.m3);
+            put("m4", drivetrainModule.m4);
+
+        }};
     }
 }

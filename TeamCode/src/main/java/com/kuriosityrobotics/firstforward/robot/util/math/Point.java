@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import static java.lang.Math.hypot;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -20,7 +22,7 @@ public class Point {
     }
 
     public double distance(Point other) {
-        return Math.hypot(other.x - x, other.y - y);
+        return hypot(other.x - x, other.y - y);
     }
 
     public Point nearestPoint(ArrayList<Point> points){
@@ -100,6 +102,10 @@ public class Point {
 
     public Point add(Point point) {
         return new Point(this.x + point.x, this.y + point.y);
+    }
+
+    public double magnitude() {
+        return hypot(x, y);
     }
 }
 

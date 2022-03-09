@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 class DrivetrainModule implements Module, Telemeter {
     //states
-    private double xMov, yMov, turnMov;
+    public double xMov, yMov, turnMov, m1, m2, m3, m4;
 
     //motors
     private final DcMotor fLeft;
@@ -49,6 +49,11 @@ class DrivetrainModule implements Module, Telemeter {
         fRPower *= scale;
         bLPower *= scale;
         bRPower *= scale;
+
+        m1 = fLPower;
+        m2 = fRPower;
+        m3 = bLPower;
+        m4 = bRPower;
 
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
     }

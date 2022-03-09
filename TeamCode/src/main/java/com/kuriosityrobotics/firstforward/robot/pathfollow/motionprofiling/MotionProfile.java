@@ -4,9 +4,11 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleW
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.qualcomm.robotcore.util.Range;
 
@@ -18,10 +20,11 @@ import java.util.Collections;
 import java.util.ListIterator;
 import java.util.Map;
 
-public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 65;
-    public static final double ROBOT_MAX_ACCEL = 95;
-    public static final double ROBOT_MAX_DECCEL = 45;
+@Config
+public class MotionProfile extends RollingVelocityCalculator {
+    public static double ROBOT_MAX_VEL = 65;
+    public static double ROBOT_MAX_ACCEL = 95;
+    public static double ROBOT_MAX_DECCEL = 45;
 
     private final double maxVel, maxAccel, maxDeccel;
 
@@ -119,6 +122,7 @@ public class MotionProfile {
             if (currentVel == nextVel) {
                 profile.add(new MotionSegment(currentVel, currentDist, nextVel, nextDistAlongPath));
             } else {
+                interpolateTargetAngleLock(checkpoint.getValue().pathIndex, currentDist);
                 double accel = (nextVel > currentVel) ? maxAccel : -maxDeccel;
                 double distanceNeeded = (Math.pow(nextVel, 2) - Math.pow(currentVel, 2)) / (2 * accel);
 
@@ -204,10 +208,12 @@ public class MotionProfile {
             dist += start.distance(end);
 
             if (end.getVelocityLock().targetVelocity) {
+                end.getVelocityLock().pathIndex = i;
                 velocityCheckPoints.put(dist, end.getVelocityLock());
             } else if (i == path.length - 2) {
                 // if this is the last segment and there's no lock specified
                 // assume we carry on the last lock given
+                velocityCheckPoints.get(velocityCheckPoints.lastKey()).pathIndex = i;
                 velocityCheckPoints.put(dist, velocityCheckPoints.get(velocityCheckPoints.lastKey()));
             }
         }
@@ -219,6 +225,7 @@ public class MotionProfile {
         double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
         for (MotionSegment segment : velocityProfile) {
             if (distAlongPath >= segment.startDistanceAlongPath && distAlongPath <= segment.endDistanceAlongPath) {
+
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
@@ -226,9 +233,13 @@ public class MotionProfile {
     }
 
     public AngleLock interpolateTargetAngleLock(int pathIndex, Point clippedPosition) {
-        // the last passed lock command
-        double distAlongPath = distanceAlongPath(pathIndex, clippedPosition);
+        return interpolateTargetAngleLock(
+                pathIndex,distanceAlongPath(pathIndex, clippedPosition)
 
+        );
+    }
+
+        public AngleLock interpolateTargetAngleLock(int pathIndex, double distAlongPath) {
         // find the last passed profile and the next
         OrderedMapIterator<Double, AngleLock> i = angleLockProfile.mapIterator();
         double lastDist = i.next();

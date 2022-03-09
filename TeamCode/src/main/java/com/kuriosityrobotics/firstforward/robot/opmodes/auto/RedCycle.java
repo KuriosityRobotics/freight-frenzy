@@ -60,7 +60,7 @@ public class RedCycle extends LinearOpMode {
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
-                new WayPoint(RED_WOBBLE_W, new VelocityLock(10, false)),
+                new WayPoint(RED_WOBBLE_W, new VelocityLock(10, true)),
                 new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(20, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)

@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
+import static java.lang.Double.NaN;
+
 import androidx.annotation.NonNull;
 
 public class AngleLock {
@@ -11,6 +13,7 @@ public class AngleLock {
 
     public final AngleLockType type;
     public final double heading;
+    public double error = NaN;
 
     public AngleLock(AngleLockType type, double heading) {
         this.type = type;

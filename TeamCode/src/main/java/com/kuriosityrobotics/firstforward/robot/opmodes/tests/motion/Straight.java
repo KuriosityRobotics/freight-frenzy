@@ -8,7 +8,6 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class Straight extends LinearOpMode {
     public void runOpMode() {

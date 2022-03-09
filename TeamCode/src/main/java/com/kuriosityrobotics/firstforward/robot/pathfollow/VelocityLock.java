@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.pathfollow;
 import androidx.annotation.NonNull;
 
 public class VelocityLock {
+    public int pathIndex = -1;
     public final boolean targetVelocity;
     public final double velocity;
     public final boolean allowAccel;

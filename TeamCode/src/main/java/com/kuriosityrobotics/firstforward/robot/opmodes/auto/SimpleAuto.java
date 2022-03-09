@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
 
-@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleAuto extends LinearOpMode {
     private static final Pose START = new Pose((11.5 / 2), 71, Math.toRadians(180));
@@ -30,13 +29,16 @@ public class SimpleAuto extends LinearOpMode {
 
         PurePursuit park = new PurePursuit(new WayPoint[]{
                 new WayPoint(START),
-                new WayPoint(PARK, 0, new ArrayList<>())
+                new WayPoint(PARK, 0, new ArrayList<>()),
+                new WayPoint(START),
         }, 5);
 
         waitForStart();
 
         // go to carousel
-        robot.followPath(park);
+        while(!isStopRequested()) {
+            robot.followPath(park);
+        }
 //        long startTime = SystemClock.elapsedRealtime();
 //        while (SystemClock.elapsedRealtime() < startTime + 1500) {
 //            robot.drivetrain.setMovements(0, 0.5, 0);
