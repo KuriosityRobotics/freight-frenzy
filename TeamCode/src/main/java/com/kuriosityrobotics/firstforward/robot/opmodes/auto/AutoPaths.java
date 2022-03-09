@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -20,6 +21,8 @@ public class AutoPaths {
                 new WayPoint(robot.getPose(), INTAKE_VELO),
                 new WayPoint(end, new VelocityLock(0))
         }, 4);
+
+        Log.v("auto", "start: " + robot.getPose() + " end: " + end);
 
         robot.intakeModule.intakePower = 1;
         robot.intakeModule.newMineral = false;
@@ -82,6 +85,22 @@ public class AutoPaths {
 
             if (!callAgain) {
                 return;
+            }
+        }
+    }
+
+    public static void wallRideOdo(Robot robot, Point end, boolean backwards) {
+        while (robot.running()) {
+            Pose currPose = robot.getPose();
+
+            if (currPose.distance(end) < 5) {
+                return;
+            }
+
+            robot.drivetrain.setMovements(0.15, backwards ? -0.5 : 0.5, 0);
+
+            if (Math.abs(currPose.y - 49) < 1) {
+                robot.sensorThread.resetPose(new Pose(7.25, currPose.y, Math.toRadians(180)));
             }
         }
     }

@@ -141,24 +141,15 @@ public class PurePursuit implements Telemeter {
         double targetVelocity = profile.interpolateTargetVelocity(closestIndex, clipped);
         AngleLock targetAngleLock = profile.interpolateTargetAngleLock(closestIndex, clipped);
 
-        Log.v("MP", "curr: " + robotPose);
-        Log.v("MP", "targ: " + target);
-        Log.v("MP", "targvel: " + targetVelocity);
-
         double headingToPoint = robotPose.relativeHeadingToPoint(target);
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
-
-        Log.v("MP", "Head: " +headingToPoint);
 
         double veloMag = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         double veloHeading = Math.atan2(robotVelo.x, robotVelo.y);
         double alpha = veloHeading - robotPose.heading;
         double currXVelo = veloMag * Math.sin(alpha);
         double currYVelo = veloMag * Math.cos(alpha);
-
-        Log.v("MP", "targX: " + targetXVelo + " targY: " + targetYVelo);
-        Log.v("MP", "currX: " + currXVelo + " currY: " + currYVelo);
 
         double xPow = xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo));
         double yPow = yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo));
@@ -199,8 +190,6 @@ public class PurePursuit implements Telemeter {
 //        if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK) {
 //            angPow *= 0.6; // idk? it's less important??
 //        }
-
-        Log.v("MP", "xf: " + xPow + " yF: " + yPow + " af: " + angPow);
 
         drivetrain.setMovements(xPow, yPow, angPow);
 

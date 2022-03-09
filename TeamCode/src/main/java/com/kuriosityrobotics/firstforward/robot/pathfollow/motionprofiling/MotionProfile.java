@@ -1,9 +1,11 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.opmodes.tests.motion.MaxVelo;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -93,6 +95,8 @@ public class MotionProfile {
         LinkedMap<Double, VelocityLock> velocityCheckPoints = generateVelocityCheckpoints(path);
         ArrayList<MotionSegment> profile = new ArrayList<>();
 
+        Log.v("MP", "checkpts: " + velocityCheckPoints.toString());
+
         // start from the back and generate forwards to make sure we can end where we want to
         // this means our profile will be backwards, we'll flip at end
         // though technically currently order doesn't matter
@@ -127,8 +131,8 @@ public class MotionProfile {
 
                     double actualVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * accel * distanceNeeded));
 
-                    profile.add(new MotionSegment(currentDist, actualVel,
-                            nextDistAlongPath, nextVel));
+                    profile.add(new MotionSegment(actualVel, currentDist,
+                            nextVel, nextDistAlongPath));
 
                     checkpoint.setValue(new VelocityLock(actualVel, checkpoint.getValue().allowAccel));
                 } else {
@@ -222,6 +226,8 @@ public class MotionProfile {
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
+        Log.v("MP", "distalong: " + distAlongPath);
+        Log.v("MP", "profile: " + velocityProfile.toString());
         throw new Error("Trying to interpolate to a distance outside of generated profile!");
     }
 

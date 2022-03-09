@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot;
 
-import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
@@ -10,7 +9,7 @@ import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.util.function.Supplier;
 
-public abstract class LocationProvider extends RollingVelocityCalculator {
+public abstract class LocationProvider {
     public abstract Pose getPose();
     public abstract Pose getVelocity();
 
