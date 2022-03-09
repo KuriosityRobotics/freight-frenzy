@@ -98,15 +98,4 @@ public class Drivetrain implements Module, Telemeter {
 
         return data;
     }
-
-    @Override
-    public HashMap<String, Object> getDashboardData() {
-        return new HashMap<>() {{
-            put("m1", drivetrainModule.m1);
-            put("m2", drivetrainModule.m2);
-            put("m3", drivetrainModule.m3);
-            put("m4", drivetrainModule.m4);
-
-        }};
-    }
 }

@@ -30,7 +30,6 @@ public class AutoPaths {
             if (robot.intakeModule.newMineral) {
                 robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
                 robot.intakeModule.intakePower = 0;
-                Log.v("auto", "LEAVING!: " + robot.intakeModule.newMineral + " time?? " + (SystemClock.elapsedRealtime() - start >= killswitchMillis));
 
                 robot.intakeModule.newMineral = false;
                 break;
@@ -40,7 +39,6 @@ public class AutoPaths {
                 path.update(robot, robot.drivetrain);
             }
         }
-        Log.v("auto", "DONE!");
         robot.drivetrain.setMovements(0, 0, 0);
     }
 

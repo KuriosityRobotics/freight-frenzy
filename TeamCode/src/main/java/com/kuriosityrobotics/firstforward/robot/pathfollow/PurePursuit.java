@@ -32,8 +32,8 @@ public class PurePursuit implements Telemeter {
     private final boolean backwards;
     private final double followRadius;
 
-    public static double yF = .016, yP = 0.001, yI = 0, yD = 0,
-    xF = 0.019, xP = 0.001, xI = 0, xD = 0;
+    public static double yF = .0135, yP = 0.01, yI = 0, yD = 0,
+    xF = 0.027, xP = 0.026, xI = 0, xD = 0;
 
     // motion magic
     private MotionProfile profile;
