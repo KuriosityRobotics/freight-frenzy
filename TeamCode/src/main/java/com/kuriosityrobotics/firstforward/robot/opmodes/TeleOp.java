@@ -99,14 +99,17 @@ public class TeleOp extends LinearOpMode {
         if(xGamepad2.isSelected(gamepad2.x)){
             robot.outtakeModule.isShared = true;
             robot.outtakeModule.capping = false;
+            robot.outtakeModule.isCapPivotDrop = false;
             robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_LEFT;
         }else if(bGamepad2.isSelected(gamepad2.b)){
             robot.outtakeModule.isShared = true;
             robot.outtakeModule.capping = false;
+            robot.outtakeModule.isCapPivotDrop = false;
             robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_RIGHT;
         }else if(yGamepad2.isSelected(gamepad2.y || gamepad2.dpad_down)){
             robot.outtakeModule.isShared = false;
             robot.outtakeModule.capping = false;
+            robot.outtakeModule.isCapPivotDrop = false;
             robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.STRAIGHT;
             robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
         }else if(gamepad2.left_trigger != 0){
@@ -157,6 +160,7 @@ public class TeleOp extends LinearOpMode {
             switch (robot.outtakeModule.targetState) {
                 case COLLAPSE:
                     robot.outtakeModule.capping = false;
+                    robot.outtakeModule.isCapPivotDrop = false;
                     robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
                     robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
                     robot.outtakeModule.isPickupCap = true;
@@ -165,11 +169,14 @@ public class TeleOp extends LinearOpMode {
                     if (!robot.outtakeModule.capping) {
                         robot.outtakeModule.isPickupCap = false;
                         robot.outtakeModule.capping = true;
+                        robot.outtakeModule.isCapPivotDrop = false;
                         robot.outtakeModule.isShared = false;
                         robot.outtakeModule.extendSharedLinkage = false;
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
                     } else {
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
+                        robot.outtakeModule.isPickupCap = false;
+                        robot.outtakeModule.isCapPivotDrop = true;
                     }
                     break;
             }

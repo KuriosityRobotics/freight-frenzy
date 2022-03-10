@@ -26,8 +26,9 @@ public class OuttakeModule implements Module, Telemeter {
 
     //time constants
     public boolean isShared = false;
-    private static final long EXTEND_TIME = 150;
-    private static final long DUMP_TIME = 150;
+    public boolean isCapPivotDrop = false;
+    private static final long EXTEND_TIME = 200;
+    private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = 0.85465,
@@ -70,7 +71,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     public enum VerticalSlideLevel {
         CAP(-1400),
-        CAP_DROP(-1035),
+        CAP_DROP(-1200),
         TOP_TOP(-1200),
         TOP(-1000),
         MID(-427),
@@ -298,7 +299,7 @@ public class OuttakeModule implements Module, Telemeter {
 
             turret.setPosition(targetTurretServoPosition);
 
-            if (capping) {
+            if (capping && !isCapPivotDrop) {
                 pivot.setPosition(PIVOT_CAP);
             } else if(isPickupCap) {
                 pivot.setPosition(PIVOT_CAP_PICKUP);
@@ -306,7 +307,8 @@ public class OuttakeModule implements Module, Telemeter {
                 pivot.setPosition(PIVOT_OUT);
             }
 
-            if (targetSlideLevel == VerticalSlideLevel.CAP_DROP && capping) {
+            if (isCapPivotDrop && targetSlideLevel == VerticalSlideLevel.CAP_DROP && capping) {
+                pivot.setPosition(PIVOT_OUT);
                 clamp.setPosition(CLAMP_RELEASE);
             } else {
                 clamp.setPosition(CLAMP_CLAMP);
