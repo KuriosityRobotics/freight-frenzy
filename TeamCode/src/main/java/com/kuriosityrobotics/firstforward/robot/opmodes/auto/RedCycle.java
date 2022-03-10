@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class RedCycle extends LinearOpMode {
 
     public static final Pose RED_START_W = new Pose(9.5, 64.5, Math.toRadians(-90)); //start near warehouse
-    public static final Pose FIRST_WOBBLE = new Pose(26, 70, Math.toRadians(-115));
+    public static final Pose FIRST_WOBBLE = new Pose(24, 73, Math.toRadians(-110));
 
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
@@ -47,8 +47,8 @@ public class RedCycle extends LinearOpMode {
 
         waitForStart();
 
-        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
-
+//        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
+        OuttakeModule.VerticalSlideLevel detection = OuttakeModule.VerticalSlideLevel.MID;
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
@@ -58,8 +58,9 @@ public class RedCycle extends LinearOpMode {
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
-                new WayPoint(RED_WOBBLE_W, new VelocityLock(10, false)),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(20, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(RED_WOBBLE_W, new VelocityLock(15, false)),
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(21
+                        , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
@@ -73,7 +74,7 @@ public class RedCycle extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
-//        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
+        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
         exitActions.add(robot.intakeModule.intakePowerAction(0));
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(redWarehouse),
@@ -85,10 +86,12 @@ public class RedCycle extends LinearOpMode {
         robot.followPath(redStartwToWobble);
 
         long startSleep = SystemClock.elapsedRealtime();
+//        AutoPaths.waitForVuforia(robot, this, 1250, new Pose(0.25, 0, 0));
+
         if (detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
-            sleep(1750);
+            sleep(500);
         } else {
-            sleep(1250);
+            sleep(500);
         }
         assert robot.visionThread.vuforiaLocalizationConsumer != null;
         boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
@@ -102,12 +105,10 @@ public class RedCycle extends LinearOpMode {
             }
 
             Pose intakeVary;
-            if (i % 2 == 1) {
-                intakeVary = new Pose(2, -4, Math.toRadians(-20));
-            } else {
-                intakeVary = new Pose(0, -8, 0);
-            }
-            AutoPaths.intakePath(robot, redWarehouse.add(intakeVary), 3000);
+
+            intakeVary = new Pose(1.5*i, -4, Math.toRadians(-18));
+
+            AutoPaths.intakePath(robot, redWarehouse.add(intakeVary), 4500);
 
 //            if (redWarehouse.y > 7.5)
             if (i % 2 == 1) {
@@ -117,8 +118,9 @@ public class RedCycle extends LinearOpMode {
             if (sawFirst) {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
-                        new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WALL_GAP, new VelocityLock(42, false)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_EXIT_WALLGAP.x+7,RED_EXIT_WALLGAP.y+2),
                         new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
 
@@ -126,8 +128,9 @@ public class RedCycle extends LinearOpMode {
             } else {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
-                        new WayPoint(RED_WALL_GAP.add(new Pose(-1.5, 0, 0))),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WALL_GAP.add(new Pose(-1.5, 0, 0)),  new VelocityLock(40, true)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(RED_EXIT_WALLGAP.add(new Pose(-1.5, 0, 0)), exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_EXIT_WALLGAP.x+7,RED_EXIT_WALLGAP.y+2),
                         new WayPoint(RED_WOBBLE_W.add(new Pose(-1.5, 0, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
 
@@ -135,7 +138,7 @@ public class RedCycle extends LinearOpMode {
             }
 
             if (sawFirst) {
-                AutoPaths.waitForVuforia(robot, this, 400, new Pose(0.25, 0, 0));
+                AutoPaths.waitForVuforia(robot, this, 250, new Pose(0, 0, 0));
             } else {
                 sleep(150);
             }

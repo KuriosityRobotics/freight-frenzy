@@ -26,8 +26,8 @@ public class OuttakeModule implements Module, Telemeter {
 
     //time constants
     public boolean isShared = false;
-    private static final long EXTEND_TIME = 300;
-    private static final long DUMP_TIME = 300;
+    private static final long EXTEND_TIME = 150;
+    private static final long DUMP_TIME = 150;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = 0.85465,
@@ -72,8 +72,8 @@ public class OuttakeModule implements Module, Telemeter {
         CAP(-1400),
         CAP_DROP(-1035),
         TOP_TOP(-1200),
-        TOP(-950),
-        MID(-400),
+        TOP(-1000),
+        MID(-427),
         SHARED(-200),
         DOWN(-2),
         DOWN_NO_EXTEND(-2);
