@@ -12,7 +12,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
-    public static final double INTAKE_VELO = 10;
+    public static final double INTAKE_VELO = 15;
     public static final long VUF_DELAY = 150;
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {

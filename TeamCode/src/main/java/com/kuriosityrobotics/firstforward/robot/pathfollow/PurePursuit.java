@@ -23,7 +23,7 @@ import java.util.HashMap;
 public class PurePursuit implements Telemeter {
     // constants
     private static final double STOP_THRESHOLD = 3;
-    private static final double ANGLE_THRESHOLD = Math.toRadians(5);
+    private static final double ANGLE_THRESHOLD = Math.toRadians(7);
 
     private final WayPoint[] path; // each pair of waypoints (e.g. 0 & 1, 1 & 2) is a segment of the path
 

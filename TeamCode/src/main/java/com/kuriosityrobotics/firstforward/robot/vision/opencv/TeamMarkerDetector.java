@@ -21,7 +21,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     }
 
     public TeamMarkerLocation getLocation() {
-        return location == null ? TeamMarkerLocation.LEVEL_3 : location;
+        return location == null ? TeamMarkerLocation.UNKNOWN : location;
     }
 
     private boolean active = true;
@@ -91,6 +91,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     }
 
     public enum TeamMarkerLocation {
+        UNKNOWN,
         LEVEL_1,
         LEVEL_2,
         LEVEL_3;
@@ -102,6 +103,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
                 case LEVEL_2:
                     return OuttakeModule.VerticalSlideLevel.MID;
                 case LEVEL_3:
+                    return OuttakeModule.VerticalSlideLevel.TOP;
+                case UNKNOWN:
                     return OuttakeModule.VerticalSlideLevel.TOP;
             }
             return OuttakeModule.VerticalSlideLevel.MID;
