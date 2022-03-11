@@ -127,8 +127,8 @@ public class MotionProfile {
 
                     double actualVel = Math.sqrt(Math.pow(currentVel, 2) + (2 * accel * distanceNeeded));
 
-                    profile.add(new MotionSegment(currentDist, actualVel,
-                            nextDistAlongPath, nextVel));
+                    profile.add(new MotionSegment(actualVel, currentDist,
+                            nextVel, nextDistAlongPath));
 
                     checkpoint.setValue(new VelocityLock(actualVel, checkpoint.getValue().allowAccel));
                 } else {
@@ -222,6 +222,8 @@ public class MotionProfile {
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
+        // these logs are important so that when we get a runtime error we know wtf happenin
+        Log.v("MP", "profile: " + velocityProfile.toString());
         throw new Error(String.format("Trying to interpolate to a distance outside of generated profile:  %nclipped point %s, dist %s, index %s", clippedPosition, distAlongPath, pathIndex));
     }
 
