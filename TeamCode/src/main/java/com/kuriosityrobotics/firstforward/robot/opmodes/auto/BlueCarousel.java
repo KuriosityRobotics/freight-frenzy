@@ -1,14 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
-import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -36,7 +34,7 @@ public class BlueCarousel extends LinearOpMode {
         }
 
         Robot.isBlue = true;
-
+        Robot.isCarousel = true;
         robot.resetPose(START);
         robot.carouselModule.clockwise = true;
 
@@ -82,5 +80,7 @@ public class BlueCarousel extends LinearOpMode {
 //        robot.followPath(toWobble);
 //
 //        robot.followPath(toPark);
+
+        Robot.isCarousel = false;
     }
 }
