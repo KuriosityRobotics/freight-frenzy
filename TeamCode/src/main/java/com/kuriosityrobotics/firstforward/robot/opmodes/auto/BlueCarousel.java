@@ -39,7 +39,6 @@ public class BlueCarousel extends LinearOpMode {
 
         robot.resetPose(START);
         robot.carouselModule.clockwise = true;
-        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.BLUE_DUCKS;
 
         waitForStart();
 

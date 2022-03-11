@@ -38,7 +38,6 @@ public class RedCarousel extends LinearOpMode {
 
         robot.resetPose(START);
         robot.carouselModule.clockwise = false;
-        TeamMarkerDetector.startLocation = TeamMarkerDetector.AutoStartLocation.RED_CYCLE;
 
         waitForStart();
 

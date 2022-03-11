@@ -19,7 +19,7 @@ public class OpenCVDumper implements OpenCvConsumer {
     private long lastCaptureTime;
 
     @Override
-    public void processFrame(Mat frame) {
+    public void processFrame(double _cameraAngle, Mat frame) {
         if (!Robot.DEBUG) {
             return;
         }

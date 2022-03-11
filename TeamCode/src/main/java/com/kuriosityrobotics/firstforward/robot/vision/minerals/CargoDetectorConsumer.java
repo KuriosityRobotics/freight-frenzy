@@ -10,7 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -29,11 +29,11 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
     private final AtomicReference<Pair<Mat, Pose>> latestFrame;
     private volatile double lastFrameTime = -1;
 
-    public CargoDetectorConsumer(LocationProvider locationProvider, PhysicalCamera physicalCamera) {
+    public CargoDetectorConsumer(LocationProvider locationProvider) {
         latestFrame = new AtomicReference<>();
 
         this.locationProvider = locationProvider;
-        this.pinholeCamera = physicalCamera.pinholeCamera();
+        this.pinholeCamera = PinholeCamera.create();
     }
 
     public void run() {
@@ -63,15 +63,17 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
             u = (u / 416) * PhysicalCamera.FRAME_WIDTH;
             v = (v / 416) * PhysicalCamera.FRAME_HEIGHT;
 
-            var fieldAbsolutePosition = pinholeCamera.unprojectFramePixelsToRay(u, v);
+            var fieldAbsolutePosition = pinholeCamera.getLocationOnField(Vector3D.of(robotPose.getX(), 0, robotPose.getY()), robotPose.heading + cameraAngle, u, v);
 
             detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getZ()), detection);
         }
 
     }
 
+    private volatile double cameraAngle = 0;
+
     @Override
-    public void processFrame(Mat frame) {
+    public void processFrame(double cameraAngle, Mat frame) {
         //1920x1080
 
         var oldFrame = latestFrame.getAndSet(Pair.create(
@@ -80,12 +82,13 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
 
         if (oldFrame != null)
             oldFrame.first.release();
+        this.cameraAngle = cameraAngle;
 
-        var loc = pinholeCamera.getLocationOnFrame(new Vector3D(35, 0, 50.5));
+/*        var loc = pinholeCamera.getLocationOnFrame(new Vector3D(35, 0, 50.5));
         Imgproc.circle(frame, new org.opencv.core.Point(
                 loc.getX(),
                 loc.getY()
-        ), 4, new Scalar(255, 255, 255));
+        ), 4, new Scalar(255, 255, 255));*/
 
         /*Imgproc.resize(frame, frame, new Size(416, 416));
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
