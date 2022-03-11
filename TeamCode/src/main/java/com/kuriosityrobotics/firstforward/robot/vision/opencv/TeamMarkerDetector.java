@@ -7,6 +7,7 @@ import static java.lang.Math.sin;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.util.Constants;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 
 import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
@@ -62,15 +63,15 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     }*/
 
     private Vector3D[] levelOne(double cameraAngle) {
+        var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel ? 2 * (Constants.Field.TILE_MEAT_MM + Constants.Field.TILE_TAB_MM) : 0) + 3.365f * cos(cameraAngle));
         if (Robot.isBlue) {
             return new Vector3D[]{
-                    Vector3D.of(144 - 36 + 3, 0, 144 - 73.5 + 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle))),
-                    Vector3D.of(144 - 36 + 3, 6.5, 144 - 73.5 - 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle)))
-            };
+                    Vector3D.of(144 - 34.25 - 3, 0, 144 - 73 ).add(offset),
+                    Vector3D.of(144 - 34.25 + 3, 6.5, 144 - 73 - 2.5 - 2.5).add(offset)};
         } else {
             return new Vector3D[]{
-                    Vector3D.of(36 - 3, 0, 144 - 73.5 + 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle))),
-                    Vector3D.of(36 - 3, 6.5, 144 - 73.5 - 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle)))
+                    Vector3D.of(36 - 3, 0, 144 - 73.5 + 2.5 - 2.5).add(offset),
+                    Vector3D.of(36 - 3, 6.5, 144 - 73.5 - 2.5 - 2.5).add(offset)
             };
         }
     }

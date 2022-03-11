@@ -50,7 +50,7 @@ public class Robot extends LocationProvider {
     public final WebcamName camera;
 
     public static boolean isBlue = false;
-
+    public static boolean isCarousel = false;
     public boolean isCamera;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) throws RuntimeException {
