@@ -222,7 +222,7 @@ public class MotionProfile {
                 return segment.interpolateTargetVelocity(distAlongPath);
             }
         }
-        throw new Error("Trying to interpolate to a distance outside of generated profile!");
+        throw new Error(String.format("Trying to interpolate to a distance outside of generated profile:  %nclipped point %s, dist %s, index %s", clippedPosition, distAlongPath, pathIndex));
     }
 
     public AngleLock interpolateTargetAngleLock(int pathIndex, Point clippedPosition) {

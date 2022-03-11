@@ -26,6 +26,10 @@ public class Pose extends Point {
         return new Pose(144 - x, y, -heading);
     }
 
+    public static Pose flippedRelative(double x, double y, double heading) {
+        return new Pose( -x, y, -heading);
+    }
+
     public Pose(Point point, double heading) {
         this(point.x, point.y, heading);
     }
