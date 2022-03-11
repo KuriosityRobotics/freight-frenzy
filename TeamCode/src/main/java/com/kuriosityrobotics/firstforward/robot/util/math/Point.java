@@ -37,6 +37,10 @@ public class Point {
         return nearest;
     }
 
+    public static Point flip(Point point){
+        return new Point(144-point.x,point.y);
+    }
+
     public Point projectToLine(Line line) {
         Point nearest;
         if (line.isVertical()) {

@@ -64,8 +64,9 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     private Vector3D[] levelOne(double cameraAngle) {
         if (Robot.isBlue) {
             return new Vector3D[]{
-                    Vector3D.of(144 - 34.25 - 3, 0, 144 - 73 ).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle))),
-                    Vector3D.of(144 - 34.25 + 3, 6.5, 144 - 73 - 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle)))};
+                    Vector3D.of(144 - 36 + 3, 0, 144 - 73.5 + 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle))),
+                    Vector3D.of(144 - 36 + 3, 6.5, 144 - 73.5 - 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle)))
+            };
         } else {
             return new Vector3D[]{
                     Vector3D.of(36 - 3, 0, 144 - 73.5 + 2.5 - 2.5).add(Vector3D.of(3.365f * sin(cameraAngle), 0, 3.365f * cos(cameraAngle))),
@@ -78,8 +79,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         var levelOne = levelOne(cameraAngle);
         if (Robot.isBlue) {
             return new Vector3D[]{
-                    levelOne[0].add(Vector3D.of(23.5 * 3, 0, -8.35)),
-                    levelOne[1].add(Vector3D.of(23.5 * 3, 0, -8.35))};
+                    levelOne[0].add(Vector3D.of(0, 0, -8.35)),
+                    levelOne[1].add(Vector3D.of(0, 0, -8.35))};
         } else {
             return new Vector3D[]{
                     levelOne[0].add(Vector3D.of(0, 0, -8.35)),
@@ -125,7 +126,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         var p1 = Core.countNonZero(sub1) / ((double) sub1.width() * sub1.height());
         var p2 = Core.countNonZero(sub2) / ((double) sub2.width() * sub2.height());
         var isSub1 = p1 > .4;
-        var isSub2 = p2 > .4;
+        var isSub2 = p2 > (Robot.isBlue ? .2 : .4);
 
         sub1.release();
         sub2.release();
