@@ -3,7 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.modules.carousel;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 class CarouselAction extends Action {
-    private static final long WAIT_TIME_MS = 3000;
+    private static final long WAIT_TIME_MS = 4000;
 
     private final CarouselModule carouselModule;
 
@@ -15,7 +15,7 @@ class CarouselAction extends Action {
     public void tick() {
         super.tick();
 
-        carouselModule.maxSpeed = 0.8 * Math.PI;
+        carouselModule.maxSpeed = 0.55 * Math.PI;
 
         if (this.msSinceStart() >= WAIT_TIME_MS) {
             carouselModule.spin = false;

@@ -42,9 +42,14 @@ public class RedCycle extends LinearOpMode {
             return;
         }
 
+        Robot.isCarousel = false;
+        Robot.isBlue = false;
+
         robot.resetPose(RED_START_W);
 
         waitForStart();
+
+        robot.resetPose(RED_START_W);
 
 //        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
         OuttakeModule.VerticalSlideLevel detection = OuttakeModule.VerticalSlideLevel.TOP;
