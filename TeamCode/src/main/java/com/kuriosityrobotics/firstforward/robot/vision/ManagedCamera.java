@@ -121,9 +121,9 @@ public final class ManagedCamera {
                 Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
                 // !!
                 Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
-//                    Mat matCopy = input.clone();
-                    consumer.processFrame(angleWrap(locationProvider.getPose().heading + vuforiaConsumer.getTargetCameraAngle()), input);
-//                    matCopy.release(); // c++ moment
+                    Mat matCopy = input.clone();
+                    consumer.processFrame(angleWrap(locationProvider.getPose().heading + vuforiaConsumer.getTargetCameraAngle()), matCopy);
+                    matCopy.release(); // c++ moment
                 }));
 
                 // distribute the data
