@@ -48,6 +48,7 @@ public class IntakeModule implements Module, Telemeter {
     private IntakePosition transitionTo;
     private long transitionTime;
     private boolean wasDoneTransitioning;
+    public boolean retracted = false;
 
     private boolean hasMineral;
 

@@ -24,7 +24,6 @@ final class Braking {
 
     Pose getBrakeMovement(Pose currentPose, Pose velocity) {
         // we stop braking when the velocity is low (brake is a synonym for 'stop')
-        // TODO:  tune this constant
         if (Math.hypot(velocity.x, velocity.y) < 1 && velocity.heading < Math.PI / 12) {
             if (isBraking())
                 stopBraking();
