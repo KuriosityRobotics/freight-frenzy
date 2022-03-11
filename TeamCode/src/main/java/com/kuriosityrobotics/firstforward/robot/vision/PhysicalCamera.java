@@ -73,17 +73,4 @@ public abstract class PhysicalCamera {
     public static RobotCamera of(Robot robot) {
         return new RobotCamera(robot);
     }
-
-    public PinholeCamera pinholeCamera() {
-        return new PinholeCamera(
-                PhysicalCamera.FOCAL_LENGTH_X,
-                PhysicalCamera.FOCAL_LENGTH_Y,
-                PhysicalCamera.O_X,
-                PhysicalCamera.O_Y,
-                PhysicalCamera.FRAME_WIDTH,
-                PhysicalCamera.FRAME_HEIGHT,
-                PhysicalCamera.SENSOR_DIAGONAL,
-                this
-        );
-    }
 }

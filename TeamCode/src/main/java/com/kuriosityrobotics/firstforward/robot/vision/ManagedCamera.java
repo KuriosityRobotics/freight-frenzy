@@ -1,16 +1,20 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.VUFORIA_LICENCE_KEY;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.FocusControl;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.opencv.core.Mat;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -24,15 +28,17 @@ import de.esoco.coroutine.Coroutine;
 import de.esoco.coroutine.CoroutineScope;
 
 public final class ManagedCamera {
-    private final VuforiaConsumer vuforiaConsumer;
+    private final VuforiaLocalizationConsumer vuforiaConsumer;
     private OpenCvCamera openCvCamera;
     boolean vuforiaActive = true;
     private final List<OpenCvConsumer> openCvConsumers;
     private final WebcamName cameraName;
     private VuforiaLocalizer vuforia;
+    private final LocationProvider locationProvider;
 
-    public ManagedCamera(WebcamName cameraName, VuforiaConsumer vuforiaConsumer, OpenCvConsumer... openCvConsumers) {
+    public ManagedCamera(WebcamName cameraName, VuforiaLocalizationConsumer vuforiaConsumer, LocationProvider locationProvider, OpenCvConsumer... openCvConsumers) {
         this.vuforiaConsumer = vuforiaConsumer;
+        this.locationProvider = locationProvider;
         this.openCvConsumers = Arrays.asList(openCvConsumers);
 
         this.cameraName = cameraName;
@@ -62,6 +68,12 @@ public final class ManagedCamera {
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
             vuforiaConsumer.setup(vuforia);
+         /*   var exposureControl = vuforia.getCamera().getControl(WhiteBalanceControl.class);
+
+            vuforia.getCamera().getControl(ExposureControl.class).setMode(ExposureControl.Mode.Manual);
+            exposureControl.setMode(WhiteBalanceControl.Mode.MANUAL);
+            exposureControl.setWhiteBalanceTemperature(4500);*/
+            vuforia.getCamera().getControl(FocusControl.class).setMode(FocusControl.Mode.Infinity);
             openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
         } else {
@@ -90,8 +102,8 @@ public final class ManagedCamera {
         });
     }
 
-    public ManagedCamera(WebcamName webcamName, OpenCvConsumer... openCvConsumers) {
-        this(webcamName, null, openCvConsumers);
+    public ManagedCamera(WebcamName webcamName, LocationProvider locationProvider, OpenCvConsumer... openCvConsumers) {
+        this(webcamName, null, locationProvider, openCvConsumers);
     }
 
     public void close() {
@@ -109,9 +121,9 @@ public final class ManagedCamera {
                 Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
                 // !!
                 Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
-                    Mat matCopy = input.clone();
-                    consumer.processFrame(matCopy);
-                    matCopy.release(); // c++ moment
+//                    Mat matCopy = input.clone();
+                    consumer.processFrame(angleWrap(locationProvider.getPose().heading + vuforiaConsumer.getTargetCameraAngle()), input);
+//                    matCopy.release(); // c++ moment
                 }));
 
                 // distribute the data

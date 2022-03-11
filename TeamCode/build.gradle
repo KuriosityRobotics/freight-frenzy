@@ -21,7 +21,7 @@ dependencies {
 
     // Matrix creation and operation for Kf
     implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-
+    implementation 'org.apache.commons:commons-geometry-euclidean:1.0' // FIXME:code must be fixed to use regular commons math3 rather than this in the future
     // Queue types for intake module
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
