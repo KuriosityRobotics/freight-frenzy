@@ -22,7 +22,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
-public class Robot extends LocationProvider {
+public class Robot implements LocationProvider {
     public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
@@ -76,7 +76,7 @@ public class Robot extends LocationProvider {
         sensorThread = new SensorThread(this, configLocation);
 
         // modules
-        drivetrain = new Drivetrain(this, hardwareMap);
+        drivetrain = new Drivetrain(sensorThread.odometry, hardwareMap);
         telemetryDump.registerTelemeter(drivetrain);
 
         outtakeModule = new OuttakeModule(this, hardwareMap);

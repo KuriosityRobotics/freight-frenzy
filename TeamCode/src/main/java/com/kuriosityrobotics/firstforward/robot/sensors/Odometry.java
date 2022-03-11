@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -16,7 +17,7 @@ import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
-public class Odometry extends RollingVelocityCalculator implements Telemeter {
+public class Odometry extends RollingVelocityCalculator implements Telemeter, LocationProvider {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
