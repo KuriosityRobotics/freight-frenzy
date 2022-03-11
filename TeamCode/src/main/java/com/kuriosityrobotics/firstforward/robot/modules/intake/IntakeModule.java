@@ -56,7 +56,8 @@ public class IntakeModule implements Module, Telemeter {
 
     public enum IntakePosition {
         EXTENDED,
-        RETRACTED
+        RETRACTED,
+        STAY_RETRACTED
     }
 
     public IntakeModule(HardwareMap hardwareMap, OuttakeModule outtakeModule) {
@@ -82,7 +83,7 @@ public class IntakeModule implements Module, Telemeter {
         // listen for when we just finished retracting to command the outtake to extend.
         if (atTargetPosition() && !wasDoneTransitioning) {
             if (transitionTo == IntakePosition.RETRACTED) {
-                outtakeModule.defaultFullExtend();
+                outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
             }
             wasDoneTransitioning = true;
         }
@@ -134,6 +135,10 @@ public class IntakeModule implements Module, Telemeter {
                     extenderLeft.setPosition(INTAKE_LEFT_RETRACTED_POS);
                     extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
                 }
+                break;
+            case STAY_RETRACTED:
+                extenderLeft.setPosition(INTAKE_LEFT_RETRACTED_POS);
+                extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
                 break;
         }
 

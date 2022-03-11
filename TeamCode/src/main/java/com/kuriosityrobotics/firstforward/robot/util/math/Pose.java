@@ -22,11 +22,11 @@ public class Pose extends Point {
         this.heading = heading;
     }
 
-    public static Pose flipped(double x, double y, double heading) {
+    public static Pose fieldMirror(double x, double y, double heading) {
         return new Pose(144 - x, y, -heading);
     }
 
-    public static Pose flippedRelative(double x, double y, double heading) {
+    public static Pose relativeMirror(double x, double y, double heading) {
         return new Pose( -x, y, -heading);
     }
 

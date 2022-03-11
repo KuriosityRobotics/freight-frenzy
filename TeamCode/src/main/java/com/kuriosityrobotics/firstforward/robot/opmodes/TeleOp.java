@@ -9,6 +9,8 @@ import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import java.sql.RowId;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     Robot robot = null;
@@ -39,7 +41,7 @@ public class TeleOp extends LinearOpMode {
     private void updateDrivetrainStates() {
         double yMov = Math.signum(gamepad1.left_stick_y) * -Math.pow(gamepad1.left_stick_y, 2);
         double xMov = Math.signum(gamepad1.left_stick_x) * Math.pow(gamepad1.left_stick_x, 2);
-        double turnMov = gamepad1.right_stick_x;
+        double turnMov = Math.pow(gamepad1.right_stick_x, 2) * Math.signum(gamepad1.right_stick_x);
 
         if (gamepad1.left_bumper) {
             yMov /= 2;
@@ -61,122 +63,123 @@ public class TeleOp extends LinearOpMode {
     }
 
     Button dpad_up = new Button();
-    Button yButton = new Button();
     Button lBump = new Button();
-    Button xGamepad2 = new Button();
     Button yGamepad2 = new Button();
-    Button bGamepad2 = new Button();
-    Button lTriggerGamepad2 = new Button();
+
+    OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
     private void updateOuttakeStates() {
         if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
 
-        if (dpad_up.isSelected(gamepad2.dpad_up)) {
-            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
-            } else {
-                if (robot.outtakeModule.targetSlideLevel == OuttakeModule.VerticalSlideLevel.TOP) {
-                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP_TOP;
-                } else {
+        boolean up = dpad_up.isSelected(gamepad2.dpad_up),
+                right = gamepad2.dpad_right,
+                left = gamepad2.dpad_left,
+                y = yGamepad2.isSelected(gamepad2.y),
+                x = gamepad2.x,
+                b = gamepad2.b,
+                lTrigger = gamepad2.left_trigger > 0;
+        if (up || left || right) {
+            robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+            robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+
+            lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+
+            if (up) {
+                if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
                     robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                } else {
+                    if (robot.outtakeModule.targetSlideLevel == OuttakeModule.VerticalSlideLevel.TOP) {
+                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP_TOP;
+                    } else {
+                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                    }
                 }
+            } else if (left || right) {
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
             }
-        } else if (gamepad2.dpad_right || gamepad2.dpad_left) {
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
+
             if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
                 robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
+            }
+        } else if (y) {
+            if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.EXTEND) {
+                if (lastTurretTarget == OuttakeModule.TurretPosition.STRAIGHT) {
+                    lastTurretTarget = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
+                } else {
+                    lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                }
+            } else {
+                lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+
+                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+
+                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+            }
+        } else if (x || b) {
+            robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+            robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.SHARED;
+
+            if (x) {
+                lastTurretTarget = OuttakeModule.TurretPosition.SHARED_LEFT;
+            } else if (b) {
+                lastTurretTarget = OuttakeModule.TurretPosition.SHARED_RIGHT;
             }
         } else if (gamepad2.dpad_down) {
             robot.outtakeModule.skipToCollapse();
         }
 
-        boolean y = gamepad2.y,
-                x = gamepad2.x,
-                b = gamepad2.b;
 
-        if(xGamepad2.isSelected(gamepad2.x)){
-            robot.outtakeModule.isShared = true;
-            robot.outtakeModule.capping = false;
-            robot.outtakeModule.isCapPivotDrop = false;
-            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_LEFT;
-        }else if(bGamepad2.isSelected(gamepad2.b)){
-            robot.outtakeModule.isShared = true;
-            robot.outtakeModule.capping = false;
-            robot.outtakeModule.isCapPivotDrop = false;
-            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.SHARED_RIGHT;
-        }else if(yGamepad2.isSelected(gamepad2.y || gamepad2.dpad_down)){
-            robot.outtakeModule.isShared = false;
-            robot.outtakeModule.capping = false;
-            robot.outtakeModule.isCapPivotDrop = false;
-            robot.outtakeModule.lastTurretPosition = OuttakeModule.TurretPosition.STRAIGHT;
-            robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-        }else if(gamepad2.left_trigger != 0){
-            robot.outtakeModule.isShared = true;
-            robot.outtakeModule.extendSharedLinkage = true;
-            if(robot.outtakeModule.targetTurret != OuttakeModule.TurretPosition.STRAIGHT) {
-                robot.outtakeModule.lastTurretPosition = robot.outtakeModule.targetTurret;
-            }
-            if(robot.outtakeModule.lastTurretPosition == OuttakeModule.TurretPosition.SHARED_LEFT){
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
-            }else if(robot.outtakeModule.lastTurretPosition == OuttakeModule.TurretPosition.SHARED_RIGHT){
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
-            }
-        }else{
-            robot.outtakeModule.extendSharedLinkage = false;
-            robot.outtakeModule.targetTurret = robot.outtakeModule.lastTurretPosition;
-        }
-//        if (x || b) {
-////            if (x) {
-////                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT;
-////            }
-////            if (b) {
-////                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT;
-////            }
-//
-//            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND)
-//                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
-//
-//            robot.outtakeModule.capping = false;
-//            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-//        }
+        if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_LEFT || lastTurretTarget == OuttakeModule.TurretPosition.SHARED_RIGHT) {
+            if (lTrigger) {
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
 
-        if (yButton.isSelected(y)) {
-            if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.EXTEND) {
-                if (robot.outtakeModule.targetTurret == OuttakeModule.TurretPosition.STRAIGHT) {
-                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
-                } else {
-                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                if (lastTurretTarget == OuttakeModule.TurretPosition.LEFT) {
+                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
+                } else if (lastTurretTarget == OuttakeModule.TurretPosition.RIGHT) {
+                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
                 }
             } else {
-                robot.outtakeModule.defaultFullExtend();
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+                robot.outtakeModule.targetTurret = lastTurretTarget;
             }
+        } else {
+            robot.outtakeModule.targetTurret = lastTurretTarget;
         }
     }
+
+    private boolean capLifted = false;
 
     private void updateCapStates() {
         if (lBump.isSelected(gamepad2.left_bumper)) {
             switch (robot.outtakeModule.targetState) {
                 case COLLAPSE:
-                    robot.outtakeModule.capping = false;
-                    robot.outtakeModule.isCapPivotDrop = false;
+                    capLifted = false;
+
+                    robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                    robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+                    lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
                     robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+
                     robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-                    robot.outtakeModule.isPickupCap = true;
                     break;
                 case EXTEND:
-                    if (!robot.outtakeModule.capping) {
-                        robot.outtakeModule.isPickupCap = false;
-                        robot.outtakeModule.capping = true;
-                        robot.outtakeModule.isCapPivotDrop = false;
-                        robot.outtakeModule.isShared = false;
-                        robot.outtakeModule.extendSharedLinkage = false;
+                    if (!capLifted) {
+                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_DROP;
+                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
+
+                        capLifted = true;
                     } else {
+                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
-                        robot.outtakeModule.isPickupCap = false;
-                        robot.outtakeModule.isCapPivotDrop = true;
                     }
                     break;
             }

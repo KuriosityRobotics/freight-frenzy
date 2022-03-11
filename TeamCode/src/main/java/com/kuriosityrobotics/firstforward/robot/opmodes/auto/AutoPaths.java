@@ -79,7 +79,7 @@ public class AutoPaths {
             Pose currPose = robot.sensorThread.getPose();
 
             if (Math.abs(currPose.y - 49) < 1) {
-                robot.sensorThread.resetPose(Robot.isBlue ? Pose.flipped(7.25, currPose.y, Math.toRadians(180)) : new Pose(7.25, currPose.y, Math.toRadians(180)));
+                robot.sensorThread.resetPose(Robot.isBlue ? Pose.fieldMirror(7.25, currPose.y, Math.toRadians(180)) : new Pose(7.25, currPose.y, Math.toRadians(180)));
             }
 
             if (!callAgain) {
