@@ -23,6 +23,7 @@ public class TeleOp extends LinearOpMode {
             this.stop();
             throw new RuntimeException(e);
         }
+
         waitForStart();
 
         while (opModeIsActive()) {

@@ -47,8 +47,9 @@ public class OuttakeModule implements Module, Telemeter {
 
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
-        STRAIGHT(.482746),
+        STRAIGHT(0.492083),
         // raised up to .502746
+        //raised down to .482746
         RIGHT(.78988),
         LEFT(.186781),
         SHARED_RIGHT(0.55),
