@@ -15,6 +15,9 @@ class ExtendOuttakeAction extends Action {
     public void tick() {
         super.tick();
 
+        outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+        outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+        outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
         outtakeModule.targetSlideLevel = slideLevel;
         outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
 

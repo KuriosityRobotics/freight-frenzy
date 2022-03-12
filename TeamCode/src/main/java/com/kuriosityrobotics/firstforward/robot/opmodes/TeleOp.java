@@ -2,16 +2,11 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
-import android.util.Log;
-
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import java.sql.RowId;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
@@ -55,6 +50,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     boolean wasSet = false;
+
     private void updateIntakeStates() {
         boolean setPower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON;
 
@@ -162,48 +158,57 @@ public class TeleOp extends LinearOpMode {
         }
     }
 
+    private boolean capPicked = false;
     private boolean capLifted = false;
     private boolean capDropped = false;
 
     private void updateCapStates() {
+        if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.COLLAPSE) {
+            capPicked = false;
+            capLifted = false;
+            capDropped = false;
+        }
+
         if (lBump.isSelected(gamepad2.left_bumper)) {
-            switch (robot.outtakeModule.targetState) {
-                case COLLAPSE:
-                    capLifted = false;
+            if (!capPicked) {
+                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_PICKUP;
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+                lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
 
-                    robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_PICKUP;
-                    robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
-                    lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
-                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
 
-                    robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
-                    break;
-                case EXTEND:
-                    if (!capLifted) {
-                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_DROP;
-                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
+                capPicked = true;
+            } else if (!capLifted) {
+                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_DROP;
+                lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
 
-                        capLifted = true;
-                        capDropped = false;
-                    } else if (!capDropped) {
-                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
+                capLifted = true;
+            } else if (!capDropped) {
+                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
 
-                        capDropped = true;
-                    } else {
-                        robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
+                capDropped = true;
+            } else {
+                // done capping, collapse outtake and reset states to resume alliance hub
+                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
 
-                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
-                    }
-                    break;
+                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+
+                capPicked = false;
+                capLifted = false;
+                capDropped = false;
             }
         }
     }
