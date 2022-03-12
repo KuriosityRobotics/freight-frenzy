@@ -1,8 +1,17 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TARGET_HEIGHT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_MEAT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_TAB_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.*;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VARIABLE_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.CAMERA_VERTICAL_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_FORWARD_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_LEFT_DISPLACEMENT_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Webcam.SERVO_VERTICAL_DISPLACEMENT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
@@ -55,6 +64,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final double ROTATOR_BACK_POS = .96;
     private static final double ROTATOR_ANGLE_RANGE = 3 * PI / 2;
     private final WebcamName cameraName;
+
     // change states here
     private final Servo rotator;
     private final DcMotor cameraEncoder;
@@ -75,6 +85,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private double cameraAngleOffset = 0;
     private long lastAcceptedTime = 0;
     private long lastDetectedTime = 0;
+    public boolean doneCalibrating = false;
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
@@ -83,7 +94,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
-        rotator.setPosition(robot.isAuto() ? ROTATOR_BACK_POS : ROTATOR_CENTER_POS);
+
+        setCameraAngle(0);
 
         startTime = SystemClock.elapsedRealtime();
     }
@@ -108,7 +120,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
         identifyTarget(1, "Blue Alliance Wall",
                 0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
-                HALF_FIELD_MM - 1.2f*MM_PER_INCH,
+                HALF_FIELD_MM,
                 TARGET_HEIGHT_MM,
                 (float) Math.toRadians(90), 0f, 0f
         );
@@ -128,6 +140,24 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         );
     }
 
+    public void offsetAllianceWallBy(Pose offset) {
+        if (Robot.isBlue) {
+            identifyTarget(1, "Blue Alliance Wall",
+                    (float) (0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM - (offset.y * MM_PER_INCH)),
+                    (float) (HALF_FIELD_MM - 1.2f * MM_PER_INCH + (offset.x*MM_PER_INCH)),
+                    TARGET_HEIGHT_MM,
+                    (float) Math.toRadians(90), 0f, 0f
+            );
+        } else {
+            identifyTarget(3, "Red Alliance Wall",
+                    (float) (0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM - (offset.y*MM_PER_INCH)),
+                    (float) (-HALF_FIELD_MM + (offset.x*MM_PER_INCH)),
+                    TARGET_HEIGHT_MM,
+                    (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
+            );
+        }
+    }
+
     boolean cameraEncoderSetYet = false;
 
     @Override
@@ -135,19 +165,22 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         synchronized (this) {
             if (SystemClock.elapsedRealtime() >= startTime + 500) {
                 if (!cameraEncoderSetYet) {
-                    resetEncoders(robot.isAuto() ? PI : 0);
+                    resetEncoders(0);
                     cameraEncoderSetYet = true;
                 }
-
-                if (robot.started() || !robot.isAuto())
-                    setCameraAngle(calculateOptimalCameraAngle());
-                else
-                    setCameraAngle(PI);
-
-                updateCameraAngleAndVelocity();
             }
 
-            if (robot.started()) {
+            if (cameraEncoderSetYet) {
+                if (robot.started() || !robot.isAuto()) {
+                    setCameraAngle(calculateOptimalCameraAngle());
+                } else if (!doneCalibrating) {
+                    setCameraAngle(0);
+                } else {
+                    setCameraAngle(PI);
+                }
+
+                updateCameraAngleAndVelocity();
+
                 trackVuforiaTargets();
 
                 long fetchTime = SystemClock.elapsedRealtime();
@@ -262,9 +295,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     double tX = trans.get(0);
                     double tY = trans.get(1);
                     double tZ = trans.get(2);
-                    Log.v("KF", "tX: " + tX);
-                    Log.v("KF", "tY: " + tY);
-                    Log.v("KF", "tZ: " + tZ);
+//                    Log.v("KF", "tX: " + tX);
+//                    Log.v("KF", "tY: " + tY);
+//                    Log.v("KF", "tZ: " + tZ);
 
                     this.detectedHorizPeripheralAngle = angleWrap(PI / 2 + Math.atan2(-tZ, tX));
                     this.detectedVertPeripheralAngle = angleWrap(Math.atan2(tZ, tY) - PI / 2);
@@ -372,24 +405,37 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 }
 
                 VectorF translation = detectedData.getTranslation();
-                Point robotLocation = new Point(translation.get(0) / MM_PER_INCH, translation.get(1) / MM_PER_INCH);
-                double heading = Orientation.getOrientation(detectedData, EXTRINSIC, XYZ, RADIANS).thirdAngle;
-
-                // Convert from FTC coordinate system to ours
-                double robotHeadingOurs = angleWrap(PI - heading);
-                double robotXOurs = robotLocation.y + (HALF_FIELD_MM / MM_PER_INCH);
-                double robotYOurs = -robotLocation.x + (HALF_FIELD_MM / MM_PER_INCH);
+                Pose ourSystem = dataToOurSystem(translation);
 
                 return MatrixUtils.createRealMatrix(new double[][]{
-                        {robotXOurs},
-                        {robotYOurs},
-                        {robotHeadingOurs}
+                        {ourSystem.x},
+                        {ourSystem.y},
+                        {ourSystem.heading}
                 });
 
             } catch (Exception e) {
                 return null;
             }
         }
+    }
+
+    private Pose dataToOurSystem(VectorF dataTranslation) {
+        Point robotLocation = new Point(dataTranslation.get(0) / MM_PER_INCH, dataTranslation.get(1) / MM_PER_INCH);
+        double heading = Orientation.getOrientation(detectedData, EXTRINSIC, XYZ, RADIANS).thirdAngle;
+
+        // Convert from FTC coordinate system to ours
+        double robotHeadingOurs = angleWrap(PI - heading);
+        double robotXOurs = robotLocation.y + (HALF_FIELD_MM / MM_PER_INCH);
+        double robotYOurs = -robotLocation.x + (HALF_FIELD_MM / MM_PER_INCH);
+
+        return new Pose(robotXOurs, robotYOurs, robotHeadingOurs);
+    }
+
+    public Pose lastRawRobotPosition() {
+        if (detectedData == null) {
+            return null;
+        }
+        return dataToOurSystem(detectedData.getTranslation());
     }
 
     private static Point ftcToOurs(Point point) {

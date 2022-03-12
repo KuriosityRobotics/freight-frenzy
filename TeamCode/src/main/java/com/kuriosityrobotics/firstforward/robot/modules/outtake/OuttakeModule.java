@@ -48,6 +48,7 @@ public class OuttakeModule implements Module, Telemeter {
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
         STRAIGHT(.482746),
+        // raised up to .502746
         RIGHT(.78988),
         LEFT(.186781),
         SHARED_RIGHT(0.55),
@@ -84,7 +85,7 @@ public class OuttakeModule implements Module, Telemeter {
         IN(.0060539),
         OUT(.993),
         UP(0.5),
-        CAP_PICKUP(0.9575),
+        CAP_PICKUP(0.996),
         CAP_DROP(0.816);
 
         private final double position;
@@ -195,10 +196,7 @@ public class OuttakeModule implements Module, Telemeter {
         pivot.setPosition(PivotPosition.IN.position);
         linkage.setPosition(LinkagePosition.RETRACT.position);
 
-        this.targetSlideLevel = VerticalSlideLevel.DOWN;
         this.targetState = COLLAPSE;
-        this.targetTurret = TurretPosition.STRAIGHT;
-
         this.currentState = COLLAPSE;
     }
 
@@ -240,7 +238,7 @@ public class OuttakeModule implements Module, Telemeter {
                     turret.setPosition(TurretPosition.STRAIGHT.position);
                     break;
                 case COLLAPSE:
-                    clamp.setPosition(CLAMP_INTAKE);
+                    clamp.setPosition(CLAMP_CLAMP);
                     pivot.setPosition(PivotPosition.IN.position);
                     linkage.setPosition(LinkagePosition.RETRACT.position);
                     slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
@@ -254,6 +252,10 @@ public class OuttakeModule implements Module, Telemeter {
         if (currentState == COLLAPSE) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             slide.setPower(0);
+
+            if (atTargetState()) {
+                clamp.setPosition(CLAMP_INTAKE);
+            }
         } else {
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             slide.setTargetPosition(targetSlideLevel.position);

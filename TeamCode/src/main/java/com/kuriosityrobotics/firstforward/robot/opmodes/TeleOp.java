@@ -23,7 +23,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         try {
             robot = new Robot(hardwareMap, telemetry, this, true);
-            robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
+//            robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
         } catch (Exception e) {
             this.stop();
             throw new RuntimeException(e);
@@ -148,9 +148,9 @@ public class TeleOp extends LinearOpMode {
             if (lTrigger) {
                 robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
 
-                if (lastTurretTarget == OuttakeModule.TurretPosition.LEFT) {
+                if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_LEFT) {
                     robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
-                } else if (lastTurretTarget == OuttakeModule.TurretPosition.RIGHT) {
+                } else if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_RIGHT) {
                     robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
                 }
             } else {
@@ -163,6 +163,7 @@ public class TeleOp extends LinearOpMode {
     }
 
     private boolean capLifted = false;
+    private boolean capDropped = false;
 
     private void updateCapStates() {
         if (lBump.isSelected(gamepad2.left_bumper)) {
@@ -170,7 +171,7 @@ public class TeleOp extends LinearOpMode {
                 case COLLAPSE:
                     capLifted = false;
 
-                    robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                    robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_PICKUP;
                     robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
                     lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
                     robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
@@ -186,11 +187,21 @@ public class TeleOp extends LinearOpMode {
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
 
                         capLifted = true;
-                    } else {
+                        capDropped = false;
+                    } else if (!capDropped) {
                         robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
                         robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
                         robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
                         robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
+
+                        capDropped = true;
+                    } else {
+                        robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
+
+                        robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                        robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                        robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
                     }
                     break;
             }

@@ -21,6 +21,10 @@ public class Pose extends Point {
         this.heading = heading;
     }
 
+    public Pose fieldMirror() {
+        return fieldMirror(this.x, this.y, this.heading);
+    }
+
     public static Pose fieldMirror(double x, double y, double heading) {
         return new Pose(FULL_FIELD - x, y, -heading);
     }
@@ -41,7 +45,7 @@ public class Pose extends Point {
         return new Vector2d(cos(heading), sin(heading));
     }
 
-    public Pose difference(Pose lastPose) {
+    public Pose minus(Pose lastPose) {
         return new Pose(this.x - lastPose.x, this.y - lastPose.y, this.heading - lastPose.heading);
     }
 

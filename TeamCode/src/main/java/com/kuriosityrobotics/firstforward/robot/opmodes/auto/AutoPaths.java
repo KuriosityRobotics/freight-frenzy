@@ -16,9 +16,15 @@ public class AutoPaths {
     public static final long VUF_DELAY = 150;
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
+        Pose complete = end.add(new Pose(0, -10, 0));
+        if (complete.y < 10) {
+            complete = new Pose(end.x, 10, end.heading);
+        }
+
         PurePursuit path = new PurePursuit(new WayPoint[]{
-                new WayPoint(robot.getPose(), INTAKE_VELO),
-                new WayPoint(end, new VelocityLock(0))
+                new WayPoint(robot.getPose(), new VelocityLock(INTAKE_VELO, false)),
+                new WayPoint(end),
+                new WayPoint(complete, new VelocityLock(0))
         }, 4);
 
         robot.intakeModule.intakePower = 1;
@@ -27,7 +33,7 @@ public class AutoPaths {
         long start = SystemClock.elapsedRealtime();
 
         while (robot.running() && !path.atEnd(robot)) {
-            if (robot.intakeModule.newMineral) {
+            if (robot.intakeModule.hasMineral() || robot.intakeModule.newMineral) {
                 robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
                 robot.intakeModule.intakePower = 0;
                 Log.v("auto", "LEAVING!: " + robot.intakeModule.newMineral + " time?? " + (SystemClock.elapsedRealtime() - start >= killswitchMillis));
@@ -86,5 +92,31 @@ public class AutoPaths {
                 return;
             }
         }
+    }
+
+    public static void calibrateVuforia(Robot robot) {
+        while (robot.running() && !robot.visionThread.started) {
+            // wait for vuforia to start
+        }
+
+        Pose expectedRobotPosition = new Pose(29.375, 64.5, Math.toRadians(90));
+        if (Robot.isBlue) {
+            expectedRobotPosition = expectedRobotPosition.fieldMirror();
+        }
+
+        Pose gottenPosition = null;
+        do {
+            gottenPosition = robot.visionThread.vuforiaLocalizationConsumer.lastRawRobotPosition();
+        } while (gottenPosition == null && robot.running());
+
+        Log.v("VUF", "gotten: " + gottenPosition);
+
+        Pose offsetBy = expectedRobotPosition.minus(gottenPosition);
+
+        Log.v("VUF", "offsetby: " + offsetBy);
+
+        robot.visionThread.vuforiaLocalizationConsumer.offsetAllianceWallBy(offsetBy);
+
+        robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
     }
 }

@@ -46,12 +46,13 @@ public class BlueCycle extends LinearOpMode {
 
         robot.resetPose(BLUE_START_W);
 
+        AutoPaths.calibrateVuforia(robot);
+
         waitForStart();
 
         robot.resetPose(BLUE_START_W);
 
-//        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
-        OuttakeModule.VerticalSlideLevel detection = OuttakeModule.VerticalSlideLevel.TOP;
+        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{

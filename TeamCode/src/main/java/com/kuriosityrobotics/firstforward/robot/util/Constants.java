@@ -29,8 +29,7 @@ public class Constants {
         public static final float TILE_MEAT = 23f;
         public static final float TILE_TAB = 0.5f;
 
-//        public static final float FULL_FIELD = (6 * TILE_MEAT) + (5 * TILE_TAB);
-        public static final float FULL_FIELD = 141.375f;
+        public static final float FULL_FIELD = (6 * TILE_MEAT) + (5 * TILE_TAB);
 
         public static final float TILE_MEAT_MM = TILE_MEAT * MM_PER_INCH;
         public static final float HALF_TILE_MEAT_MM = TILE_MEAT_MM * 0.5f;
