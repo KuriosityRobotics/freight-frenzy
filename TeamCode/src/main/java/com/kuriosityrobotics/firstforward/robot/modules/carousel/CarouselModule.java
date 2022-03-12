@@ -4,6 +4,7 @@ import static java.lang.Math.PI;
 
 import android.os.SystemClock;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -46,6 +47,8 @@ public class CarouselModule implements Module, Telemeter {
     private double target = 0;
 
     public void update() {
+        this.clockwise = Robot.isBlue;
+
         if (spin) {
             if (spinStartTimeMillis == null) {
                 spinStartTimeMillis = SystemClock.elapsedRealtime();

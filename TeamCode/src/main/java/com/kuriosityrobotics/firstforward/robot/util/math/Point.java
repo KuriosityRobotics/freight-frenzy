@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
 import androidx.annotation.NonNull;
@@ -35,10 +36,6 @@ public class Point {
         }
 
         return nearest;
-    }
-
-    public static Point flip(Point point){
-        return new Point(144-point.x,point.y);
     }
 
     public Point projectToLine(Line line) {
@@ -107,7 +104,7 @@ public class Point {
     }
 
     public static Point fieldMirror(double x, double y) {
-        return new Point(144 - x, y);
+        return new Point(FULL_FIELD - x, y);
     }
 }
 

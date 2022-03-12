@@ -26,29 +26,35 @@ public class Constants {
 
     public static class Field {
         // field constants
-        public static final float TILE_MEAT_MM = 23f * MM_PER_INCH;
-        public static final float HALF_TILE_MEAT_MM = TILE_MEAT_MM * 0.5f;
-        public static final float TILE_TAB_MM = 0.5f * MM_PER_INCH;
+        public static final float TILE_MEAT = 23f;
+        public static final float TILE_TAB = 0.5f;
 
-        public static final float FULL_FIELD_MM = 6f * TILE_MEAT_MM + 5f * TILE_TAB_MM;
+//        public static final float FULL_FIELD = (6 * TILE_MEAT) + (5 * TILE_TAB);
+        public static final float FULL_FIELD = 141.375f;
+
+        public static final float TILE_MEAT_MM = TILE_MEAT * MM_PER_INCH;
+        public static final float HALF_TILE_MEAT_MM = TILE_MEAT_MM * 0.5f;
+        public static final float TILE_TAB_MM = TILE_TAB * MM_PER_INCH;
+
+        public static final float FULL_FIELD_MM = FULL_FIELD * MM_PER_INCH;
         public static final float HALF_FIELD_MM = FULL_FIELD_MM * 0.5f;
 
         // Constants for perimeter targets
         public static final float TARGET_HEIGHT_MM = 5.75f * MM_PER_INCH;
 
         // Hub Positions
-        public static final float RED_HUB_X_MM = 2f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM;
-        public static final float RED_HUB_Y_MM = 3.5f * TILE_MEAT_MM + 3f * TILE_TAB_MM;
+        public static final float RED_HUB_X = 2f * TILE_MEAT + 1.5f * TILE_TAB;
+        public static final float RED_HUB_Y = 3.5f * TILE_MEAT + 3f * TILE_TAB;
 
-        public static final float BLUE_HUB_X_MM = FULL_FIELD_MM - RED_HUB_X_MM;
-        public static final float BLUE_HUB_Y_MM = RED_HUB_Y_MM;
+        public static final float BLUE_HUB_X = FULL_FIELD - RED_HUB_X;
+        public static final float BLUE_HUB_Y = RED_HUB_Y;
 
-        public static final float SHARE_HUB_X_MM = HALF_FIELD_MM;
-        public static final float SHARE_HUB_Y_MM = HALF_TILE_MEAT_MM;
+        public static final float SHARE_HUB_X = FULL_FIELD / 2.0f;
+        public static final float SHARE_HUB_Y = TILE_MEAT / 2.0f;
 
         public static final ArrayList<Point> HUBS = new ArrayList<>(Arrays.asList(
-                new Point(RED_HUB_X_MM / MM_PER_INCH, RED_HUB_Y_MM / MM_PER_INCH),
-                new Point(BLUE_HUB_X_MM / MM_PER_INCH, BLUE_HUB_Y_MM / MM_PER_INCH)));
+                new Point(RED_HUB_X, RED_HUB_Y),
+                new Point(BLUE_HUB_X, BLUE_HUB_Y)));
     }
 
     public static class Webcam {
