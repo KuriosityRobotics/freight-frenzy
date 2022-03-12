@@ -78,8 +78,8 @@ public class VisionThread implements Runnable, Telemeter {
 
             started = true;
 
-            cargoDetectionThread = new Thread(cargoDetectorConsumer);
-            cargoDetectionThread.start();
+//            cargoDetectionThread = new Thread(cargoDetectorConsumer);
+//            cargoDetectionThread.start();
 
             robot.telemetryDump.registerTelemeter(this);
             robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
