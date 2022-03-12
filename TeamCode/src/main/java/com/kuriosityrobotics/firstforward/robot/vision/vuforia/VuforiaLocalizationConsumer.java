@@ -44,6 +44,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Defining a Vuforia localization consumer
@@ -63,14 +67,21 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final double ROTATOR_CENTER_POS = .295;
     private static final double ROTATOR_BACK_POS = .96;
     private static final double ROTATOR_ANGLE_RANGE = 3 * PI / 2;
+    private static final Map<Target, Point> offsets = new HashMap<>() {{
+        put(Target.BLUE_STORAGE, new Point(0, 0));
+        put(Target.BLUE_ALLIANCE_WALL, new Point(0, 0));
+        put(Target.RED_STORAGE, new Point(0, 0));
+        put(Target.RED_ALLIANCE_WALL, new Point(0, 0));
+    }};
     private final WebcamName cameraName;
-
     // change states here
     private final Servo rotator;
     private final DcMotor cameraEncoder;
     private final LocationProvider locationProvider;
     private final PhysicalCamera physicalCamera;
     private final Robot robot;
+    public boolean doneCalibrating = false;
+    boolean cameraEncoderSetYet = false;
     private VuforiaTrackables freightFrenzyTargets;
     private volatile VuforiaTrackable detectedTrackable = null;
     private volatile OpenGLMatrix detectedData = null;
@@ -85,7 +96,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private double cameraAngleOffset = 0;
     private long lastAcceptedTime = 0;
     private long lastDetectedTime = 0;
-    public boolean doneCalibrating = false;
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
@@ -100,6 +110,13 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         startTime = SystemClock.elapsedRealtime();
     }
 
+    private static Point ftcToOurs(Point point) {
+        return new Point(
+                (point.y + HALF_FIELD_MM) / MM_PER_INCH,
+                -point.x + HALF_FIELD_MM
+        );
+    }
+
     @Override
     public void setup(VuforiaLocalizer vuforia) {
         // Get trackables & activate them, deactivate first because weird stuff can occur if we don't
@@ -111,54 +128,55 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         this.freightFrenzyTargets.activate();
 
         // Identify the targets so vuforia can use them
-        identifyTarget(0, "Blue Storage",
-                -HALF_FIELD_MM,
-                1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM,
-                TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)
-        );
-
-        identifyTarget(1, "Blue Alliance Wall",
-                0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
-                HALF_FIELD_MM,
-                TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, 0f
-        );
-
-        identifyTarget(2, "Red Storage",
-                -HALF_FIELD_MM,
-                -(1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM),
-                TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)
-        );
-
-        identifyTarget(3, "Red Alliance Wall",
-                0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
-                -HALF_FIELD_MM,
-                TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
-        );
+        identifyTargets();
     }
 
-    public void offsetAllianceWallBy(Pose offset) {
-        if (Robot.isBlue) {
-            identifyTarget(1, "Blue Alliance Wall",
-                    (float) (0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM - (offset.y * MM_PER_INCH)),
-                    (float) (HALF_FIELD_MM - 1.2f * MM_PER_INCH + (offset.x*MM_PER_INCH)),
-                    TARGET_HEIGHT_MM,
-                    (float) Math.toRadians(90), 0f, 0f
-            );
-        } else {
-            identifyTarget(3, "Red Alliance Wall",
-                    (float) (0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM - (offset.y*MM_PER_INCH)),
-                    (float) (-HALF_FIELD_MM + (offset.x*MM_PER_INCH)),
-                    TARGET_HEIGHT_MM,
-                    (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
+    private void validateOffsets() {
+        if (!offsets.keySet().equals(new HashSet<>(Arrays.asList(Target.values()))))
+            throw new Error("Offsets for all targets should be initialised.");
+    }
+
+    private synchronized void identifyTargets() {
+        validateOffsets();
+
+        for (var entry : offsets.entrySet()) {
+            Target target = entry.getKey();
+            Point offset = entry.getValue();
+
+            identifyTarget(
+                    target.index,
+                    target.name(),
+                    (float) (target.dx - (offset.y * MM_PER_INCH)),
+                    (float) (target.dy + (offset.x * MM_PER_INCH)),
+                    target.dz,
+                    target.rx,
+                    target.ry,
+                    target.rz
             );
         }
     }
 
-    boolean cameraEncoderSetYet = false;
+    private synchronized void addOffset(Target target, Point delta) {
+        Point currentOffset = offsets.get(target);
+        if (currentOffset == null)
+            throw new AssertionError("Offset shouldn't be null.");
+
+        Point newOffset = currentOffset.add(delta);
+
+        offsets.put(target, newOffset);
+        identifyTargets();
+    }
+
+    public void changeAllianceWallOffsetBy(Point delta) {
+        if (Robot.isBlue)
+            addOffset(Target.BLUE_ALLIANCE_WALL, delta);
+        else
+            addOffset(Target.RED_ALLIANCE_WALL, delta);
+    }
+
+    private Point getOffset(Target target) {
+        return offsets.get(target);
+    }
 
     @Override
     public void update() {
@@ -212,11 +230,16 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         Pose cameraPose = new Pose(pivotX, pivotY, robotHeading);
         ArrayList<Point> possibilities = new ArrayList<>();
 
-        for (Point target : TARGETS) {
-            double relHeading = cameraPose.relativeHeadingToPoint(target);
-            if (Math.abs(relHeading) < ROTATOR_ANGLE_RANGE) {
-                possibilities.add(target);
-            }
+        for (Target target : Target.values()) {
+            Point offset = getOffset(target);
+            Point ourPoint = ftcToOurs(
+                    new Point(target.dx - (offset.y * MM_PER_INCH),
+                            target.dy + (offset.x * MM_PER_INCH))
+            );
+
+            double relHeading = cameraPose.relativeHeadingToPoint(ourPoint);
+            if (Math.abs(relHeading) < ROTATOR_ANGLE_RANGE)
+                possibilities.add(ourPoint);
         }
 
         if (possibilities.isEmpty()) {
@@ -277,7 +300,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             VuforiaTrackableDefaultListener listener = (VuforiaTrackableDefaultListener) trackable.getListener();
             if (listener.isVisible()) {
-
                 sawAny = true;
 
                 detectedTrackable = trackable;
@@ -302,7 +324,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     this.detectedHorizPeripheralAngle = angleWrap(PI / 2 + Math.atan2(-tZ, tX));
                     this.detectedVertPeripheralAngle = angleWrap(Math.atan2(tZ, tY) - PI / 2);
                 } else {
-                    Log.d("Vision", "Cannot detect robot location although trackable is visible");
+                    Log.e("Vision", "Cannot detect robot location although trackable is visible");
                 }
 
                 break;
@@ -438,13 +460,6 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         return dataToOurSystem(detectedData.getTranslation());
     }
 
-    private static Point ftcToOurs(Point point) {
-        return new Point(
-                (point.y + HALF_FIELD_MM) / MM_PER_INCH,
-                -point.x + HALF_FIELD_MM
-        );
-    }
-
     private void resetEncoders(double currentAngle) {
         cameraAngleOffset = currentAngle;
         cameraEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -457,5 +472,40 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public long getLastDetectedTime() {
         return lastDetectedTime;
+    }
+
+    enum Target {
+        BLUE_STORAGE(0, -HALF_FIELD_MM,
+                1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)),
+        BLUE_ALLIANCE_WALL(1,
+                0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
+                HALF_FIELD_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, 0f),
+        RED_STORAGE(2,
+                -HALF_FIELD_MM,
+                -(1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM),
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)),
+        RED_ALLIANCE_WALL(3, 0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
+                -HALF_FIELD_MM,
+                TARGET_HEIGHT_MM,
+                (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
+        );
+
+        public final int index;
+        public final float dx, dy, dz, rx, ry, rz;
+
+        Target(int index, float dx, float dy, float dz, float rx, float ry, float rz) {
+            this.index = index;
+            this.dx = dx;
+            this.dy = dy;
+            this.dz = dz;
+            this.rx = rx;
+            this.ry = ry;
+            this.rz = rz;
+        }
     }
 }
