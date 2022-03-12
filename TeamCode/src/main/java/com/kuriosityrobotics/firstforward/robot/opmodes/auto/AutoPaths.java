@@ -12,7 +12,6 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Gamepad;
 
 public class AutoPaths {
     public static final double INTAKE_VELO = 15;
@@ -70,8 +69,7 @@ public class AutoPaths {
 
         Log.v("VUF", "offsetby: " + offsetBy);
 
-        robot.visionThread.vuforiaLocalizationConsumer.offsetAllianceWallBy(offsetBy);
-
+        robot.visionThread.vuforiaLocalizationConsumer.changeAllianceWallOffsetBy(offsetBy);
         robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
     }
 
