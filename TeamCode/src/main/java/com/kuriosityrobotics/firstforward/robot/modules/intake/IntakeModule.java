@@ -147,6 +147,11 @@ public class IntakeModule implements Module, Telemeter {
 
     private void transitionIntake(IntakePosition position) {
         this.transitionTo = position;
+
+        if (transitionTo == IntakePosition.RETRACTED) {
+            retracted = true;
+        }
+
         this.transitionTime = SystemClock.elapsedRealtime();
         this.wasDoneTransitioning = false;
     }
