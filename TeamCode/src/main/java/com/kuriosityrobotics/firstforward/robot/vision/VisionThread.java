@@ -87,8 +87,9 @@ public class VisionThread implements Runnable, Telemeter {
             started = true;
 
             while (robot.running()) {
-                if (robot.isOpModeActive())
+                if (!robot.isAuto()) {
                     teamMarkerDetector.deactivate();
+                }
 
                 long currentTime = SystemClock.elapsedRealtime();
                 updateTime = currentTime - lastLoopTime;

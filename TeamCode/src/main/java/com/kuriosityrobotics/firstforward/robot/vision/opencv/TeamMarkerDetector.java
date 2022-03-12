@@ -22,9 +22,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class TeamMarkerDetector implements OpenCvConsumer {
-    // remember to set in auto!!!!!!!!!!!!!!!
     private final LocationProvider locationProvider;
-    int runCount = 0;
     private volatile TeamMarkerLocation location;
 
     private final PinholeCamera pinholeCamera;
@@ -38,10 +36,14 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         return location == null ? TeamMarkerLocation.UNKNOWN : location;
     }
 
-    private boolean active = true;
+    private boolean active = false;
 
+    public void activate() {
+        this.active = true;
+    }
     public void deactivate() {
         active = false;
+        location = null;
     }
 
 /*    private Parallelepiped levelOne() {
@@ -156,13 +158,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         else
             this.location = TeamMarkerLocation.LEVEL_2;
 
-    }
-
-    public enum AutoStartLocation {
-        RED_DUCKS,
-        RED_CYCLE,
-        BLUE_DUCKS,
-        BLUE_CYCLE
     }
 
     public enum TeamMarkerLocation {
