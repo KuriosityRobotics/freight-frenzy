@@ -14,16 +14,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class BlueCarousel extends LinearOpMode {
-    private static long delay = 0;
-
-    public static final Pose START = Pose.fieldMirror(9.5, (23.5*5)-0.5-(11.5/2), Math.toRadians(-90));
+    public static final Pose START = Pose.fieldMirror(9.5, (23.5 * 5) - 0.5 - (11.5 / 2), Math.toRadians(-90));
 
     public static final Pose WOBBLE = Pose.fieldMirror(34.5, 106, Math.toRadians(-30));
 
     public static final Point PRE_CAROUSEL = Point.fieldMirror(17, 118);
     public static final Pose CAROUSEL = Pose.fieldMirror(17, 132, Math.toRadians(-75));
 
-    public static final Pose PARK = Pose.fieldMirror(35, 5*23.5 + 12, Math.toRadians(-90));
+    public static final Pose PARK = Pose.fieldMirror(35, 5 * 23.5 + 12, Math.toRadians(-90));
 
     public void runOpMode() {
         Robot robot = null;
@@ -40,29 +38,19 @@ public class BlueCarousel extends LinearOpMode {
 
         robot.resetPose(START);
 
-        while (!isStarted()) {
-            delay = (long) Math.max(0, delay - gamepad1.left_stick_y * 0.0001);
-        }
-
-//        waitForStart();
-
-        sleep(delay);
-
-        robot.resetPose(START);
-
-        OuttakeModule.VerticalSlideLevel detected = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
+        OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
-                new WayPoint(START.between(WOBBLE), new VelocityLock(0.4* MotionProfile.ROBOT_MAX_VEL, false)),
+                new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                 new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
         }, true, 4);
 
         if (detected == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             toWobble = new PurePursuit(new WayPoint[]{
                     new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
-                    new WayPoint(START.add(new Pose(-18, 0, 0)), new VelocityLock(0.4*MotionProfile.ROBOT_MAX_VEL, false)),
-                    new WayPoint(new Pose(Constants.Field.FULL_FIELD-54, 108, Math.toRadians(5)), 0, robot.outtakeModule.dumpOuttakeAction())
+                    new WayPoint(START.add(new Pose(-18, 0, 0)), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
+                    new WayPoint(new Pose(Constants.Field.FULL_FIELD - 54, 108, Math.toRadians(5)), 0, robot.outtakeModule.dumpOuttakeAction())
             }, true, 3);
         }
 

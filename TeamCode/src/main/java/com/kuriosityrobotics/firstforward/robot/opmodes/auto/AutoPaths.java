@@ -5,15 +5,75 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
+import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 public class AutoPaths {
     public static final double INTAKE_VELO = 15;
     public static final long VUF_DELAY = 150;
+
+    private static long delay = 0;
+    public static OuttakeModule.VerticalSlideLevel delayedStartLogic(LinearOpMode opMode, Robot robot, Pose reset) {
+        while (!robot.started() && robot.running()) {
+            delay = (long) Math.max(0, delay - (opMode.gamepad1.left_stick_y * 0.001));
+            robot.telemetryDump.setAlert("Auto start delay (ms): " + delay);
+        }
+
+        robot.resetPose(reset);
+        OuttakeModule.VerticalSlideLevel detected = awaitBarcodeDetection(robot);
+
+        robot.telemetryDump.setAlert("Currently delaying for " + delay + " milliseconds.");
+        opMode.sleep(delay);
+
+        robot.telemetryDump.clearAlert();
+
+        return detected;
+    }
+
+    public static OuttakeModule.VerticalSlideLevel awaitBarcodeDetection(Robot robot) {
+        robot.visionThread.getTeamMarkerDetector().activate();
+
+        TeamMarkerDetector.TeamMarkerLocation location;
+        do {
+            location = robot.visionThread.getTeamMarkerDetector().getLocation();
+        } while ((location == null || location == TeamMarkerDetector.TeamMarkerLocation.UNKNOWN) && robot.running());
+
+        robot.visionThread.getTeamMarkerDetector().deactivate();
+
+        return location.slideLevel();
+    }
+
+    public static void calibrateVuforia(Robot robot) {
+        while (robot.running() && !robot.visionThread.started) {
+            // wait for vuforia to start
+        }
+
+        Pose expectedRobotPosition = new Pose(29.375, 64.5, Math.toRadians(90));
+        if (Robot.isBlue) {
+            expectedRobotPosition = expectedRobotPosition.fieldMirror();
+        }
+
+        Pose gottenPosition = null;
+        do {
+            gottenPosition = robot.visionThread.vuforiaLocalizationConsumer.lastRawRobotPosition();
+        } while (gottenPosition == null && robot.running());
+
+        Log.v("VUF", "gotten: " + gottenPosition);
+
+        Pose offsetBy = expectedRobotPosition.minus(gottenPosition);
+
+        Log.v("VUF", "offsetby: " + offsetBy);
+
+        robot.visionThread.vuforiaLocalizationConsumer.offsetAllianceWallBy(offsetBy);
+
+        robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
+    }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
         Pose complete = end.add(new Pose(0, -10, 0));
@@ -92,31 +152,5 @@ public class AutoPaths {
                 return;
             }
         }
-    }
-
-    public static void calibrateVuforia(Robot robot) {
-        while (robot.running() && !robot.visionThread.started) {
-            // wait for vuforia to start
-        }
-
-        Pose expectedRobotPosition = new Pose(29.375, 64.5, Math.toRadians(90));
-        if (Robot.isBlue) {
-            expectedRobotPosition = expectedRobotPosition.fieldMirror();
-        }
-
-        Pose gottenPosition = null;
-        do {
-            gottenPosition = robot.visionThread.vuforiaLocalizationConsumer.lastRawRobotPosition();
-        } while (gottenPosition == null && robot.running());
-
-        Log.v("VUF", "gotten: " + gottenPosition);
-
-        Pose offsetBy = expectedRobotPosition.minus(gottenPosition);
-
-        Log.v("VUF", "offsetby: " + offsetBy);
-
-        robot.visionThread.vuforiaLocalizationConsumer.offsetAllianceWallBy(offsetBy);
-
-        robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
     }
 }

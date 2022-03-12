@@ -53,8 +53,8 @@ public class RedCycle extends LinearOpMode {
 
         robot.resetPose(RED_START_W);
 
-//        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
-        OuttakeModule.VerticalSlideLevel detection = OuttakeModule.VerticalSlideLevel.TOP;
+        OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
+
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{

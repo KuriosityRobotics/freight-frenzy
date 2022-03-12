@@ -4,8 +4,8 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.util.DashboardUtil;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -18,8 +18,9 @@ public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
 
     private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
-    private final FtcDashboard dashboard;
+    private String alert = null;
 
+    private final FtcDashboard dashboard;
     private final List<Pose> poseHistory = new ArrayList<>();
 
     public void registerTelemeter(Telemeter telemeter) {
@@ -39,6 +40,9 @@ public class TelemetryDump implements PoseWatcher {
 
     public void update() {
         StringBuilder msg = new StringBuilder();
+
+        if (alert != null)
+            msg.append(alert).append("\n \n");
 
         for (Telemeter telemeter : telemeters) {
             if (telemeter.isOn()) {
@@ -80,6 +84,14 @@ public class TelemetryDump implements PoseWatcher {
 
             dashboard.sendTelemetryPacket(packet);
         }
+    }
+
+    public void setAlert(String alert) {
+        this.alert = alert;
+    }
+
+    public void clearAlert() {
+        this.alert = null;
     }
 
 //    private Set<Map.Entry<String, Object>> getAllFields(Telemeter telemeter) {
