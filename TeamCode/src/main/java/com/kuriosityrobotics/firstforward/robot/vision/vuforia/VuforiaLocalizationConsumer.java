@@ -173,7 +173,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             if (cameraEncoderSetYet) {
                 if (robot.started() || !robot.isAuto()) {
                     setCameraAngle(calculateOptimalCameraAngle());
-                } else if (!doneCalibrating) {
+                } else if (!Robot.isCarousel && !doneCalibrating) {
                     setCameraAngle(0);
                 } else {
                     setCameraAngle(PI);
