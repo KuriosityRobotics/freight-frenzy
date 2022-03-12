@@ -1,8 +1,17 @@
 package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.mean;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.pow;
+
+import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
+import com.kuriosityrobotics.firstforward.robot.util.math.MathUtil;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
+
+import java.util.stream.Collectors;
 
 public class StallDetector {
     // constants
@@ -11,32 +20,36 @@ public class StallDetector {
     private static final double STALL_EPSILON = 50;
 
     // data structures
-    private final CircularFifoQueue<Double> poseXSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
-    private final CircularFifoQueue<Double> poseYSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
-    private final CircularFifoQueue<Double> poseHeadingSD = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+
+    private final CircularFifoQueue<Pose> velocities = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    private final CircularFifoQueue<Double> xMovs = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    private final CircularFifoQueue<Double> yMovs = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
+    private final CircularFifoQueue<Double> turnMovs = new CircularFifoQueue<>(STALL_DETECTOR_CAPACITY);
 
     // states
-    private boolean isStalled;
+    public volatile boolean isStalled;
 
-    public void update(Pose pose, double xMov, double yMov, double turnMov) {
-//        // add stuff
-//        poseXSD.add(pose.x);
-//        poseYSD.add(pose.y);
-//        poseHeadingSD.add(pose.heading);
-//
-//        // do calculations
-//        // we strive for readability here
-//        boolean movementsSet = !(doublesEqual(xMov, 0) && doublesEqual(yMov, 0) && doublesEqual(turnMov, 0)); // demorgan's laws are overrated
-//
-//        boolean isXStalled = sd(poseXSD) <= STALL_EPSILON;
-//        boolean isYStalled = sd(poseYSD) <= STALL_EPSILON;
-//        boolean isHeadingStalled = sd(poseHeadingSD) <= STALL_EPSILON;
-////        Log.v("stall", "x sd: " + sd(poseXSD));
-////        Log.v("stall", "y sd: " + sd(poseYSD));
-////        Log.v("stall", "heading sd: " + sd(poseHeadingSD));
-//        boolean movementsStalled = isXStalled && isYStalled && isHeadingStalled;
-//
-//        isStalled = movementsSet && movementsStalled;
+    public void update(Pose velocity, double xMov, double yMov, double turnMov) {
+        xMovs.add(xMov);
+        yMovs.add(yMov);
+        turnMovs.add(turnMov);
+        velocities.add(velocity);
+
+        if ((mean(velocities.stream().map(Pose::getX).collect(Collectors.toList()))) < 3 && mean(xMovs) > .2) {
+            isStalled = true;
+            return;
+        }
+
+        if ((mean(velocities.stream().map(Pose::getY).collect(Collectors.toList()))) < 3 && mean(yMovs) > .2) {
+            isStalled = true;
+            return;
+        }
+/*
+        if ((mean(velocities.stream().map(Pose::getHeading).collect(Collectors.toList()))) < 3 && mean(turnMovs) > .2) {
+            isStalled = true;
+            return;
+        }*/
+
     }
 
     public boolean isStalled() {

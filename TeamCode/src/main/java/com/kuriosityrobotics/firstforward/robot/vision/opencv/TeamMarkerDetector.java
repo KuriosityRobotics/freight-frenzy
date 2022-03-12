@@ -119,8 +119,10 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Core.inRange(img, new Scalar(90 - 10, 70, 50), new Scalar(90 + 10, 255, 255), img);
 
         if (!new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.tl()) ||
-                !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.br()))
+                !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.br())) {
+            img.release();
             return;
+        }
 
         var sub1 = img.submat(bounding1);
         var sub2 = img.submat(bounding2);
