@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.opmodes;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -52,14 +54,23 @@ public class TeleOp extends LinearOpMode {
         robot.drivetrain.setMovements(xMov, yMov, turnMov);
     }
 
+    boolean wasSet = false;
     private void updateIntakeStates() {
-        robot.intakeModule.intakePower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON
+        boolean setPower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON;
+
+        if (setPower && !wasSet) {
+            robot.intakeModule.retracted = false;
+        }
+
+        robot.intakeModule.intakePower = setPower && !robot.intakeModule.retracted
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0;
 
         if (retractButton.isSelected(gamepad2.a)) {
             robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
         }
+
+        wasSet = setPower;
     }
 
     Button dpad_up = new Button();
