@@ -8,14 +8,9 @@ import static java.lang.Math.sin;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
-import com.kuriosityrobotics.firstforward.robot.util.Constants;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 
-import org.apache.commons.geometry.euclidean.threed.PlaneConvexSubset;
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
-import org.apache.commons.geometry.euclidean.threed.shape.Parallelepiped;
-import org.apache.commons.geometry.euclidean.twod.Bounds2D;
-import org.apache.commons.numbers.core.Precision;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -67,8 +62,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel ? 2 * (23.5) : 0) + 3.365f * cos(cameraAngle));
         if (Robot.isBlue) {
             return new Vector3D[]{
-                    Vector3D.of(FULL_FIELD - 34.5 , 0, FULL_FIELD - 73.5 + 3).add(offset),
-                    Vector3D.of(FULL_FIELD - 34.5 , 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
+                    Vector3D.of(FULL_FIELD - 34.5, 0, FULL_FIELD - 73.5 + 3).add(offset),
+                    Vector3D.of(FULL_FIELD - 34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
         } else {
             return new Vector3D[]{
                     Vector3D.of(36 - 6, 0, FULL_FIELD - 73.5 + 2.5 - 3.5).add(offset),
@@ -93,6 +88,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
     /**
      * dont look too hard at this one
+     *
      * @param _img input frame
      */
     public void processFrame(double cameraAngle, Mat _img) {
@@ -118,8 +114,11 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
         Core.inRange(img, new Scalar(90 - 10, 70, 50), new Scalar(90 + 10, 255, 255), img);
 
-        if (!new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.tl()) ||
-                !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.br())) {
+        boolean badBound1 = !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.tl()) ||
+                !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.br());
+        boolean badBound2 = !new Rect(0, 0, img.cols(), img.rows()).contains(bounding2.tl()) ||
+                !new Rect(0, 0, img.cols(), img.rows()).contains(bounding2.br());
+        if (badBound1 || badBound2) {
             img.release();
             return;
         }
@@ -137,10 +136,10 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         img.release();
 
 //        if (isSub1)
-            Imgproc.rectangle(_img, bounding1, new Scalar(0, 0, 0));
+        Imgproc.rectangle(_img, bounding1, new Scalar(0, 0, 0));
 
 //        if (isSub2)
-            Imgproc.rectangle(_img, bounding2, new Scalar(0, 0, 0));
+        Imgproc.rectangle(_img, bounding2, new Scalar(0, 0, 0));
 
 
         if (isSub1 && isSub2) {

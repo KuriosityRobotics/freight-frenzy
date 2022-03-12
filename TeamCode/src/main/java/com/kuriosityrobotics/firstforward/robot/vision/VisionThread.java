@@ -76,8 +76,6 @@ public class VisionThread implements Runnable, Telemeter {
 //                    cargoDetectorConsumer
             );
 
-            started = true;
-
 //            cargoDetectionThread = new Thread(cargoDetectorConsumer);
 //            cargoDetectionThread.start();
 
@@ -85,6 +83,8 @@ public class VisionThread implements Runnable, Telemeter {
             robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
 
             Log.v("VisionThread", "Done initing camera");
+
+            started = true;
 
             while (robot.running()) {
                 if (robot.isOpModeActive())
@@ -102,7 +102,7 @@ public class VisionThread implements Runnable, Telemeter {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if(cargoDetectionThread != null)
+            if (cargoDetectionThread != null)
                 cargoDetectionThread.interrupt();
 
             if (managedCamera != null) {
@@ -125,7 +125,7 @@ public class VisionThread implements Runnable, Telemeter {
     }
 
     @Override
-    protected void finalize()  {
+    protected void finalize() {
         if (managedCamera != null) {
             Log.w("VisionThread", "Camera closed in finalize()");
             managedCamera.close();

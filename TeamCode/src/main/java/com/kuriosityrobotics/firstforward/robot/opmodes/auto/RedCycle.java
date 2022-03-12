@@ -47,6 +47,8 @@ public class RedCycle extends LinearOpMode {
 
         robot.resetPose(RED_START_W);
 
+        AutoPaths.calibrateVuforia(robot);
+
         waitForStart();
 
         robot.resetPose(RED_START_W);

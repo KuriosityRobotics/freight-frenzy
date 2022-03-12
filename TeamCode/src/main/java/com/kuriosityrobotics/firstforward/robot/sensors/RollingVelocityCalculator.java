@@ -39,7 +39,7 @@ public abstract class RollingVelocityCalculator {
                 continue;
             }
 
-            velos.add(current.difference(last).divide(current.timestamp - last.timestamp));
+            velos.add(current.minus(last).divide(current.timestamp - last.timestamp));
 
             last = current;
         }
