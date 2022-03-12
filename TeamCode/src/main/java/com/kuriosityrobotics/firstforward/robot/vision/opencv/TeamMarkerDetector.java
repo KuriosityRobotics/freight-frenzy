@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -66,12 +67,12 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel ? 2 * (23.5) : 0) + 3.365f * cos(cameraAngle));
         if (Robot.isBlue) {
             return new Vector3D[]{
-                    Vector3D.of(144 - 34.25 - 6, 0, 144 - 73 ).add(offset),
-                    Vector3D.of(144 - 34.25 + 6, 6.5, 144 - 73 - 2.5 - 2.5).add(offset)};
+                    Vector3D.of(FULL_FIELD - 34.5 , 0, FULL_FIELD - 73.5 + 3).add(offset),
+                    Vector3D.of(FULL_FIELD - 34.5 , 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
         } else {
             return new Vector3D[]{
-                    Vector3D.of(36 - 6, 0, 144 - 73.5 + 2.5 - 3.5).add(offset),
-                    Vector3D.of(36 - 6, 6.5, 144 - 73.5 - 2.5 - 3.5).add(offset)
+                    Vector3D.of(36 - 6, 0, FULL_FIELD - 73.5 + 2.5 - 3.5).add(offset),
+                    Vector3D.of(36 - 6, 6.5, FULL_FIELD - 73.5 - 2.5 - 3.5).add(offset)
             };
         }
     }

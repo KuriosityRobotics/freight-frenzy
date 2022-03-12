@@ -14,6 +14,7 @@ import org.apache.commons.collections4.OrderedMapIterator;
 import org.apache.commons.collections4.map.LinkedMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.ListIterator;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class MotionProfile {
         LinkedMap<Double, AngleLock> profile = new LinkedMap<>();
 
         double dist = 0;
+
+        Log.v("PP", Arrays.toString(in));
 
         AngleLock lastLock;
         if (in[0].getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {

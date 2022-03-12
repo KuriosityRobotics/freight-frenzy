@@ -34,7 +34,6 @@ public class RedCarousel extends LinearOpMode {
             return;
         }
 
-        robot.carouselModule.clockwise = false;
         Robot.isBlue = false;
         Robot.isCarousel = true;
 

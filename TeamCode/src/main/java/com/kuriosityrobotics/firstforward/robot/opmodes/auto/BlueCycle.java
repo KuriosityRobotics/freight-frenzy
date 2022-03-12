@@ -29,7 +29,7 @@ public class BlueCycle extends LinearOpMode {
     public static final Pose BLUE_WALL_GAP = Pose.fieldMirror(7, 46.5, Math.toRadians(180));
     private Pose blueWarehouse = Pose.fieldMirror(8, 33, Math.toRadians(175));
 
-    public static final Point BLUE_EXIT_WALLGAP = Point.flip(new Point(9, 64));
+    public static final Point BLUE_EXIT_WALLGAP = Point.fieldMirror(9, 64);
 
     public void runOpMode() {
         Robot robot = null;
@@ -47,6 +47,8 @@ public class BlueCycle extends LinearOpMode {
         robot.resetPose(BLUE_START_W);
 
         waitForStart();
+
+        robot.resetPose(BLUE_START_W);
 
 //        OuttakeModule.VerticalSlideLevel detection = robot.visionThread.getTeamMarkerDetector().getLocation().slideLevel();
         OuttakeModule.VerticalSlideLevel detection = OuttakeModule.VerticalSlideLevel.TOP;

@@ -108,7 +108,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
         identifyTarget(1, "Blue Alliance Wall",
                 0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
-                HALF_FIELD_MM,
+                HALF_FIELD_MM - 1.2f*MM_PER_INCH,
                 TARGET_HEIGHT_MM,
                 (float) Math.toRadians(90), 0f, 0f
         );
@@ -262,6 +262,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     double tX = trans.get(0);
                     double tY = trans.get(1);
                     double tZ = trans.get(2);
+                    Log.v("KF", "tX: " + tX);
+                    Log.v("KF", "tY: " + tY);
+                    Log.v("KF", "tZ: " + tZ);
+
                     this.detectedHorizPeripheralAngle = angleWrap(PI / 2 + Math.atan2(-tZ, tX));
                     this.detectedVertPeripheralAngle = angleWrap(Math.atan2(tZ, tY) - PI / 2);
                 } else {

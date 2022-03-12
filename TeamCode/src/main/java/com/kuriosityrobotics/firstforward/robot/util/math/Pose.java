@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
@@ -23,11 +22,11 @@ public class Pose extends Point {
     }
 
     public static Pose fieldMirror(double x, double y, double heading) {
-        return new Pose(144 - x, y, -heading);
+        return new Pose(FULL_FIELD - x, y, -heading);
     }
 
     public static Pose relativeMirror(double x, double y, double heading) {
-        return new Pose( -x, y, -heading);
+        return new Pose(-x, y, -heading);
     }
 
     public Pose(Point point, double heading) {
@@ -82,8 +81,8 @@ public class Pose extends Point {
 
     // sus naming but whatever
     public Pose toFTCSystem() {
-        double x = -this.y + HALF_FIELD_MM / MM_PER_INCH;
-        double y = this.x - HALF_FIELD_MM / MM_PER_INCH;
+        double x = -this.y + (FULL_FIELD / 2.);
+        double y = this.x - (FULL_FIELD / 2.);
         double heading = angleWrap(this.heading - Math.PI);
         return new Pose(x, y, heading);
     }
@@ -123,5 +122,9 @@ public class Pose extends Point {
 
     public double getHeading() {
         return heading;
+    }
+
+    public Point toPoint() {
+        return new Point(this.x, this.y);
     }
 }
