@@ -105,5 +105,9 @@ public class Point {
     public Point add(Point point) {
         return new Point(this.x + point.x, this.y + point.y);
     }
+
+    public static Point fieldMirror(double x, double y) {
+        return new Point(144 - x, y);
+    }
 }
 
