@@ -53,6 +53,11 @@ class DrivetrainModule implements Module, Telemeter {
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
     }
 
+    @Override
+    public void onClose() {
+        setMotorPowers(0, 0, 0, 0);
+    }
+
     //scale down motor power so largest/smallest is 1/-1
     public double scaleDown(double a, double b, double c, double d) {
         double max = max(a, b, c, d);
