@@ -30,18 +30,24 @@ public class MathUtil {
      */
     public static double angleWrap(double angle, double centerOfWrap) {
         angle -= centerOfWrap;
-        int times = (int) (angle / (2 * Math.PI));
-        angle -= times * 2 * Math.PI;
 
-        // angle is between 0 and 360, change so its between -180 and 180
-        if (angle < -Math.PI) {
-            angle += (2 * Math.PI);
-        }
-        else if (angle > Math.PI) {
-            angle -= (2 * Math.PI);
-        }
+        double newAng = angle - ((2 * Math.PI) * Math.round(angle / (2 * Math.PI)));
 
-        return angle + centerOfWrap;
+        return newAng + centerOfWrap;
+
+//        angle -= centerOfWrap;
+//        int times = (int) (angle / (2 * Math.PI));
+//        angle -= times * 2 * Math.PI;
+//
+//        // angle is between 0 and 360, change so its between -180 and 180
+//        if (angle < -Math.PI) {
+//            angle += (2 * Math.PI);
+//        }
+//        else if (angle > Math.PI) {
+//            angle -= (2 * Math.PI);
+//        }
+//
+//        return angle + centerOfWrap;
     }
 
     public static boolean doublesEqual(double a, double b) {

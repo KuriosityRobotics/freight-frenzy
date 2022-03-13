@@ -161,6 +161,7 @@ public class PurePursuit implements Telemeter {
                 targHeading = targetAngleLock.heading;
             }
             double error = angleWrap(targHeading - robotPose.heading);
+            Log.v("PP", "ang error: " + error);
 
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
         }
@@ -271,11 +272,13 @@ public class PurePursuit implements Telemeter {
         AngleLock lastAngle = profile.getLastAngleLock();
 
         // TODO fix this monkey angle thresholding
+        boolean angVeloEnd = end.velocityLock.velocity != 0 || Math.abs(locationProvider.getVelocity().heading) < Math.toRadians(1.5);
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
-                || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
+                || (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && angVeloEnd);
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1);
 
-        Log.v("PP", "angleend: " + angleEnd + " stopped: " + stopped);
+        Log.v("PP", "angleend: " + angleEnd + " angerr: " + (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading))) + " stopped: " + stopped);
+        Log.v("PP", "angvelo: " + locationProvider.getVelocity().heading);
 
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd

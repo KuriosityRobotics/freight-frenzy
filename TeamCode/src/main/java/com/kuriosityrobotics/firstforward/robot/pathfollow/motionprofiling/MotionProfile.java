@@ -248,9 +248,11 @@ public class MotionProfile {
             if (distAlongPath <= dist) {
                 switch (nextLock.type) {
                     case NO_LOCK:
+                        Log.v("MotionProfile", "early return from case NO LOCK:  theta = " + nextLock.heading);
                         return nextLock;
                     case LOCK:
                         if (lastLock.type != AngleLock.AngleLockType.LOCK) {
+                            Log.v("MotionProfile", "early return from case LOCK:  theta = " + nextLock.heading);
                             return nextLock;
                         } else {
                             double totalDist = dist - lastDist;
@@ -262,6 +264,7 @@ public class MotionProfile {
                             double error = counterError > clockError ? clockError : -counterError;
 
                             if (!i.hasPrevious()) {
+                                Log.v("MotionProfile", "early return from case LOCK 2:  theta = " + nextLock.heading);
                                 return nextLock;
                             } else {
                                 return new AngleLock(angleWrap(((distAlong / totalDist) * error) + lastLock.heading));
