@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class RedCarousel extends LinearOpMode {
-    public static final Pose START = new Pose(9.5, (23.5 * 5) - 0.5 - (11.5 / 2), Math.toRadians(-90));
+    public static final Pose START = new Pose(9.75, (23.5 * 5) - 0.5 - (11.5 / 2), Math.toRadians(-90));
 
     public static final Pose WOBBLE = new Pose(34.5, 106, Math.toRadians(-30));
 

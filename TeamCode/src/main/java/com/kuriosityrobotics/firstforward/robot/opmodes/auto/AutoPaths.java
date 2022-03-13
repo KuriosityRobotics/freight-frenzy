@@ -74,7 +74,7 @@ public class AutoPaths {
     }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
-        Pose complete = end.add(new Pose(0, -10, 0));
+        Pose complete = end.add(new Pose(0, -36, 0));
         if (complete.y < 10) {
             complete = new Pose(end.x, 10, end.heading);
         }

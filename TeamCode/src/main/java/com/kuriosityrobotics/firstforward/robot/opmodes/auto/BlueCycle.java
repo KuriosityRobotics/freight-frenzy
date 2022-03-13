@@ -18,7 +18,7 @@ import java.util.ArrayList;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class BlueCycle extends LinearOpMode {
 
-    public static final Pose BLUE_START_W = Pose.fieldMirror(9.5, 64.5, Math.toRadians(-90)); //start near warehouse
+    public static final Pose BLUE_START_W = Pose.fieldMirror(9.75, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose FIRST_WOBBLE = Pose.fieldMirror(24, 73, Math.toRadians(-110));
 
     public static final Pose BLUE_WOBBLE_W = Pose.fieldMirror(24, 73, Math.toRadians(-110));
