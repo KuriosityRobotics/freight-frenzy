@@ -55,14 +55,6 @@ import java.util.Map;
 
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
-
-    private static final Point[] TARGETS = {
-            // all in our coordinate system
-            new Point(0, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH),
-            new Point((TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH, FULL_FIELD_MM / MM_PER_INCH),
-            new Point((FULL_FIELD_MM - (TILE_MEAT_MM + TILE_TAB_MM + HALF_TILE_MEAT_MM)) / MM_PER_INCH, FULL_FIELD_MM / MM_PER_INCH),
-            new Point(FULL_FIELD_MM / MM_PER_INCH, (2 * TILE_MEAT_MM + 2 * TILE_TAB_MM + HALF_TILE_MEAT_MM) / MM_PER_INCH)
-    };
     private static final double CAMERA_ENCODER_TO_RADIAN = 2.0 * PI / 8192.0;
     private static final double ROTATOR_CENTER_POS = .295;
     private static final double ROTATOR_BACK_POS = .96;
@@ -113,7 +105,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static Point ftcToOurs(Point point) {
         return new Point(
                 (point.y + HALF_FIELD_MM) / MM_PER_INCH,
-                -point.x + HALF_FIELD_MM
+                (-point.x + HALF_FIELD_MM) / MM_PER_INCH
         );
     }
 
@@ -233,9 +225,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         for (Target target : Target.values()) {
             Point offset = getOffset(target);
             Point ourPoint = ftcToOurs(
-                    new Point(target.dx - (offset.y * MM_PER_INCH),
-                            target.dy + (offset.x * MM_PER_INCH))
-            );
+                    new Point(target.dx, target.dy)
+            ).add(offset);
 
             double relHeading = cameraPose.relativeHeadingToPoint(ourPoint);
             if (Math.abs(relHeading) < ROTATOR_ANGLE_RANGE)
