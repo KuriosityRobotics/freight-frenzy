@@ -26,11 +26,11 @@ public class Pose extends Point {
     }
 
     public static Pose fieldMirror(double x, double y, double heading) {
-        return new Pose(FULL_FIELD - x, y, -heading);
+        return new Pose(FULL_FIELD - x, y, angleWrap(-heading));
     }
 
     public static Pose relativeMirror(double x, double y, double heading) {
-        return new Pose(-x, y, -heading);
+        return new Pose(-x, y, angleWrap(-heading));
     }
 
     public Pose(Point point, double heading) {

@@ -5,6 +5,8 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleW
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -68,8 +70,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
                     Vector3D.of(FULL_FIELD - 34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
         } else {
             return new Vector3D[]{
-                    Vector3D.of(36 - 6, 0, FULL_FIELD - 73.5 + 2.5 - 3.5).add(offset),
-                    Vector3D.of(36 - 6, 6.5, FULL_FIELD - 73.5 - 2.5 - 3.5).add(offset)
+                    Vector3D.of(34.5, 0, FULL_FIELD - 73.5 + 3).add(offset),
+                    Vector3D.of(34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)
             };
         }
     }
@@ -138,10 +140,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         img.release();
 
 //        if (isSub1)
-        Imgproc.rectangle(_img, bounding1, new Scalar(0, 0, 0));
-
-//        if (isSub2)
-        Imgproc.rectangle(_img, bounding2, new Scalar(0, 0, 0));
 
 
         if (isSub1 && isSub2) {
@@ -157,7 +155,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
             this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;
         else
             this.location = TeamMarkerLocation.LEVEL_2;
-
     }
 
     public enum TeamMarkerLocation {

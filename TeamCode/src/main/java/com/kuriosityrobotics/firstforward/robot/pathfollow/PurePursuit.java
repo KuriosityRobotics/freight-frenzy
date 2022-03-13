@@ -17,6 +17,8 @@ import com.kuriosityrobotics.firstforward.robot.util.PID.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.PID.FeedForwardPID;
 import com.qualcomm.robotcore.util.Range;
 
+import org.checkerframework.dataflow.qual.Pure;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -36,7 +38,7 @@ public class PurePursuit implements Telemeter {
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
 //    private final FeedForwardPID yPID = new FeedForwardPID(0.021, 0.007, 0, 0.00);
 //    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
-    private final FeedForwardPID yPID = new FeedForwardPID(0.019, 0.015, 0, 0.00);
+    private final FeedForwardPID yPID = new FeedForwardPID(0.0185, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.026, 0.0000, 0);
     private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
 //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
@@ -49,36 +51,30 @@ public class PurePursuit implements Telemeter {
     private boolean executedLastAction;
     private boolean pathEnding;
     private boolean started = false;
+    private final double angleThreshold;
 
-    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double angleThreshold) {
         this.path = path;
         this.followRadius = followRadius;
 
         this.profile = new MotionProfile(path);
 
         this.backwards = backwards;
+        this.angleThreshold = angleThreshold;
 
         this.reset();
     }
 
-    public PurePursuit(WayPoint[] path, double followRadius) {
-        this(path, false, followRadius);
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius) {
+        this(path, backwards, followRadius, ANGLE_THRESHOLD);
     }
 
-    /**
-     * Copies an existing PurePursuit and offsets waypoints
-     * use this to correct for drift
-     * @param template
-     * @param xDrift
-     * @param yDrift
-     */
-    public PurePursuit(PurePursuit template, double xDrift, double yDrift) {
-        this(template.path.clone(), template.backwards, template.followRadius);
+    public PurePursuit(WayPoint[] path, double followRadius, double angleThreshold) {
+        this(path, false, followRadius, angleThreshold);
+    }
 
-        for (int i = 0; i < path.length; i++) {
-            WayPoint wayPoint = path[i];
-            path[i] = new WayPoint(wayPoint.x - xDrift, wayPoint.y - yDrift, wayPoint.angleLock, wayPoint.velocityLock, wayPoint.actions);
-        }
+    public PurePursuit(WayPoint[] path, double followRadius) {
+        this(path, false, followRadius);
     }
 
     public void reset() {
@@ -137,11 +133,17 @@ public class PurePursuit implements Telemeter {
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
-        double veloMag = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
+        Log.v("PP","targX: " + targetXVelo + " targY: " + targetYVelo);
+
+        double veloMag = Math.hypot(robotVelo.x, robotVelo.y);
         double veloHeading = Math.atan2(robotVelo.x, robotVelo.y);
         double alpha = veloHeading - robotPose.heading;
         double currXVelo = veloMag * Math.sin(alpha);
         double currYVelo = veloMag * Math.cos(alpha);
+
+        Log.v("PP", "currx: " + currXVelo + "curry: " + currYVelo);
+
+        Log.v("PP", "targangle: " + targetAngleLock);
 
         double xPow = Range.clip(xPID.calculateSpeed(targetXVelo, (targetXVelo - currXVelo)), -1, 1);
         double yPow = Range.clip(yPID.calculateSpeed(targetYVelo, (targetYVelo - currYVelo)), -1, 1);
@@ -268,9 +270,12 @@ public class PurePursuit implements Telemeter {
         WayPoint end = path[path.length - 1];
         AngleLock lastAngle = profile.getLastAngleLock();
 
+        // TODO fix this monkey angle thresholding
         boolean angleEnd = lastAngle.type != AngleLock.AngleLockType.LOCK
                 || (Math.abs(angleWrap(angleWrap(locationProvider.getPose().heading, Math.PI) - lastAngle.heading)) <= ANGLE_THRESHOLD && locationProvider.getVelocity().heading < Math.toRadians(1.5));
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1);
+
+        Log.v("PP", "angleend: " + angleEnd + " stopped: " + stopped);
 
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd

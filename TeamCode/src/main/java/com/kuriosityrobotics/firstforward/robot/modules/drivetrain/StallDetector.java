@@ -30,6 +30,9 @@ public class StallDetector {
     public volatile boolean isStalled;
 
     public void update(Pose velocity, double xMov, double yMov, double turnMov) {
+        if (true)
+            return;
+
         xMovs.add(xMov);
         yMovs.add(yMov);
         turnMovs.add(turnMov);
