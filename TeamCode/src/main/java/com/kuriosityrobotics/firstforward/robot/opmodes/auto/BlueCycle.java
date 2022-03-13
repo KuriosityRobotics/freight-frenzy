@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -59,7 +61,7 @@ public class BlueCycle extends LinearOpMode {
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(BLUE_START_W, robot.outtakeModule.extendOuttakeAction(detection)),
+                new WayPoint(BLUE_START_W, robot.outtakeModule.extendOuttakeAction(detection, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W)),
                 new WayPoint(FIRST_WOBBLE, 0, wobbleActions)
         }, 4);

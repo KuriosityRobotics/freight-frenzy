@@ -35,7 +35,7 @@ final class Braking {
         // at this point we know we want to brake
         if (!isBraking()) {
             this.brakePose = currentPose.add(velocity.scale(.1)); // we add .1 seconds worth of movement to make it feel snappy
-            angularBrakeController = new ClassicalPID(0.015, 0, 0.2);
+            angularBrakeController = new ClassicalPID(0.019, 0, 0.1);
             distanceBrakeController = new ClassicalPID(0.02, 0, 0.1);
         }
 

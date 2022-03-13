@@ -4,11 +4,13 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
 class ExtendOuttakeAction extends Action {
     private final OuttakeModule outtakeModule;
-    protected OuttakeModule.VerticalSlideLevel slideLevel;
+    private OuttakeModule.VerticalSlideLevel slideLevel;
+    private OuttakeModule.TurretPosition turretPosition;
 
-    public ExtendOuttakeAction(OuttakeModule outtakeModule, OuttakeModule.VerticalSlideLevel slideLevel) {
+    public ExtendOuttakeAction(OuttakeModule outtakeModule, OuttakeModule.VerticalSlideLevel slideLevel, OuttakeModule.TurretPosition turretPosition) {
         this.outtakeModule = outtakeModule;
         this.slideLevel = slideLevel;
+        this.turretPosition = turretPosition;
     }
 
     @Override
@@ -17,7 +19,7 @@ class ExtendOuttakeAction extends Action {
 
         outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
         outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-        outtakeModule.targetTurret = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
+        outtakeModule.targetTurret = turretPosition;
         outtakeModule.targetSlideLevel = slideLevel;
         outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
 

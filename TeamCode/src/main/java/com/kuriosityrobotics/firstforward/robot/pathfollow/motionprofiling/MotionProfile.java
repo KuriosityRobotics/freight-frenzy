@@ -43,14 +43,15 @@ public class MotionProfile {
 
         this.angleLockProfile = generateAngleLockProfile(inputPath);
         this.velocityProfile = generateVelocityProfile(inputPath);
+
+        Log.v("MP", "apht: " + Arrays.toString(inputPath));
+        Log.v("MP", "velocityprof: " + velocityProfile);
     }
 
     private LinkedMap<Double, AngleLock> generateAngleLockProfile(WayPoint[] in) {
         LinkedMap<Double, AngleLock> profile = new LinkedMap<>();
 
         double dist = 0;
-
-        Log.v("PP", Arrays.toString(in));
 
         AngleLock lastLock;
         if (in[0].getAngleLock().type == AngleLock.AngleLockType.CONTINUE_LAST) {
@@ -263,7 +264,7 @@ public class MotionProfile {
                             if (!i.hasPrevious()) {
                                 return nextLock;
                             } else {
-                                return new AngleLock(((distAlong / totalDist) * error) + lastLock.heading);
+                                return new AngleLock(angleWrap(((distAlong / totalDist) * error) + lastLock.heading));
                             }
                         }
                     default:

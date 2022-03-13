@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -14,7 +16,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
-    public static final double INTAKE_VELO = 15;
+    public static final double INTAKE_VELO = 10;
     public static final long VUF_DELAY = 150;
 
     private static long delay = 0;
@@ -25,7 +27,7 @@ public class AutoPaths {
         }
 
         robot.resetPose(reset);
-        OuttakeModule.VerticalSlideLevel detected = awaitBarcodeDetection(robot);
+        OuttakeModule.VerticalSlideLevel detected = AutoPaths.awaitBarcodeDetection(robot);
 
         robot.telemetryDump.setAlert("Currently delaying for " + delay + " milliseconds.");
         opMode.sleep(delay);
@@ -36,9 +38,8 @@ public class AutoPaths {
     }
 
     public static OuttakeModule.VerticalSlideLevel awaitBarcodeDetection(Robot robot) {
-        robot.visionThread.getTeamMarkerDetector().activate();
-
         TeamMarkerDetector.TeamMarkerLocation location;
+        robot.visionThread.getTeamMarkerDetector().activate();
         do {
             location = robot.visionThread.getTeamMarkerDetector().getLocation();
         } while ((location == null || location == TeamMarkerDetector.TeamMarkerLocation.UNKNOWN) && robot.running());
@@ -94,7 +95,6 @@ public class AutoPaths {
             if (robot.intakeModule.hasMineral() || robot.intakeModule.newMineral) {
                 robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
                 robot.intakeModule.intakePower = 0;
-                Log.v("auto", "LEAVING!: " + robot.intakeModule.newMineral + " time?? " + (SystemClock.elapsedRealtime() - start >= killswitchMillis));
 
                 robot.intakeModule.newMineral = false;
                 break;
@@ -104,7 +104,6 @@ public class AutoPaths {
                 path.update(robot, robot.drivetrain);
             }
         }
-        Log.v("auto", "DONE!");
         robot.drivetrain.setMovements(0, 0, 0);
     }
 

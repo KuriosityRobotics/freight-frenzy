@@ -86,7 +86,7 @@ public class OuttakeModule implements Module, Telemeter {
         IN(.0060539),
         OUT(.993),
         UP(0.5),
-        CAP_PICKUP(0.996),
+        CAP_PICKUP(0.9874),
         CAP_DROP(0.816);
 
         private final double position;
@@ -351,7 +351,11 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel) {
-        return new ExtendOuttakeAction(this, slideLevel);
+        return new ExtendOuttakeAction(this, slideLevel, TurretPosition.ALLIANCE_LOCK);
+    }
+
+    public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel, TurretPosition turretPosition) {
+        return new ExtendOuttakeAction(this, slideLevel, turretPosition);
     }
 
 }
