@@ -158,7 +158,7 @@ public class PurePursuit implements Telemeter {
             } else {
                 targHeading = targetAngleLock.heading;
             }
-            double error = angleWrap(angleWrap(targHeading) - robotPose.heading);
+            double error = angleWrap(targHeading - robotPose.heading);
 
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
         }
