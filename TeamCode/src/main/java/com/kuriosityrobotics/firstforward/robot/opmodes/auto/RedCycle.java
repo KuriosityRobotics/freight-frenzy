@@ -19,7 +19,7 @@ import java.util.ArrayList;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class RedCycle extends LinearOpMode {
 
-    public static final Pose RED_START_W = new Pose(9.5, 64.5, Math.toRadians(-90)); //start near warehouse
+    public static final Pose RED_START_W = new Pose(9.75, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose FIRST_WOBBLE = new Pose(24, 73, Math.toRadians(-110));
 
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));

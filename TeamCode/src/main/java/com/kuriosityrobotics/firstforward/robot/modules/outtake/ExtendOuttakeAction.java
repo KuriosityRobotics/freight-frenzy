@@ -17,7 +17,7 @@ class ExtendOuttakeAction extends Action {
 
         outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
         outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-        outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+        outtakeModule.targetTurret = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
         outtakeModule.targetSlideLevel = slideLevel;
         outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
 
