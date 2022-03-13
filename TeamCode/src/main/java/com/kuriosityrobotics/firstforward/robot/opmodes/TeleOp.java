@@ -73,10 +73,15 @@ public class TeleOp extends LinearOpMode {
     Button dpad_up = new Button();
     Button lBump = new Button();
     Button yGamepad2 = new Button();
+    Button xG1 = new Button();
 
     OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
     private void updateOuttakeStates() {
+        if (xG1.isSelected(gamepad1.x)) {
+            robot.outtakeModule.resetSlides();
+        }
+
         if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
             robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
 

@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.RETRACT;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HUBS;
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
@@ -160,6 +159,13 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
+    private boolean timerComplete() {
+        long currentTime = System.currentTimeMillis();
+        boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
+
+        return timerComplete;
+    }
+
     //servos
     private final Servo linkage;
     private final Servo pivot;
@@ -199,6 +205,11 @@ public class OuttakeModule implements Module, Telemeter {
 
         this.targetState = COLLAPSE;
         this.currentState = COLLAPSE;
+    }
+
+    public void resetSlides() {
+        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -250,17 +261,16 @@ public class OuttakeModule implements Module, Telemeter {
             transitionTime = System.currentTimeMillis();
         }
 
-        if (slide.getCurrentPosition() > 0) {
-            slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        }
+//        if (slide.getCurrentPosition() > 10) {
+//            resetSlides();
+//        }
 
         // if current position is higher than the target
         if (currentState == COLLAPSE) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             slide.setPower(0);
 
-            if (atTargetState()) {
+            if (timerComplete()) {
                 clamp.setPosition(CLAMP_INTAKE);
             }
         } else {
