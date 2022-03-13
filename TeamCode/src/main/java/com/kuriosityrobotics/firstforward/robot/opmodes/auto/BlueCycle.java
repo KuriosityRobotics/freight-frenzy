@@ -50,6 +50,8 @@ public class BlueCycle extends LinearOpMode {
 
         waitForStart();
 
+        long startTime = SystemClock.elapsedRealtime();
+
         robot.resetPose(BLUE_START_W);
 
         OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
@@ -101,12 +103,16 @@ public class BlueCycle extends LinearOpMode {
         assert robot.visionThread.vuforiaLocalizationConsumer != null;
         boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
 
+        if (sawFirst) {
+            robot.followPath(wobbleToWarehouse);
+        } else {
+            AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+        }
+
         int numCycles = 4;
         for (int i = 0; i < numCycles; i++) {
-            if (sawFirst) {
-                robot.followPath(wobbleToWarehouse);
-            } else {
-                AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+            if ((30*1000) - (SystemClock.elapsedRealtime() - startTime) < 6000) {
+                return;
             }
 
             Pose intakeVary;
@@ -151,18 +157,12 @@ public class BlueCycle extends LinearOpMode {
 
             assert robot.visionThread.vuforiaLocalizationConsumer != null;
             sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+
+            if (sawFirst) {
+                robot.followPath(wobbleToWarehouse);
+            } else {
+                AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+            }
         }
-        AutoPaths.wallRidePath(robot, wobbleToWarehouse);
-//        robot.followPath(wobbleToWarehouse);
-
-        /*
-        blueStartwToWobble.follow(false);
-
-        for (int i = 0; i < 3; i++){
-            robot.followPath(blueWobbleToWarehouse);
-            robot.followPath(blueWarehouseToWobble);
-        }
-         */
-
     }
 }
