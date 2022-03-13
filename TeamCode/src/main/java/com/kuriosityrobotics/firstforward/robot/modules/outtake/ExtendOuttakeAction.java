@@ -17,7 +17,11 @@ class ExtendOuttakeAction extends Action {
     public void tick() {
         super.tick();
 
-        outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+        if (slideLevel == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
+            outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+        } else {
+            outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+        }
         outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
         outtakeModule.targetTurret = turretPosition;
         outtakeModule.targetSlideLevel = slideLevel;

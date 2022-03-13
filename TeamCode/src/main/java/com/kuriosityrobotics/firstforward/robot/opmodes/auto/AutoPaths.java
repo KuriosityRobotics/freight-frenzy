@@ -19,10 +19,10 @@ public class AutoPaths {
     public static final double INTAKE_VELO = 10;
     public static final long VUF_DELAY = 150;
 
-    private static long delay = 0;
+    public static double delay = 0;
     public static OuttakeModule.VerticalSlideLevel delayedStartLogic(LinearOpMode opMode, Robot robot, Pose reset) {
         while (!robot.started() && robot.running()) {
-            delay = (long) Math.max(0, delay - (opMode.gamepad1.left_stick_y * 0.001));
+            delay = Math.max(0, delay - (opMode.gamepad1.left_stick_y * 0.01));
             robot.telemetryDump.setAlert("Auto start delay (ms): " + delay);
         }
 
@@ -30,7 +30,7 @@ public class AutoPaths {
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.awaitBarcodeDetection(robot);
 
         robot.telemetryDump.setAlert("Currently delaying for " + delay + " milliseconds.");
-        opMode.sleep(delay);
+        opMode.sleep((long) delay);
 
         robot.telemetryDump.clearAlert();
 

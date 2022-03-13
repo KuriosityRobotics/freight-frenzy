@@ -19,7 +19,7 @@ public class BlueCarousel extends LinearOpMode {
     public static final Pose WOBBLE = Pose.fieldMirror(28, 100, Math.toRadians(-40));
 
     public static final Point PRE_CAROUSEL = Point.fieldMirror(17, 120);
-    public static final Pose CAROUSEL = Pose.fieldMirror(17, 132, Math.toRadians(-75));
+    public static final Pose CAROUSEL = Pose.fieldMirror(16.75, 132, Math.toRadians(-75));
 
     public static final Pose PARK = Pose.fieldMirror(35, 5 * 23.5 + 12, Math.toRadians(-90));
 
@@ -55,7 +55,7 @@ public class BlueCarousel extends LinearOpMode {
         if (detected == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             Pose drop = new Pose(Constants.Field.FULL_FIELD - 48, 108, Math.toRadians(5));
             toWobble = new PurePursuit(new WayPoint[]{
-                    new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
+                    new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.DOWN)),
                     new WayPoint(START.add(new Pose(-15, 0, 0)), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                     new WayPoint(drop, 0, robot.outtakeModule.dumpOuttakeAction())
             }, true, 3);
