@@ -214,7 +214,8 @@ public class OuttakeModule implements Module, Telemeter {
     String lastRan = "";
 
     public void update() {
-        if (phaseComplete() && currentState != targetState) {
+        boolean skipState = currentState == COLLAPSE;
+        if ((phaseComplete() || skipState) && currentState != targetState) {
             lastRan = currentState.name();
 
             currentState = OuttakeState.values()[currentState.ordinal() + 1 >= OuttakeState.values().length ? 0 : currentState.ordinal() + 1];
@@ -247,6 +248,11 @@ public class OuttakeModule implements Module, Telemeter {
             }
 
             transitionTime = System.currentTimeMillis();
+        }
+
+        if (slide.getCurrentPosition() > 0) {
+            slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         // if current position is higher than the target
