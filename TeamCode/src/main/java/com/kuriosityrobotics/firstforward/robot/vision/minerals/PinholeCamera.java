@@ -74,7 +74,7 @@ public class PinholeCamera {
     }
 
     private static double getZPrimeConstrainedZ(AffineTransformMatrix3D worldToFrame, double Z, double x, double y) {
-        return getZPrimeConstrainedColumn(worldToFrame, 1, Z, x, y);
+        return getZPrimeConstrainedColumn(worldToFrame, 2, Z, x, y);
     }
 
     private AffineTransformMatrix2D normaliseFrameCoordinates() { // TODO:  stop abusing the word 'normalise'
