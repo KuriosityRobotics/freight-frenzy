@@ -37,6 +37,8 @@ public class IntakeModule implements Module, Telemeter {
     public volatile double intakePower;
     public volatile IntakePosition targetIntakePosition;
 
+    public boolean enableAutoExtend = true;
+
     private final DcMotorEx intakeMotor;
     private final Servo extenderLeft;
     private final Servo extenderRight;
@@ -83,7 +85,7 @@ public class IntakeModule implements Module, Telemeter {
     public void update() {
         // listen for when we just finished retracting to command the outtake to extend.
         if (atTargetPosition() && !wasDoneTransitioning) {
-            if (transitionTo == IntakePosition.RETRACTED) {
+            if (transitionTo == IntakePosition.RETRACTED && enableAutoExtend) {
                 outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
             }
             wasDoneTransitioning = true;
