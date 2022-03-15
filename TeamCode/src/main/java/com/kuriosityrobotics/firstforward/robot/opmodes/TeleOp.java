@@ -68,6 +68,8 @@ public class TeleOp extends LinearOpMode {
         }
 
         wasSet = setPower;
+
+        robot.intakeModule.enableAutoExtend = gamepad1.right_trigger < 0.15;
     }
 
     Button dpad_up = new Button();

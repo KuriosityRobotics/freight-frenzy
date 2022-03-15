@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class RedCycle extends LinearOpMode {
 
     public static final Pose RED_START_W = new Pose(9.75, 64.5, Math.toRadians(-90)); //start near warehouse
-    public static final Pose FIRST_WOBBLE = new Pose(24, 73, Math.toRadians(-110));
+    public static final Pose FIRST_WOBBLE = new Pose(27, 73, Math.toRadians(-110));
 
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));

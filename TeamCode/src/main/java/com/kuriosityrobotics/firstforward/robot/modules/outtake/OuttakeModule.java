@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
+import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.PARTIAL_EXTEND;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HUBS;
 import static java.lang.Math.abs;
 import static java.lang.Math.round;
@@ -34,7 +35,7 @@ public class OuttakeModule implements Module, Telemeter {
     private OuttakeState currentState;
 
     //time constants
-    private static final long EXTEND_TIME = 200;
+    private static final long EXTEND_TIME = 400;
     private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
@@ -108,6 +109,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum OuttakeState {
+        PARTIAL_EXTEND(400),
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),
@@ -232,6 +234,10 @@ public class OuttakeModule implements Module, Telemeter {
             currentState = OuttakeState.values()[currentState.ordinal() + 1 >= OuttakeState.values().length ? 0 : currentState.ordinal() + 1];
 
             switch (this.currentState) {
+                case PARTIAL_EXTEND:
+                    clamp.setPosition(CLAMP_CLAMP);
+                    linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
+                    break;
                 case RAISE:
                     linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                     clamp.setPosition(CLAMP_CLAMP);
@@ -266,7 +272,7 @@ public class OuttakeModule implements Module, Telemeter {
 //        }
 
         // if current position is higher than the target
-        if (currentState == COLLAPSE) {
+        if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             slide.setPower(0);
 
@@ -280,10 +286,10 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
         if (currentState == EXTEND) {
-            pivot.setPosition(targetPivot.position);
+            linkage.setPosition(targetLinkage.position);
 
             if (atTargetState()) {
-                linkage.setPosition(targetLinkage.position);
+                pivot.setPosition(targetPivot.position);
 
                 double targetTurretServoPosition = targetTurret.position;
                 if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
@@ -350,7 +356,8 @@ public class OuttakeModule implements Module, Telemeter {
 //            add("last:  " + lastRan);
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
-            add("pivot postiong: " + pivot.getPosition());
+            add("Linkage: " + targetLinkage.name());
+//            add("pivot postiong: " + pivot.getPosition());
 //            add("--");
 //            add("current slide:  " + slide.getCurrentPosition());
         }};
