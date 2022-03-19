@@ -105,7 +105,6 @@ public class Robot implements LocationProvider {
 
         this.isCamera = isCamera;
         visionThread = new VisionThread(this, camera);
-        telemetryDump.registerTelemeter(visionThread);
 
         debugThread = new DebugThread(this, DEBUG);
 //        telemetryDump.registerTelemeter(debugThread);

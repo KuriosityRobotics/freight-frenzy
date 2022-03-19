@@ -18,9 +18,6 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class IntakeModule implements Module, Telemeter {
-    private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
-
     public static final double INTAKE_RIGHT_EXTENDED_POS = 0.0168;
     public static final double INTAKE_RIGHT_IDLE_POS = 0.5121062;
     public static final double INTAKE_RIGHT_RETRACTED_POS = 0.6860951;
@@ -86,7 +83,6 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     public void update() {
-        timeOfLastUpdate = SystemClock.elapsedRealtime();
         // listen for when we just finished retracting to command the outtake to extend.
         if (atTargetPosition() && !wasDoneTransitioning) {
             if (transitionTo == IntakePosition.RETRACTED && enableAutoExtend) {
@@ -148,9 +144,6 @@ public class IntakeModule implements Module, Telemeter {
                 extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
                 break;
         }
-
-        long currentTime = SystemClock.elapsedRealtime();
-        updateDuration = currentTime - timeOfLastUpdate;
     }
 
     private void transitionIntake(IntakePosition position) {
@@ -237,8 +230,7 @@ public class IntakeModule implements Module, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>() {{add("Update Time: " + updateDuration);
-            add("--");}};
+        ArrayList<String> data = new ArrayList<>();
 
         data.add(String.format(Locale.US, "Intake position:  %s", targetIntakePosition));
         data.add("At pos? " + atTargetPosition());

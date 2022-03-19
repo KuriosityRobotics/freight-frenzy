@@ -15,9 +15,6 @@ import java.util.ArrayList;
 
 
 class DrivetrainModule implements Module, Telemeter {
-    private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
-
     //states
     private double xMov, yMov, turnMov;
 
@@ -43,7 +40,6 @@ class DrivetrainModule implements Module, Telemeter {
 
     //updates motor power
     public void update() {
-        timeOfLastUpdate = SystemClock.elapsedRealtime();
         double fLPower = yMov + turnMov + xMov;
         double fRPower = yMov - turnMov - xMov;
         double bLPower = yMov + turnMov - xMov;
@@ -59,7 +55,6 @@ class DrivetrainModule implements Module, Telemeter {
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
 
         long currentTime = SystemClock.elapsedRealtime();
-        updateDuration = currentTime - timeOfLastUpdate;
     }
 
     @Override
@@ -113,8 +108,7 @@ class DrivetrainModule implements Module, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>() {{add("Update Time: " + updateDuration);
-            add("--");}};
+        ArrayList<String> data = new ArrayList<>();
 
         data.add("xMov: " + xMov);
         data.add("yMov: " + yMov);

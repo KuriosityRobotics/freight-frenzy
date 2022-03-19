@@ -100,7 +100,7 @@ public class TelemetryDump implements PoseWatcher {
         if (alert != null)
             stringBuilder.append(alert).append("\n \n");
 
-        var a =  telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
+        var a =  telemetors.stream().sorted(Comparator.comparing(Telemeter::getShowIndex))
                 .filter(Telemeter::isOn)
                 .map(telemeter ->
                         stringBuilder

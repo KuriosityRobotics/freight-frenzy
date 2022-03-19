@@ -17,9 +17,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import java.util.ArrayList;
 
 public class CarouselModule implements Module, Telemeter {
-    private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
-
     private static final double CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE = 2 * PI;
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
     private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
@@ -50,7 +47,6 @@ public class CarouselModule implements Module, Telemeter {
     private double target = 0;
 
     public void update() {
-        timeOfLastUpdate = SystemClock.elapsedRealtime();
         this.clockwise = Robot.isBlue;
 
         if (spin) {
@@ -65,9 +61,6 @@ public class CarouselModule implements Module, Telemeter {
             spinStartTimeMillis = null;
             carouselMotor.setVelocity(0);
         }
-
-        long currentTime = SystemClock.elapsedRealtime();
-        updateDuration = currentTime - timeOfLastUpdate;
     }
 
     @Override
@@ -82,8 +75,7 @@ public class CarouselModule implements Module, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>() {{add("Update Time: " + updateDuration);
-            add("--");}};
+        ArrayList<String> data = new ArrayList<>();
 
         data.add("spin: " + spin);
         data.add("velocity: " + carouselMotor.getVelocity(AngleUnit.RADIANS));

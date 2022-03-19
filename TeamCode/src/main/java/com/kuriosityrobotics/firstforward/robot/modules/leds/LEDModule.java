@@ -21,8 +21,6 @@ public class LEDModule implements Module, Telemeter {
     BlinkinPattern VUF_SAW = BlinkinPattern.GOLD;
 
     private static final long SHOW_VUF = 500;
-    private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
 
     // modules
     Robot robot;
@@ -39,7 +37,6 @@ public class LEDModule implements Module, Telemeter {
     }
 
     public void update() {
-        timeOfLastUpdate = SystemClock.elapsedRealtime();
         if (intake != null && intake.hasMineral()) {
             led.setPattern(INTAKE_OCCUPIED);
         } else if (!robot.visionThread.started) {
@@ -51,9 +48,6 @@ public class LEDModule implements Module, Telemeter {
         } else {
             led.setPattern(IDLE);
         }
-
-        long currentTime = SystemClock.elapsedRealtime();
-        updateDuration = currentTime - timeOfLastUpdate;
     }
 
     @Override
@@ -64,11 +58,6 @@ public class LEDModule implements Module, Telemeter {
     @Override
     public String getName() {
         return "LED Module";
-    }
-
-    @Override
-    public List<String> getTelemetryData() {
-        return new ArrayList<>() {{add("Update Time: " + updateDuration);}};
     }
 
     @Override

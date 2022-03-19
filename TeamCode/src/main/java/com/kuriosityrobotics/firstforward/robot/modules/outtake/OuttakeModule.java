@@ -27,9 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OuttakeModule implements Module, Telemeter {
-    private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
-
     LocationProvider locationProvider;
 
     // states
@@ -234,7 +231,6 @@ public class OuttakeModule implements Module, Telemeter {
     String lastRan = "";
 
     public void update() {
-        timeOfLastUpdate = SystemClock.elapsedRealtime();
         boolean skipState = currentState == COLLAPSE;
         if ((phaseComplete() || skipState) && currentState != targetState) {
             lastRan = currentState.name();
@@ -324,9 +320,6 @@ public class OuttakeModule implements Module, Telemeter {
                 }
             }
         }
-
-        long currentTime = SystemClock.elapsedRealtime();
-        updateDuration = currentTime - timeOfLastUpdate;
     }
 
     private double turretHeadingToServoPos(double turretHeading) {
@@ -362,8 +355,6 @@ public class OuttakeModule implements Module, Telemeter {
     @Override
     public List<String> getTelemetryData() {
         return new ArrayList<>() {{
-            add("Update Time: " + updateDuration);
-            add("--");
             add("Target State: " + targetState.toString());
             add("State:  " + currentState.toString());
 //            add("last:  " + lastRan);
