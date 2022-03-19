@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class IntakeModule implements Module, Telemeter {
+    private long updateDuration = 0;
+    private long timeOfLastUpdate = 0;
+
     public static final double INTAKE_RIGHT_EXTENDED_POS = 0.0168;
     public static final double INTAKE_RIGHT_IDLE_POS = 0.5121062;
     public static final double INTAKE_RIGHT_RETRACTED_POS = 0.6860951;
@@ -145,6 +148,9 @@ public class IntakeModule implements Module, Telemeter {
                 break;
         }
 
+        long currentTime = SystemClock.elapsedRealtime();
+        updateDuration = currentTime - timeOfLastUpdate;
+        timeOfLastUpdate = currentTime;
     }
 
     private void transitionIntake(IntakePosition position) {
@@ -231,7 +237,8 @@ public class IntakeModule implements Module, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
+        ArrayList<String> data = new ArrayList<>() {{add("Update Time: " + updateDuration);
+            add("--");}};
 
         data.add(String.format(Locale.US, "Intake position:  %s", targetIntakePosition));
         data.add("At pos? " + atTargetPosition());
@@ -240,6 +247,11 @@ public class IntakeModule implements Module, Telemeter {
         data.add(String.format(Locale.US, "Mineral is in intake: %b", hasMineral));
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 
     public String getName() {

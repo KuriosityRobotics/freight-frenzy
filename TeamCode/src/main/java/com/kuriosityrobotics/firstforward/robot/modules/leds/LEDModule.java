@@ -9,6 +9,9 @@ import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LEDModule implements Module, Telemeter {
     BlinkinPattern VUF_INITING = BlinkinPattern.DARK_BLUE;
     BlinkinPattern INTAKE_OCCUPIED = BlinkinPattern.GREEN;
@@ -18,6 +21,8 @@ public class LEDModule implements Module, Telemeter {
     BlinkinPattern VUF_SAW = BlinkinPattern.GOLD;
 
     private static final long SHOW_VUF = 500;
+    private long updateDuration = 0;
+    private long timeOfLastUpdate = 0;
 
     // modules
     Robot robot;
@@ -45,6 +50,10 @@ public class LEDModule implements Module, Telemeter {
         } else {
             led.setPattern(IDLE);
         }
+
+        long currentTime = SystemClock.elapsedRealtime();
+        updateDuration = currentTime - timeOfLastUpdate;
+        timeOfLastUpdate = currentTime;
     }
 
     @Override
@@ -58,7 +67,13 @@ public class LEDModule implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
-        return null;
+    public List<String> getTelemetryData() {
+        return new ArrayList<>() {{add("Update Time" + updateDuration);
+            add("--");}};
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 }

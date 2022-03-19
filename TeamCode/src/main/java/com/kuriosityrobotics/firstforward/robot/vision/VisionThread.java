@@ -133,4 +133,9 @@ public class VisionThread implements Runnable, Telemeter {
             managedCamera = null;
         }
     }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex();
+    }
 }

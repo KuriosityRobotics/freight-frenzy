@@ -74,6 +74,7 @@ public class Robot implements LocationProvider {
 
         // init sensorThread up here since drivetrain depends on it
         sensorThread = new SensorThread(this, configLocation);
+        telemetryDump.registerTelemeter(sensorThread);
 
         // modules
         drivetrain = new Drivetrain(sensorThread.odometry, hardwareMap);

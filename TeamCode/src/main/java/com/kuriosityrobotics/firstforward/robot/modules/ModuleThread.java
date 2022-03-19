@@ -13,8 +13,6 @@ import java.util.ArrayList;
  * from the hubs.
  */
 public class ModuleThread implements Runnable, Telemeter {
-    static final boolean SHOW_UPDATE_SPEED = true;
-
     private final Robot robot;
     private final Module[] modules;
 
@@ -84,5 +82,10 @@ public class ModuleThread implements Runnable, Telemeter {
         data.add("Update time: " + updateDuration);
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex(); // which is 2
     }
 }

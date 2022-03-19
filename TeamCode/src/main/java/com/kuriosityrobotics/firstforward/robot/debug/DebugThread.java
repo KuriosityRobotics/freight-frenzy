@@ -54,4 +54,9 @@ public class DebugThread implements Runnable, Telemeter {
     public boolean isOn() {
         return isOn;
     }
+
+    @Override
+    public int getShowIndex() {
+        return Telemeter.super.getShowIndex(); // which is 2
+    }
 }

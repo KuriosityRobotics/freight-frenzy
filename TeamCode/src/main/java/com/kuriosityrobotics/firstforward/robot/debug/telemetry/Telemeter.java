@@ -3,9 +3,10 @@ package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public interface Telemeter {
-    default Iterable<String> getTelemetryData() {
+    default List<String> getTelemetryData() {
         return new ArrayList<>();
     }
 
@@ -15,5 +16,9 @@ public interface Telemeter {
 
     default HashMap<String, Object> getDashboardData(){
         return new HashMap<>();
+    }
+
+    default int getShowIndex() {
+        return 2;
     }
 }
