@@ -47,26 +47,7 @@ public class TelemetryDump implements PoseWatcher {
     }
 
     public void update() {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        if (alert != null)
-            stringBuilder.append(alert).append("\n \n");
-
-        var a = telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
-                .filter(Telemeter::isOn)
-                .map(telemeter ->
-                        stringBuilder
-                                .append("---")
-                                .append(telemeter.getName())
-                                .append("---\n")
-                                // please java SHUT THE GELL UP I DON'T WANT TO USE STRING.JOIN
-                                .append(telemeter.getTelemetryData().stream().collect(Collectors.joining("\n")))
-                                .append("\n----------------------")
-                                .append("\n\n")
-                ).collect(Collectors.toList());
-        Log.v("bruh", "o" + telemeters);
-        Log.v("bruh", "e" + stringBuilder.toString());
-        telemetry.addLine(stringBuilder.toString());
+        telemetry.addLine(getData(telemeters));
         telemetry.update();
     }
 
@@ -113,23 +94,24 @@ public class TelemetryDump implements PoseWatcher {
 //                })).entrySet();
 //    }
 
-    private String getData(List<Telemeter> telemetors) {
+    private String getData(ConcurrentLinkedQueue<Telemeter> telemetors) {
         StringBuilder stringBuilder = new StringBuilder();
 
         if (alert != null)
             stringBuilder.append(alert).append("\n \n");
 
-        telemetors.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
+        var a =  telemeters.stream().sorted(Comparator.comparing(Telemeter::getShowIndex).reversed())
                 .filter(Telemeter::isOn)
                 .map(telemeter ->
                         stringBuilder
                                 .append("---")
                                 .append(telemeter.getName())
-                                .append("---\n\n")
-                                .append(telemeter.getTelemetryData())
-                                .append("\n----------------------")
+                                .append("---\n")
+                                // please java SHUT THE GELL UP I DON'T WANT TO USE STRING.JOIN
+                                .append(telemeter.getTelemetryData().stream().collect(Collectors.joining("\n")))
                                 .append("\n\n")
-                );
+                ).collect(Collectors.toList()).toString();
+
         return stringBuilder.toString();
     }
 }

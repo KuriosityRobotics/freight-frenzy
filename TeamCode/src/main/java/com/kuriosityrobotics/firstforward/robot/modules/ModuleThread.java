@@ -83,9 +83,4 @@ public class ModuleThread implements Runnable, Telemeter {
 
         return data;
     }
-
-    @Override
-    public int getShowIndex() {
-        return Telemeter.super.getShowIndex(); // which is 2
-    }
 }

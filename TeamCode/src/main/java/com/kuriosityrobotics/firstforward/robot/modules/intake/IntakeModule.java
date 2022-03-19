@@ -86,6 +86,7 @@ public class IntakeModule implements Module, Telemeter {
     }
 
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         // listen for when we just finished retracting to command the outtake to extend.
         if (atTargetPosition() && !wasDoneTransitioning) {
             if (transitionTo == IntakePosition.RETRACTED && enableAutoExtend) {
@@ -150,7 +151,6 @@ public class IntakeModule implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     private void transitionIntake(IntakePosition position) {

@@ -43,6 +43,7 @@ class DrivetrainModule implements Module, Telemeter {
 
     //updates motor power
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         double fLPower = yMov + turnMov + xMov;
         double fRPower = yMov - turnMov - xMov;
         double bLPower = yMov + turnMov - xMov;
@@ -59,7 +60,6 @@ class DrivetrainModule implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     @Override

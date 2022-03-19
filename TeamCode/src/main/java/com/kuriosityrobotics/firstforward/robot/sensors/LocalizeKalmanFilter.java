@@ -323,9 +323,4 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     public boolean isOn() {
         return true;
     }
-
-    @Override
-    public int getShowIndex() {
-        return Telemeter.super.getShowIndex();
-    }
 }

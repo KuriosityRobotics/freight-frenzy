@@ -39,6 +39,7 @@ public class LEDModule implements Module, Telemeter {
     }
 
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         if (intake != null && intake.hasMineral()) {
             led.setPattern(INTAKE_OCCUPIED);
         } else if (!robot.visionThread.started) {
@@ -53,7 +54,6 @@ public class LEDModule implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     @Override
@@ -68,8 +68,7 @@ public class LEDModule implements Module, Telemeter {
 
     @Override
     public List<String> getTelemetryData() {
-        return new ArrayList<>() {{add("Update Time" + updateDuration);
-            add("--");}};
+        return new ArrayList<>() {{add("Update Time: " + updateDuration);}};
     }
 
     @Override

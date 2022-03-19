@@ -234,6 +234,7 @@ public class OuttakeModule implements Module, Telemeter {
     String lastRan = "";
 
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         boolean skipState = currentState == COLLAPSE;
         if ((phaseComplete() || skipState) && currentState != targetState) {
             lastRan = currentState.name();
@@ -326,7 +327,6 @@ public class OuttakeModule implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     private double turretHeadingToServoPos(double turretHeading) {

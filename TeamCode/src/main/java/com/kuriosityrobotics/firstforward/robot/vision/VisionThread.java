@@ -10,6 +10,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
+import org.checkerframework.checker.units.qual.A;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.ArrayList;
@@ -42,7 +43,12 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> telemetryData = new ArrayList<>(vuforiaLocalizationConsumer.logPositionAndDetection());
+        ArrayList<String> telemetryData;
+        if (vuforiaLocalizationConsumer != null) {
+             telemetryData = new ArrayList<>(vuforiaLocalizationConsumer.logPositionAndDetection());
+        } else {
+            telemetryData = new ArrayList<>();
+        }
         telemetryData.add("Team marker location: " + getTeamMarkerDetector().getLocation());
         telemetryData.add("Update time: " + updateTime);
         return telemetryData;
@@ -132,10 +138,5 @@ public class VisionThread implements Runnable, Telemeter {
             managedCamera.close();
             managedCamera = null;
         }
-    }
-
-    @Override
-    public int getShowIndex() {
-        return Telemeter.super.getShowIndex();
     }
 }

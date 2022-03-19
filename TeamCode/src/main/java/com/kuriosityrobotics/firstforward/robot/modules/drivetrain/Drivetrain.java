@@ -55,6 +55,7 @@ public class Drivetrain implements Module, Telemeter {
     // updates drivetrainModule and odometry
     // gets updated in robot
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         if (opmodeStarted) {
             if (movementsZero() && !locationProvider.getVelocity().equals(Pose.ZERO)) {
                 Pose brakeMovements = brake.getBrakeMovement(locationProvider.getPose().wrapped(), locationProvider.getVelocity());
@@ -71,7 +72,6 @@ public class Drivetrain implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     public StallDetector getStallDetector() {

@@ -87,10 +87,10 @@ public class Robot implements LocationProvider {
         telemetryDump.registerTelemeter(intakeModule);
 
         carouselModule = new CarouselModule(hardwareMap);
-        //telemetryDump.registerTelemeter(carouselModule);
+        telemetryDump.registerTelemeter(carouselModule);
 
         ledModule = new LEDModule(this);
-//        telemetryDump.registerTelemeter(ledModule);
+        telemetryDump.registerTelemeter(ledModule);
 
         Module[] modules = new Module[]{
                 drivetrain,
@@ -105,8 +105,10 @@ public class Robot implements LocationProvider {
 
         this.isCamera = isCamera;
         visionThread = new VisionThread(this, camera);
+        telemetryDump.registerTelemeter(visionThread);
 
         debugThread = new DebugThread(this, DEBUG);
+//        telemetryDump.registerTelemeter(debugThread);
 
         this.start();
     }

@@ -50,6 +50,7 @@ public class CarouselModule implements Module, Telemeter {
     private double target = 0;
 
     public void update() {
+        timeOfLastUpdate = SystemClock.elapsedRealtime();
         this.clockwise = Robot.isBlue;
 
         if (spin) {
@@ -67,7 +68,6 @@ public class CarouselModule implements Module, Telemeter {
 
         long currentTime = SystemClock.elapsedRealtime();
         updateDuration = currentTime - timeOfLastUpdate;
-        timeOfLastUpdate = currentTime;
     }
 
     @Override
