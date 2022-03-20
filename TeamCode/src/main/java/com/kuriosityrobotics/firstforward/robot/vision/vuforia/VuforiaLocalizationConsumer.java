@@ -1,5 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
+import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.CORRECTION;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
@@ -24,7 +25,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
@@ -182,7 +183,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
             if (cameraEncoderSetYet) {
                 if (robot.started() || !robot.isAuto()) {
-                    setCameraAngle(calculateOptimalCameraAngle());
+                    setCameraAngle(0);
+//                    setCameraAngle(calculateOptimalCameraAngle());
                 } else if (!Robot.isCarousel && !doneCalibrating) {
                     setCameraAngle(0);
                 } else {
@@ -198,7 +200,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
-                    robot.sensorThread.addGoodie(new KalmanData(1, data), fetchTime);
+                    robot.sensorThread.addGoodie(new KalmanDatum(CORRECTION, data), fetchTime);
                     lastAcceptedTime = SystemClock.elapsedRealtime();
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }

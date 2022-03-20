@@ -1,13 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.PREDICTION;
+
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -86,7 +87,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         long currentTimeMillis = SystemClock.elapsedRealtime();
         calculatePosition();
-        robot.sensorThread.addGoodie(new KalmanData(0, getDeltaMatrix()), currentTimeMillis);
+        robot.sensorThread.addGoodie(new KalmanDatum(PREDICTION, getDeltaMatrix()), currentTimeMillis);
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));

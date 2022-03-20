@@ -3,21 +3,25 @@ package com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter;
 import org.apache.commons.math3.linear.RealMatrix;
 
 public class KalmanGoodie {
-    private KalmanData data;
-    private long timeStamp;
+    private final KalmanDatum data;
+    private final long timeStamp;
 
-    private final KalmanState state; // current
+    private KalmanState state; // current
 
-    public KalmanGoodie(KalmanData data, long timeStamp, KalmanState state) {
+    public KalmanGoodie(KalmanDatum data, long timeStamp, KalmanState state) {
         this.data = data;
         this.timeStamp = timeStamp;
         this.state = state;
     }
 
-    public KalmanGoodie(KalmanData data, long timeStamp){
+    public KalmanGoodie(KalmanDatum data, long timeStamp){
         this.data = data;
         this.timeStamp = timeStamp;
         state = null;
+    }
+
+    public void setState(KalmanState state) {
+        this.state = state;
     }
 
     public boolean isDataNull(){
@@ -28,7 +32,7 @@ public class KalmanGoodie {
         return state == null;
     }
 
-    public KalmanData getData() {
+    public KalmanDatum getData() {
         return data;
     }
 

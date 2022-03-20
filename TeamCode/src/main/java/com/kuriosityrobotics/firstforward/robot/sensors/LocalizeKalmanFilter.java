@@ -7,7 +7,7 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanGoodie;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanState;
 import com.kuriosityrobotics.firstforward.robot.util.MatrixUtil;
@@ -52,49 +52,18 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
-    public static KalmanState prediction(KalmanState prev, KalmanData update) {
-        RealMatrix[] prevMatrix = new RealMatrix[]{
-                prev.getMean(), prev.getCov()
-        };
+    public static KalmanState prediction(KalmanState prev, KalmanDatum update) {
+        var prioriMean = prev.getMean().getColumn(0);
+        double prevX = prioriMean[0];
+        double prevY = prioriMean[1];
+        double prevHeading = prioriMean[2];
 
-        RealMatrix updateMatrix = update.getData();
+        var updateMatrix = update.getData().getColumn(0);
+        RealMatrix prevCov = prev.getCov();
 
-        RealMatrix[] predictionMatrix = prediction(prevMatrix, updateMatrix);
-
-        return new KalmanState(predictionMatrix[0], predictionMatrix[1]);
-    }
-
-    public static KalmanState correction(KalmanState pred, KalmanData obs) {
-        RealMatrix[] predMatrix = new RealMatrix[]{
-                pred.getMean(), pred.getCov()
-        };
-
-        RealMatrix obsMatrix = obs.getData();
-
-        RealMatrix[] correctionMatrix = correction(predMatrix, obsMatrix);
-
-        return new KalmanState(correctionMatrix[0], correctionMatrix[1]);
-    }
-
-    /**
-     * Generates prediction based on odometry update
-     *
-     * @param prev:   the previous discrete-time step estimate Pose2D represented in a SimpleMatrix
-     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
-     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
-     *                dHeading odo math generates)
-     * @return prediction
-     */
-    public static RealMatrix[] prediction(RealMatrix[] prev, RealMatrix update) {
-        // set up
-        double prevX = prev[0].getEntry(0, 0);
-        double prevY = prev[0].getEntry(1, 0);
-        double prevHeading = angleWrap(prev[0].getEntry(2, 0));
-        RealMatrix prevCov = prev[1];
-
-        double odoDX = update.getEntry(0, 0);
-        double odoDY = update.getEntry(1, 0);
-        double odoDTheta = angleWrap(update.getEntry(2, 0));
+        double odoDX = updateMatrix[0];
+        double odoDY = updateMatrix[1];
+        double odoDTheta = updateMatrix[2];
 
         RealMatrix G = MatrixUtils.createRealMatrix(new double[][]{
                 {1, 0, -odoDX * Math.sin(prevHeading) + odoDY * Math.cos(prevHeading)},
@@ -124,7 +93,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
 
         RealMatrix predCov = G.multiply(prevCov).multiply(G.transpose()).add(V.multiply(M.multiply(V.transpose())));
 
-        return new RealMatrix[]{
+        RealMatrix[] predictionMatrix = new RealMatrix[]{
                 MatrixUtils.createRealMatrix(new double[][]{
                         {predX},
                         {predY},
@@ -132,6 +101,20 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 }),
                 predCov
         };
+
+        return new KalmanState(predictionMatrix[0], predictionMatrix[1]);
+    }
+
+    public static KalmanState correction(KalmanState pred, KalmanDatum obs) {
+        RealMatrix[] predMatrix = new RealMatrix[]{
+                pred.getMean(), pred.getCov()
+        };
+
+        RealMatrix obsMatrix = obs.getData();
+
+        RealMatrix[] correctionMatrix = correction(predMatrix, obsMatrix);
+
+        return new KalmanState(correctionMatrix[0], correctionMatrix[1]);
     }
 
     /**
@@ -175,24 +158,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         return new RealMatrix[]{correct, correctCov};
     }
 
-    /**
-     * Generates prediction and corrects it Simply runs prediction and correction back to back
-     *
-     * @param prev:   the previous discrete-time step estimate Pose2D represented in a SimpleMatrix
-     * @param update: the control update (odometry) Controls generalized as: Y distance, X distance,
-     *                turn amount Controls are generalized from actual encoder updates (dY, dX,
-     *                dHeading odo math generates)
-     * @param obs:    the observation that is used to correct (vuforia) column 1 is the actual
-     *                tracker information (position on field) column 2 is where the robot is in the
-     *                trackers coordinate system
-     * @return corrected prediction
-     */
-    public static RealMatrix[] fuse(RealMatrix[] prev, RealMatrix update, RealMatrix obs) {
-        RealMatrix[] prediction = prediction(prev, update);
-        RealMatrix[] correction = correction(prediction, obs);
-        return correction;
-    }
-
     void update() {
         synchronized (this) {
             long currentTimeMillis = SystemClock.elapsedRealtime();
@@ -220,8 +185,6 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 processedGoodieBag.remove(goodie);
             }
 
-//            processedGoodieBag.removeIf(n -> (n.getTimeStamp() > currentTimeMillis || n.getTimeStamp() < currentTimeMillis - KALMAN_WINDOW_SIZE_MS));
-
             if (processedGoodieBag.isEmpty())
                 processedGoodieBag.add(new KalmanGoodie(null, currentTimeMillis, state));
 
@@ -237,19 +200,21 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 }
 
                 KalmanState goodieState = prevGoodie.getState();
-                KalmanData data = goodie.getData();
+                KalmanDatum data = goodie.getData();
 
-                if (data.getDataType() == 0) {
-                    odometryGoodiesProcessed++;
-                    goodieState = prediction(goodieState, data);
-                } else if (data.getDataType() == 1) {
-                    vuforiaGoodiesProcessed++;
-                    goodieState = correction(goodieState, data);
+                switch (data.getDataType()) {
+                    case PREDICTION:
+                        odometryGoodiesProcessed++;
+                        goodieState = prediction(goodieState, data);
+                        break;
+                    case CORRECTION:
+                        vuforiaGoodiesProcessed++;
+                        goodieState = correction(goodieState, data);
+                        break;
                 }
 
-                processedGoodieBag.set(i, new KalmanGoodie(goodie.getData(), goodie.getTimeStamp(), goodieState));
+                goodie.setState(goodieState);
 
-//                Log.v("kf", "procs: " + processedGoodieBag.getGoodie(i).toString());
             }
 
             KalmanGoodie lastGoodie = processedGoodieBag.peekLast();
@@ -257,7 +222,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
             state = lastGoodie.getState();
 
             if (state == null) {
-                Log.e("KF", "state nul! " + processedGoodieBag.toString());
+                Log.e("KF", "state nul! " + processedGoodieBag);
             }
 
         }
@@ -269,7 +234,7 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
         unprocessedGoodieBag.add(goodie);
     }
 
-    public void addGoodie(KalmanData data, long timeStamp) {
+    public void addGoodie(KalmanDatum data, long timeStamp) {
         unprocessedGoodieBag.add(new KalmanGoodie(data, timeStamp));
     }
 

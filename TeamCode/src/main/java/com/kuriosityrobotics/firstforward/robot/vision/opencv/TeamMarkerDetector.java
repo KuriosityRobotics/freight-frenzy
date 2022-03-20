@@ -1,18 +1,24 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_MEAT;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_TAB;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 import android.util.Log;
 
+import android.graphics.Bitmap;
+
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 
 import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -96,6 +102,18 @@ public class TeamMarkerDetector implements OpenCvConsumer {
      * @param _img input frame
      */
     public void processFrame(double cameraAngle, Mat _img) {
+        var cam = pinholeCamera.bindToPose(Vector3D.of(locationProvider.getPose().x, 0, locationProvider.getPose().y), cameraAngle, locationProvider.getPose().heading);
+
+        var bottomLeft = Vector3D.of(FULL_FIELD, 1.75, FULL_FIELD - 76.5);
+        var pnt = cam.getLocationOnFrame(bottomLeft);
+
+        Imgproc.circle(_img, new Point(pnt.getX(), pnt.getY()), 4, new Scalar(255, 255, 255));
+
+        var bmp = Bitmap.createBitmap(_img.cols(), _img.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(_img, bmp);
+        FtcDashboard.getInstance().sendImage(bmp);
+
+
         if (!active)
             return;
 
@@ -103,7 +121,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Core.bitwise_not(img, img);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV);
 
-        var frameCamera = pinholeCamera.bindToPose(Vector3D.of(locationProvider.getPose().x, 0, locationProvider.getPose().y), cameraAngle);
+        var frameCamera = pinholeCamera.bindToPose(Vector3D.of(locationProvider.getPose().x, 0, locationProvider.getPose().y), cameraAngle, locationProvider.getPose().heading);
 
         var pts1 = Arrays.stream(levelOne(angleWrap(cameraAngle /*- locationProvider.getPose().heading*/))).map(frameCamera::getLocationOnFrame)
                 .map(n -> new Point(n.getX(), n.getY())).collect(Collectors.toList());

@@ -1,10 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.opmodes.auto.AutoPaths;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -14,12 +16,24 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
+    boolean wasSet = false;
+    Button dpad_up = new Button();
+    Button lBump = new Button();
+    Button yGamepad2 = new Button();
+    Button xG1 = new Button();
+    OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+    private boolean capPicked = false;
+    private boolean capLifted = false;
+    private boolean capDropped = false;
 
     @Override
     public void runOpMode() {
         robot = new Robot(hardwareMap, telemetry, this, true);
-//        robot.resetPose(new Pose(0,0,0));
-////      robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
+
+        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+        AutoPaths.calibrateVuforia(robot);
+        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -46,8 +60,6 @@ public class TeleOp extends LinearOpMode {
         robot.drivetrain.setMovements(xMov, yMov, turnMov);
     }
 
-    boolean wasSet = false;
-
     private void updateIntakeStates() {
         boolean setPower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON;
 
@@ -67,13 +79,6 @@ public class TeleOp extends LinearOpMode {
 
         robot.intakeModule.enableAutoExtend = gamepad1.right_trigger < 0.15;
     }
-
-    Button dpad_up = new Button();
-    Button lBump = new Button();
-    Button yGamepad2 = new Button();
-    Button xG1 = new Button();
-
-    OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
     private void updateOuttakeStates() {
         if (xG1.isSelected(gamepad1.x)) {
@@ -161,10 +166,6 @@ public class TeleOp extends LinearOpMode {
             robot.outtakeModule.targetTurret = lastTurretTarget;
         }
     }
-
-    private boolean capPicked = false;
-    private boolean capLifted = false;
-    private boolean capDropped = false;
 
     private void updateCapStates() {
         if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.COLLAPSE) {

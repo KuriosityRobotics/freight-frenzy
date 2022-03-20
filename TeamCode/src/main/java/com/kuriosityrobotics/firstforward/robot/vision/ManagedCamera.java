@@ -122,7 +122,7 @@ public final class ManagedCamera {
                 // !!
                 Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
                     Mat matCopy = input.clone();
-                    consumer.processFrame(angleWrap(locationProvider.getPose().heading + vuforiaConsumer.getTargetCameraAngle()), matCopy);
+                    consumer.processFrame(angleWrap(vuforiaConsumer.getTargetCameraAngle()), matCopy);
                     matCopy.release();
                 }));
 
