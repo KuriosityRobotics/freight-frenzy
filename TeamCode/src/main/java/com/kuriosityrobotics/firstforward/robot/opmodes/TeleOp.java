@@ -16,14 +16,8 @@ public class TeleOp extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        try {
-            robot = new Robot(hardwareMap, telemetry, this, true);
-//            robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
-        } catch (Exception e) {
-            this.stop();
-            throw new RuntimeException(e);
-        }
-
+        robot = new Robot(hardwareMap, telemetry, this, true);
+//      robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
         waitForStart();
 
         while (opModeIsActive()) {

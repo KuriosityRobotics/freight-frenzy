@@ -13,13 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SideWays extends LinearOpMode {
     public void runOpMode() {
-        Robot robot = null;
-        try {
-            robot = new Robot(hardwareMap, telemetry, this);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
+        Robot robot = new Robot(hardwareMap, telemetry, this);
 
         robot.resetPose(new Pose(0, 0, 0));
 

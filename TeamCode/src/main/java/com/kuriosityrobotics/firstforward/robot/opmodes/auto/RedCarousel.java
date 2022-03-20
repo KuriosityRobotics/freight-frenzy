@@ -23,14 +23,7 @@ public class RedCarousel extends LinearOpMode {
     public static final Pose PARK = new Pose(35, 5 * 23.5 + 12, Math.toRadians(-90));
 
     public void runOpMode() {
-        Robot robot = null;
-        try {
-            robot = new Robot(hardwareMap, telemetry, this);
-        } catch (Exception e) {
-            this.stop();
-            e.printStackTrace();
-            return;
-        }
+        Robot robot = new Robot(hardwareMap, telemetry, this);
 
         Robot.isBlue = false;
         Robot.isCarousel = true;

@@ -53,7 +53,7 @@ public class Robot implements LocationProvider {
     public static boolean isCarousel = false;
     public boolean isCamera;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) throws RuntimeException {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
