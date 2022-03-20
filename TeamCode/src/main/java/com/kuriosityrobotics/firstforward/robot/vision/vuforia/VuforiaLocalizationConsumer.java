@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.CORRECTION;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TARGET_HEIGHT_MM;
@@ -26,6 +25,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
+import com.kuriosityrobotics.firstforward.robot.util.Timer;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
@@ -80,7 +80,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private VuforiaTrackables freightFrenzyTargets;
 
     private long lastUpdateTime = 0;
-    private final long startTime;
+    private final Timer cameraResetTimer;
     private double cameraAngleOffset = 0;
 
     private double oldCameraAngle = 0.0;
@@ -99,9 +99,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
 
-        setCameraAngle(0);
-
-        startTime = SystemClock.elapsedRealtime();
+        setCameraAngle(calculateDesiredCameraAngle());
+        cameraResetTimer = Timer.doIn(500, () -> resetEncoders(calculateDesiredCameraAngle()));
     }
 
     private static Point ftcToOurs(Point point) {
@@ -175,21 +174,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     @Override
     public void update() {
         synchronized (this) {
-            if (SystemClock.elapsedRealtime() >= startTime + 500) {
-                if (!cameraEncoderSetYet) {
-                    resetEncoders(0);
-                    cameraEncoderSetYet = true;
-                }
-            }
-
-            if (cameraEncoderSetYet) {
-                if (robot.started() || !robot.isAuto()) {
-                    setCameraAngle(calculateOptimalCameraAngle());
-                } else if (!Robot.isCarousel && !doneCalibrating) {
-                    setCameraAngle(0);
-                } else {
-                    setCameraAngle(PI);
-                }
+            if (cameraResetTimer.tick()) {
+                setCameraAngle(calculateDesiredCameraAngle());
 
                 updateCameraAngleAndVelocity();
 
@@ -212,7 +198,16 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
      *
      * @return target camera heading in radians
      */
-    private double calculateOptimalCameraAngle() {
+    private double calculateDesiredCameraAngle() {
+        if (robot.started() || !robot.isAuto()) {
+            return angleToBestVuforiaTarget();
+        } else if (!Robot.isCarousel && !doneCalibrating)
+            return 0;
+        else
+            return PI;
+    }
+
+    private double angleToBestVuforiaTarget() {
         double robotX = locationProvider.getPose().x;
         double robotY = locationProvider.getPose().y;
         double robotHeading = locationProvider.getPose().heading;
