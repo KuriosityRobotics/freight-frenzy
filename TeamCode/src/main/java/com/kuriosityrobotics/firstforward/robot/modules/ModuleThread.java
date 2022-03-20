@@ -21,7 +21,6 @@ public class ModuleThread implements Runnable, Telemeter {
     private boolean started = false;
 
     private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
     private final List<Pair<String, Long>> moduleUpdateTimes;
 
     public ModuleThread(Robot robot, Module[] modules) {
@@ -37,7 +36,7 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
-            timeOfLastUpdate = SystemClock.elapsedRealtime();
+            long overallStart = SystemClock.elapsedRealtime();
             if (!started && robot.started()) {
                 for (Module module : modules) {
                     if (module.isOn()) {
@@ -61,7 +60,7 @@ public class ModuleThread implements Runnable, Telemeter {
             robot.telemetryDump.update();
 
             long currentTime = SystemClock.elapsedRealtime();
-            updateDuration = currentTime - timeOfLastUpdate;
+            updateDuration = currentTime - overallStart;
         }
 
         for (Module module : modules) {
@@ -85,16 +84,18 @@ public class ModuleThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
+        synchronized (this) {
+            ArrayList<String> data = new ArrayList<>();
 
-        data.add("Overall Update time: " + updateDuration);
-        int moduleUpdate = 0;
-        for (int i = 0; i < moduleUpdateTimes.size(); i++) {
-            data.add(moduleUpdateTimes.get(i).first + " Update time: " + moduleUpdateTimes.get(i).second);
-            moduleUpdate += moduleUpdateTimes.get(i).second;
+            data.add("Overall Update time: " + updateDuration);
+            int moduleUpdate = 0;
+            for (int i = 0; i < moduleUpdateTimes.size(); i++) {
+                data.add(moduleUpdateTimes.get(i).first + " Update time: " + moduleUpdateTimes.get(i).second);
+                moduleUpdate += moduleUpdateTimes.get(i).second;
+            }
+            data.add("Update Time not including modules: " + (updateDuration - moduleUpdate));
+
+            return data;
         }
-        data.add("Update Time not including modules: " + (updateDuration - moduleUpdate));
-
-        return data;
     }
 }
