@@ -20,7 +20,7 @@ public class OpenCVDumper implements OpenCvConsumer {
 
     @Override
     public void processFrame(double _cameraAngle, Mat frame) {
-        if (!Robot.DEBUG) {
+        if (true || !Robot.DEBUG) { // die
             return;
         }
 

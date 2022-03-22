@@ -1,6 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.PREDICTION;
+import static com.kuriosityrobotics.firstforward.robot.sensors.LocalizeKalmanFilter.diagonal;
+
+import static java.lang.Math.pow;
 
 import android.os.SystemClock;
 
@@ -87,7 +90,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         long currentTimeMillis = SystemClock.elapsedRealtime();
         calculatePosition();
-        robot.sensorThread.addGoodie(new KalmanDatum(PREDICTION, getDeltaMatrix()), currentTimeMillis);
+        robot.sensorThread.addGoodie(new KalmanDatum(PREDICTION, getDeltaMatrix(), diagonal(pow(.8 * dx, 2), pow(.8 * dy, 2), pow(.8 * dHeading, 2))), currentTimeMillis);
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));

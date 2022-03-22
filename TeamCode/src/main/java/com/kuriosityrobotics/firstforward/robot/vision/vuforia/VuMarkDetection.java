@@ -7,9 +7,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 
 import java.util.Objects;
 
-import lombok.Data;
-
-@Data
 public class VuMarkDetection {
     private final VuforiaTrackable detectedTrackable;
     private final OpenGLMatrix detectedData;

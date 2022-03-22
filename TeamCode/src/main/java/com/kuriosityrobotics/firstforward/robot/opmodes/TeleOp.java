@@ -30,6 +30,7 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         robot = new Robot(hardwareMap, telemetry, this, true);
 
+        Robot.isBlue = true;
         robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
         AutoPaths.calibrateVuforia(robot);
         robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));

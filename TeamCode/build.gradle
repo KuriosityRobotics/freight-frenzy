@@ -25,6 +25,7 @@ dependencies {
     // Queue types for intake module
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
 
+    implementation 'org.ojalgo:ojalgo:51.1.0'
     // vision
     implementation 'org.openftc:easyopencv:1.5.1'
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.3.0' // tensorflow for game element detection

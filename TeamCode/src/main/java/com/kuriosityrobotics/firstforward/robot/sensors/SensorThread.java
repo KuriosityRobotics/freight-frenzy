@@ -28,6 +28,7 @@ public class SensorThread implements Runnable, Telemeter {
     private final Robot robot;
 
     public final Odometry odometry;
+    private final IMU imu;
 
     private long updateTime = 0;
     private long lastLoopTime = 0;
@@ -57,6 +58,8 @@ public class SensorThread implements Runnable, Telemeter {
                 {pose.y},
                 {pose.heading}
         }));
+        imu.setKalmanFilter(theKalmanFilter);
+        imu.resetHeading(pose.heading);
 
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
     }
@@ -67,6 +70,7 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
 
         this.odometry = new Odometry(robot, robot.hardwareMap, theKalmanFilter.getPose());
+        this.imu = new IMU(robot.hardwareMap, theKalmanFilter);
     }
 
     @Override
@@ -77,6 +81,7 @@ public class SensorThread implements Runnable, Telemeter {
                 bulkDataCoroutine.runAsync(scope, robot.revHub2);
             });
             odometry.update();
+            imu.update();
 
             theKalmanFilter.update();
 

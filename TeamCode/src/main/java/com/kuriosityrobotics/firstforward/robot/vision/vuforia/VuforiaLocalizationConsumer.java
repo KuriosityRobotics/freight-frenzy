@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
 import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.CORRECTION;
+import static com.kuriosityrobotics.firstforward.robot.sensors.LocalizeKalmanFilter.diagonal;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TARGET_HEIGHT_MM;
@@ -88,7 +89,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private double cameraAngleVelocity = 0.0;
 
     private VuMarkDetection lastDetected;
-
+    private VuMarkDetection lastAccepted;
 
 
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
@@ -99,8 +100,9 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
 
-        setCameraAngle(calculateDesiredCameraAngle());
-        cameraResetTimer = Timer.doIn(500, () -> resetEncoders(calculateDesiredCameraAngle()));
+        var resetAngle = calculateDesiredCameraAngle();
+        setCameraAngle(resetAngle);
+        cameraResetTimer = Timer.doIn(500, () -> resetEncoders(resetAngle));
     }
 
     private static Point ftcToOurs(Point point) {
@@ -186,7 +188,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
-                    robot.sensorThread.addGoodie(new KalmanDatum(CORRECTION, data), fetchTime);
+                    robot.sensorThread.addGoodie(new KalmanDatum(CORRECTION, data, diagonal(.04, .04, 0.00121847)), fetchTime);
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }
             }
@@ -268,19 +270,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     private void trackVuforiaTargets() {
+        var cameraLoc = OpenGLMatrix
+                .translation(SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.cos(cameraAngle), SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.sin(cameraAngle), SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM)
+                .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) (PI / 2 + Math.toRadians(33)), (float) (PI / 2 - cameraAngle), 0));
 
-//        this.detectedData = null;
-//        this.detectedHorizPeripheralAngle = null;
-//        this.detectedVertPeripheralAngle = null;
-//        this.detectedTrackable = null;
-
-        for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
-            OpenGLMatrix cameraLoc = OpenGLMatrix
-                    .translation(SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.cos(cameraAngle), SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.sin(cameraAngle), SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM)
-                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) (PI / 2 + Math.toRadians(33)), (float) (PI / 2 - cameraAngle), 0));
-            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, cameraLoc);
-//            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, physicalCamera.translationMatrix().multiplied(physicalCamera.rotationMatrix()));
-        }
+        this.freightFrenzyTargets.forEach(trackable -> ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, cameraLoc));
 
         boolean sawAny = false;
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
@@ -410,6 +404,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     return null;
                 }
 
+                this.lastAccepted = lastDetected;
                 VectorF translation = lastDetected.getDetectedData().getTranslation();
                 Pose ourSystem = dataToOurSystem(translation);
 
@@ -437,6 +432,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         return new Pose(robotXOurs, robotYOurs, robotHeadingOurs);
     }
 
+    public VuMarkDetection getLastDetected() {
+        return lastDetected;
+    }
+
+    public VuMarkDetection getLastAccepted() {
+        return lastAccepted;
+    }
+
     public Pose lastRawRobotPosition() {
         if (lastDetected == null) {
             return null;
@@ -451,7 +454,17 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
     public long getLastDetectedTime() {
-        return lastDetected.getDetectedTime();
+        if (lastDetected == null)
+            return 0;
+        else
+            return lastDetected.getDetectedTime();
+    }
+
+    public long getLastAcceptedTime() {
+        if (lastAccepted == null)
+            return 0;
+        else
+            return lastAccepted.getDetectedTime();
     }
 
     enum Target {

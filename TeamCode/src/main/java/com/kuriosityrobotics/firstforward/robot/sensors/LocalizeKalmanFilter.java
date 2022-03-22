@@ -77,11 +77,9 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 {0, 0, 1}
         });
 
-        RealMatrix M = MatrixUtils.createRealMatrix(new double[][]{
-                {Math.pow(0.8 * odoDX, 2), 0, 0},
-                {0, Math.pow(0.8 * odoDY, 2), 0},
-                {0, 0, Math.pow(0.8 * odoDTheta, 2)}
-        }); // plugged in random values for now, would want to make acceleration (slip) based, this is basically error per update
+
+
+        RealMatrix M = update.getCovariance(); // plugged in random values for now, would want to make acceleration (slip) based, this is basically error per update
 
         // calculate
         double predX = prevX + odoDX * Math.cos(prevHeading) + odoDY * Math.sin(prevHeading);
@@ -106,30 +104,15 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     public static KalmanState correction(KalmanState pred, KalmanDatum obs) {
-        RealMatrix[] predMatrix = new RealMatrix[]{
-                pred.getMean(), pred.getCov()
-        };
-
         RealMatrix obsMatrix = obs.getData();
+        if (obs.getOnly() != -1) {
+            obsMatrix = pred.getMean().copy();
+            obsMatrix.setEntry(obs.getOnly(), 0, obs.getData().getEntry(obs.getOnly(), 0));
+        }
 
-        RealMatrix[] correctionMatrix = correction(predMatrix, obsMatrix);
+        RealMatrix predCov = pred.getCov();
 
-        return new KalmanState(correctionMatrix[0], correctionMatrix[1]);
-    }
-
-    /**
-     * Generates correction based on vuforia tracker observation
-     *
-     * @param pred: the prediction that needs to be correct Pose2D represented in SimpleMatrix
-     * @param obs:  the observation that is used to correct (vuforia) column 1 is the actual tracker
-     *              information (position on field) column 2 is where the robot is in the trackers
-     *              coordinate system
-     * @return corrected prediction
-     */
-    public static RealMatrix[] correction(RealMatrix[] pred, RealMatrix obs) {
-        RealMatrix predCov = pred[1];
-
-        RealMatrix predObs = pred[0]; // for full state sensor
+        RealMatrix predObs = pred.getMean(); // for full state sensor
 
         RealMatrix H = MatrixUtils.createRealMatrix(new double[][]{
                 {1, 0, 0},
@@ -137,25 +120,31 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
                 {0, 0, 1}
         });
 
-        RealMatrix Q = MatrixUtils.createRealMatrix(new double[][]{
-                {0.04, 0, 0},
-                {0, 0.04, 0},
-                {0, 0, 0.00121847}
-        }); // random, somehow get stuff in here
+        RealMatrix Q = obs.getCovariance();
 
         RealMatrix S = H.multiply(predCov).multiply(H.transpose()).add(Q);
         RealMatrix K = predCov.multiply(H.transpose().multiply(MatrixUtils.inverse(S)));
 
-        RealMatrix error = obs.getColumnMatrix(0).subtract(predObs);
+        RealMatrix error = obsMatrix.getColumnMatrix(0).subtract(predObs);
         error.setEntry(2, 0, angleWrap(error.getEntry(2, 0)));
 
-        RealMatrix correct = pred[0].add(K.multiply(error));
+        RealMatrix correct = pred.getMean().add(K.multiply(error));
         correct.setEntry(2, 0, angleWrap(correct.getEntry(2, 0)));
         RealMatrix correctCov = predCov.subtract(K.multiply(H).multiply(predCov));
 
+        if (obs.getOnly() != -1) {
+            var row = correctCov.getRow(obs.getOnly());
+            var col = correctCov.getColumn(obs.getOnly());
+
+            correctCov = predCov.copy();
+            correctCov.setRow(obs.getOnly(), row);
+            correctCov.setColumn(obs.getOnly(), col);
+        }
         //Log.v("kalman", "correction -- x: " + correct.getEntry(0,0) + ", y: " + correct.getEntry(1,0) + ", heading: " + correct.getEntry(2,0));
 
-        return new RealMatrix[]{correct, correctCov};
+        RealMatrix[] correctionMatrix = new RealMatrix[]{correct, correctCov};
+
+        return new KalmanState(correctionMatrix[0], correctionMatrix[1]);
     }
 
     void update() {
@@ -287,5 +276,15 @@ public class LocalizeKalmanFilter extends RollingVelocityCalculator implements T
     @Override
     public boolean isOn() {
         return true;
+    }
+
+    public static RealMatrix diagonal(double... values) {
+        var matrix = new double[values.length][values.length];
+
+        for (int i = 0; i < values.length; i++) {
+            matrix[i][i] = values[i];
+        }
+
+        return MatrixUtils.createRealMatrix(matrix);
     }
 }
