@@ -95,8 +95,8 @@ public class BlueCycle extends LinearOpMode {
         } else {
             sleep(500);
         }
-        assert robot.visionThread.vuforiaLocalizationConsumer != null;
-        boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+        assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
+        boolean sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
@@ -150,8 +150,8 @@ public class BlueCycle extends LinearOpMode {
                 sleep(150);
             }
 
-            assert robot.visionThread.vuforiaLocalizationConsumer != null;
-            sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+            assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
+            sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);

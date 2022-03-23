@@ -61,7 +61,7 @@ public class AutoPaths {
 
         Pose gottenPosition = null;
         do {
-            gottenPosition = robot.visionThread.vuforiaLocalizationConsumer.lastRawRobotPosition();
+            gottenPosition = robot.visionThread.getVuforiaLocalizationConsumer().lastRawRobotPosition();
         } while (gottenPosition == null && robot.running());
 
         Log.v("VUF", "gotten: " + gottenPosition);
@@ -70,8 +70,8 @@ public class AutoPaths {
 
         Log.v("VUF", "offsetby: " + offsetBy);
 
-        robot.visionThread.vuforiaLocalizationConsumer.changeAllianceWallOffsetBy(offsetBy);
-        robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
+        robot.visionThread.getVuforiaLocalizationConsumer().changeAllianceWallOffsetBy(offsetBy);
+        robot.visionThread.getVuforiaLocalizationConsumer().setDoneCalibrating(true);
     }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
@@ -120,7 +120,7 @@ public class AutoPaths {
             }
 
             if (sawTime == null) {
-                long lastAccepted = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime();
+                long lastAccepted = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime();
                 if (lastAccepted > startTime) {
                     sawTime = lastAccepted;
                 }

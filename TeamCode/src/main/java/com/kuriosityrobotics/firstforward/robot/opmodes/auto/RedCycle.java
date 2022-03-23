@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -13,7 +12,6 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -97,8 +95,8 @@ public class RedCycle extends LinearOpMode {
         } else {
             sleep(500);
         }
-        assert robot.visionThread.vuforiaLocalizationConsumer != null;
-        boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+        assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
+        boolean sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
@@ -152,8 +150,8 @@ public class RedCycle extends LinearOpMode {
                 sleep(150);
             }
 
-            assert robot.visionThread.vuforiaLocalizationConsumer != null;
-            sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+            assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
+            sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);

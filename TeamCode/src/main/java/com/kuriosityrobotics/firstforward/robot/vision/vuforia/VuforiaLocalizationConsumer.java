@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.CORRECTION;
-import static com.kuriosityrobotics.firstforward.robot.sensors.LocalizeKalmanFilter.diagonal;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TARGET_HEIGHT_MM;
@@ -25,7 +23,8 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.util.Timer;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -34,8 +33,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -75,7 +72,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private final PhysicalCamera physicalCamera;
     private final Robot robot;
 
-    public boolean doneCalibrating = false;
+    private boolean doneCalibrating = false;
     boolean cameraEncoderSetYet = false;
 
     private VuforiaTrackables freightFrenzyTargets;
@@ -91,8 +88,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private VuMarkDetection lastDetected;
     private VuMarkDetection lastAccepted;
 
+    private final ExtendedKalmanFilter kalmanFilter;
 
-    public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+
+    public VuforiaLocalizationConsumer(Robot robot, ExtendedKalmanFilter kalmanFilter, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+        this.kalmanFilter = kalmanFilter;
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
@@ -183,12 +183,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 trackVuforiaTargets();
 
-                long fetchTime = SystemClock.elapsedRealtime();
-                RealMatrix data = getLocationRealMatrix();
+                var vuforiaPose = getPose();
 
                 // hopefully this doesn't do bad thread stuff
-                if (data != null) {
-                    robot.sensorThread.addGoodie(new KalmanDatum(CORRECTION, data, diagonal(.04, .04, 0.00121847)), fetchTime);
+                if (vuforiaPose != null) {
+                    kalmanFilter.correction(KalmanData.vuforiaDatum(vuforiaPose));
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }
             }
@@ -203,7 +202,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private double calculateDesiredCameraAngle() {
         if (robot.started() || !robot.isAuto()) {
             return angleToBestVuforiaTarget();
-        } else if (!Robot.isCarousel && !doneCalibrating)
+        } else if (!Robot.isCarousel && !isDoneCalibrating())
             return 0;
         else
             return PI;
@@ -284,7 +283,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
                 OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
-                if (robotLocationTransform != null) {
+                if (robotLocationTransform != null && vuMarkPoseRelativeToCamera != null) {
 
                     Log.v("KF", "vuf saw");
 
@@ -349,12 +348,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("Horizontal Peripheral Angle: " + Math.toDegrees(lastDetected.getDetectedHorizPeripheralAngle()));
                 data.add("Vertical Peripheral Angle: " + Math.toDegrees(lastDetected.getDetectedVertPeripheralAngle()));
 
-                RealMatrix robotLocation = getLocationRealMatrix();
+                var robotLocation = getPose();
 
                 if (robotLocation != null) {
-                    data.add("vufX: " + robotLocation.getEntry(0, 0));
-                    data.add("vufY: " + robotLocation.getEntry(1, 0));
-                    data.add("vufHeading: " + robotLocation.getEntry(2, 0));
+                    data.add("vufPose: " +  robotLocation);
                 } else {
                     data.add("not using vuforia goodies rn");
                 }
@@ -372,7 +369,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
 
-    public RealMatrix getLocationRealMatrix() {
+    public Pose getPose() {
         synchronized (this) {
             try {
 /*
@@ -406,14 +403,8 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 this.lastAccepted = lastDetected;
                 VectorF translation = lastDetected.getDetectedData().getTranslation();
-                Pose ourSystem = dataToOurSystem(translation);
 
-                return MatrixUtils.createRealMatrix(new double[][]{
-                        {ourSystem.x},
-                        {ourSystem.y},
-                        {ourSystem.heading}
-                });
-
+                return dataToOurSystem(translation);
             } catch (Exception e) {
                 return null;
             }
@@ -465,6 +456,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             return 0;
         else
             return lastAccepted.getDetectedTime();
+    }
+
+    public boolean isDoneCalibrating() {
+        return doneCalibrating;
+    }
+
+    public void setDoneCalibrating(boolean doneCalibrating) {
+        this.doneCalibrating = doneCalibrating;
     }
 
     enum Target {

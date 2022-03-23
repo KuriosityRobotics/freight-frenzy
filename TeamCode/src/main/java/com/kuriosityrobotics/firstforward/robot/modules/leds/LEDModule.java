@@ -41,9 +41,9 @@ public class LEDModule implements Module, Telemeter {
             led.setPattern(INTAKE_OCCUPIED);
         } else if (!robot.visionThread.started) {
             led.setPattern(VUF_INITING);
-        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() + SHOW_VUF) {
+        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() + SHOW_VUF) {
             led.setPattern(VUF_USED);
-        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastDetectedTime() + SHOW_VUF) {
+        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.getVuforiaLocalizationConsumer().getLastDetectedTime() + SHOW_VUF) {
             led.setPattern(VUF_SAW);
         } else {
             led.setPattern(IDLE);

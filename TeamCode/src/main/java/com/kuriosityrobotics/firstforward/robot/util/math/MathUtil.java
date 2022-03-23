@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
-import org.apache.commons.math3.stat.descriptive.moment.Mean;
-
 import java.util.Collection;
 
 public class MathUtil {
@@ -68,10 +66,11 @@ public class MathUtil {
     }
 
     public static double mean(Collection<Double> t, int start, int maxCount) {
-        return new Mean().evaluate(t.stream()
+        return t.stream()
                 .skip(start)
                 .limit(maxCount)
-                .mapToDouble(n -> n).toArray());
+                .mapToDouble(n -> n)
+                .average().orElse(0);
     }
 
     public static double mean(Collection<Double> t) {

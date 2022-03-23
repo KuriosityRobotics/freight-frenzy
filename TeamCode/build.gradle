@@ -12,6 +12,9 @@
 // Custom definitions may go here
 
 // Include common definitions from above.
+plugins {
+    id 'io.franzbecker.gradle-lombok' version '5.0.0'
+}
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
 
@@ -20,7 +23,6 @@ dependencies {
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 
     // Matrix creation and operation for Kf
-    implementation group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     implementation 'org.apache.commons:commons-geometry-euclidean:1.0' // FIXME:code must be fixed to use regular commons math3 rather than this in the future
     // Queue types for intake module
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
@@ -36,4 +38,7 @@ dependencies {
 
     // fancy stuff for asynchronous data distribution
     implementation 'de.esoco:coroutines:0.9.1'
+
+//    annotationProcessor "org.projectlombok:lombok:1.18.22"
+//    implementation "org.projectlombok:lombok:1.18.22"
 }

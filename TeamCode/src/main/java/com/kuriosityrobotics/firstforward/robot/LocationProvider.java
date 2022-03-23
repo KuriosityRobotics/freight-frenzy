@@ -3,34 +3,35 @@ package com.kuriosityrobotics.firstforward.robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
+import org.apache.commons.geometry.euclidean.threed.rotation.Rotation3D;
 
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public interface LocationProvider {
-    public abstract Pose getPose();
-    public abstract Pose getVelocity();
+    Pose getPose();
+    Pose getVelocity();
 
-    public default double distanceToPoint(Point point) {
+    default double distanceToPoint(Point point) {
         return getPose().distance(point);
     }
 
-    public default double getOrthVelocity() {
+    default double getOrthVelocity() {
         Pose velo = getVelocity();
         return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
     }
 
-    public default Rotation getRotation() {
-        return new Rotation(new Vector3D(0, -1, 0), getPose().heading, RotationConvention.VECTOR_OPERATOR);
+    default Rotation3D getRotation() {
+        return QuaternionRotation.fromAxisAngle(Vector3D.of(0, -1, 0), getPose().heading);
     }
 
-    public default Vector3D getTranslation() {
-        return new Vector3D(getPose().x, 0, getPose().y);
+    default Vector3D getTranslation() {
+        return Vector3D.of(getPose().x, 0, getPose().y);
     }
 
-    public static LocationProvider of(Supplier<Pose> pose, Supplier<Pose> velocity) {
+    static LocationProvider of(Supplier<Pose> pose, Supplier<Pose> velocity) {
         return new LocationProvider() {
             @Override
             public Pose getPose() {
@@ -44,7 +45,7 @@ public interface LocationProvider {
         };
     }
 
-    public static LocationProvider of(Pose pose, Pose velocity) {
+    static LocationProvider of(Pose pose, Pose velocity) {
         return new LocationProvider() {
             @Override
             public Pose getPose() {

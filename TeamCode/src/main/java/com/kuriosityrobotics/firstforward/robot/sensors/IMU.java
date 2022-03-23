@@ -1,43 +1,36 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.CORRECTION;
-import static com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum.DatumType.PREDICTION;
-import static com.kuriosityrobotics.firstforward.robot.sensors.LocalizeKalmanFilter.diagonal;
-import static java.lang.Double.NaN;
-import static java.lang.Math.pow;
-import static java.lang.Math.toDegrees;
-import static java.lang.Math.toRadians;
-
-import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanDatum;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.internal.opmode.TelemetryImpl;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
-import java.nio.file.Files;
+import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class IMU {
     private static final String CALIBRATION_FILE = "imu_calibration.json";
 
     private final BNO055IMU imu;
-    private LocalizeKalmanFilter filter;
+    private final ExtendedKalmanFilter filter;
     private double offset;
     private final long timeOffset;
 
-    void setKalmanFilter(LocalizeKalmanFilter filter) {
-        this.filter = filter;
-    }
-
-    public IMU(HardwareMap hardwareMap, LocalizeKalmanFilter filter) {
+    public IMU(HardwareMap hardwareMap, ExtendedKalmanFilter filter) {
         this.imu = hardwareMap.get(BNO055IMU.class, "imu");
         this.filter = filter;
 
@@ -46,21 +39,19 @@ public class IMU {
         params.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(params);
 
-        timeOffset = SystemClock.elapsedRealtimeNanos() - System.nanoTime();
+        timeOffset = Instant.now().toEpochMilli() - System.currentTimeMillis();
 
         if (AppUtil.getInstance().getSettingsFile(CALIBRATION_FILE).exists())
             loadCalibration();
         else {
             Log.w("IMU", "Waiting for calibration...");
             try {
-                var thread = new Thread(() -> {
+                CompletableFuture.runAsync(() -> {
                     while (!imu.isMagnetometerCalibrated() || !imu.isGyroCalibrated());
                     saveCalibration();
                     Log.w("IMU", "Finished calibration");
-                });
-                thread.start();
-                thread.join(Robot.DEBUG ? 0 : 1000);
-            } catch (InterruptedException e) {
+                }).get(Robot.DEBUG ? 0 : 1000, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | TimeoutException | ExecutionException e) {
                 Log.w("IMU", "Calibration failed");
                 e.printStackTrace();
             }
@@ -78,26 +69,33 @@ public class IMU {
 
     private long lastUpdateTime = 0;
     public void update() {
-        var orientation = imu.getAngularOrientation();
-        orientation.acquisitionTime += timeOffset;
+        var rawOrientation = imu.getAngularOrientation();
+        rawOrientation.acquisitionTime /= 1_000_000;
+        rawOrientation.acquisitionTime += timeOffset;
 
-        if (orientation.acquisitionTime != lastUpdateTime && orientation.acquisitionTime < lastUpdateTime) // paranoia
+        if (rawOrientation.acquisitionTime != lastUpdateTime && rawOrientation.acquisitionTime < lastUpdateTime) // paranoia
             if (Robot.DEBUG)
                 throw new Error("Overflow");
             else
                 new Error("Overflow").printStackTrace();
 
-        if (orientation.acquisitionTime > lastUpdateTime) {
-            lastUpdateTime = orientation.acquisitionTime;
-            filter.addGoodie(new KalmanDatum(CORRECTION, MatrixUtils.createColumnRealMatrix(
-                    new double[]{NaN, NaN, getAngle(orientation)}
-            ), diagonal(.01, .01, toRadians(3)), 2), lastUpdateTime / 1_000_000);
+
+        if (rawOrientation.acquisitionTime > lastUpdateTime) {
+            Log.d("IMU", imu.getVelocity().toString());
+
+            lastUpdateTime = rawOrientation.acquisitionTime;
+            filter.correction(KalmanData.gyroDatum(Instant.ofEpochMilli(lastUpdateTime), getAngle(rawOrientation)));
         }
 
-        Log.d("IMU", String.valueOf(toDegrees(getAngle(imu.getAngularOrientation()))));
+//        Log.d("IMU", String.valueOf(toDegrees(getAngle(imu.getAngularOrientation()))));
     }
 
-    public void resetHeading(double theta) {
+    public void resetPose(Pose pose) {
+        imu.startAccelerationIntegration(new Position(DistanceUnit.INCH, pose.x, pose.y, 0, System.nanoTime()), new Velocity(), 10);
+        resetHeading(pose.heading);
+    }
+
+    private void resetHeading(double theta) {
         this.offset = imu.getAngularOrientation().firstAngle + theta;
     }
 
