@@ -30,7 +30,7 @@ public class IThresholdPID {
         this.startIThreshold = startIThreshold;
 
         this.reset = true;
-        lastUpdatedTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdatedTime = NanoClock.now();
     }
 
     /**
@@ -41,7 +41,7 @@ public class IThresholdPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        error /= (SystemClock.elapsedRealtimeNanos() - lastUpdatedTime);
+        error /= (NanoClock.now() - lastUpdatedTime);
         if (Math.abs(error) < startIThreshold && Math.abs(error) > ignoreIThreshold) {
             errorSum += error;
         } else {
@@ -67,7 +67,7 @@ public class IThresholdPID {
         lastError = error;
         errorChange = d;
 
-        lastUpdatedTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdatedTime = NanoClock.now();
 
         return p + i + d;
     }

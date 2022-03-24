@@ -28,7 +28,7 @@ public class ClassicalPID {
         D_FACTOR = d;
 
         this.reset = true;
-        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdateTime = NanoClock.now();
     }
 
     /**
@@ -39,7 +39,7 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        error /= (SystemClock.elapsedRealtimeNanos() - lastUpdateTime); // feature is back, now in nanos
+        error /= (NanoClock.now() - lastUpdateTime); // feature is back, now in nanos
 
         errorSum += error;
 
@@ -62,7 +62,7 @@ public class ClassicalPID {
         lastError = error;
         errorChange = d;
 
-        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdateTime = NanoClock.now();
 
         return p + i + d;
     }

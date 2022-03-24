@@ -11,14 +11,14 @@ public class FeedForwardPID {
     public FeedForwardPID(double f, double p, double i, double d) {
         this.classicalPID = new ClassicalPID(p, i, d);
         this.f = f;
-        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdateTime = NanoClock.now();
     }
 
     public double calculateSpeed(double target, double error) {
-        error /= (SystemClock.elapsedRealtimeNanos() - lastUpdateTime);
+        error /= (NanoClock.now() - lastUpdateTime);
         double scale = classicalPID.calculateSpeed(error);
 
-        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
+        lastUpdateTime = NanoClock.now();
         return (target * f) + (scale);
     }
 
