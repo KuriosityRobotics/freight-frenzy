@@ -273,6 +273,9 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (covariance.getRowDim() != mean.getRowDim())
                 throw new IllegalArgumentException("Covariance does not fit mean.");
 
+            if (!covariance.isSymmetric())
+                throw new IllegalArgumentException("Covariance matrix must be symmetrical.");
+
             if (stateToOutput.getColDim() != ExtendedKalmanFilter.this.mean.getRowDim())
                 throw new IllegalArgumentException("State to output matrix does not fit filter.");
 
