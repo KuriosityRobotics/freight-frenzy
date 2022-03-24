@@ -1,6 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
+import static java.lang.Math.pow;
 
 import android.os.SystemClock;
 
@@ -8,7 +10,6 @@ import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
-import com.kuriosityrobotics.firstforward.robot.sensors.kf.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -63,8 +64,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     private final ExtendedKalmanFilter kalmanFilter;
 
-    public double totalRotation = 0;
-
     public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter) {
         this.worldX = pose.x;
         this.worldY = pose.y;
@@ -86,7 +85,12 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         var now = SystemClock.elapsedRealtime();
         calculatePosition();
-        kalmanFilter.predict(KalmanData.odometryDatum(now, kalmanFilter.outputVector()[2], dx, dy, dHeading));
+        kalmanFilter.datumBuilder()
+                .time(now)
+                .mean(dx, dy, dHeading)
+                .outputToState(rotate(kalmanFilter.outputVector()[2]))
+                .variance(pow(.8 * dx, 2), pow(.8 * dy, 2), pow(.8 * dHeading, 2))
+                .predict();
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -174,8 +178,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         dx = dRobotX;
         dy = dRobotY;
         dHeading = dTheta;
-
-        totalRotation += dTheta;
 
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);

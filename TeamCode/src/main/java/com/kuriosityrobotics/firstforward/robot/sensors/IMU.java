@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.toDegrees;
+import static java.lang.Math.toRadians;
 
 import android.os.SystemClock;
 import android.util.Log;
@@ -9,7 +10,6 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
-import com.kuriosityrobotics.firstforward.robot.sensors.kf.KalmanData;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -20,9 +20,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
+import org.ojalgo.matrix.Primitive64Matrix;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -35,8 +35,9 @@ public class IMU implements Telemeter {
 
     private final BNO055IMU imu;
     private final ExtendedKalmanFilter filter;
-    private double offset;
     private final long timeOffset;
+    private double offset;
+    private long lastUpdateTime = 0;
 
     public IMU(HardwareMap hardwareMap, ExtendedKalmanFilter filter) {
         this.imu = hardwareMap.get(BNO055IMU.class, "imu");
@@ -54,7 +55,7 @@ public class IMU implements Telemeter {
             Log.w("IMU", "Waiting for calibration...");
             try {
                 CompletableFuture.runAsync(() -> {
-                    while (!imu.isMagnetometerCalibrated() || !imu.isGyroCalibrated());
+                    while (!imu.isMagnetometerCalibrated() || !imu.isGyroCalibrated()) ;
                     saveCalibration();
                     Log.w("IMU", "Finished calibration.");
                 }).get(Robot.DEBUG ? 0 : 1000, TimeUnit.MILLISECONDS);
@@ -79,7 +80,6 @@ public class IMU implements Telemeter {
         return imu.readCalibrationData();
     }
 
-    private long lastUpdateTime = 0;
     public void update() {
         var rawOrientation = imu.getAngularOrientation();
         rawOrientation.acquisitionTime /= 1_000_000;
@@ -94,7 +94,12 @@ public class IMU implements Telemeter {
 
         if (rawOrientation.acquisitionTime > lastUpdateTime) {
             lastUpdateTime = rawOrientation.acquisitionTime;
-            filter.correction(KalmanData.gyroDatum(lastUpdateTime, getAngle(rawOrientation)));
+            filter.datumBuilder()
+                    .time(lastUpdateTime)
+                    .mean(getAngle(rawOrientation))
+                    .variance(toRadians(1))
+                    .stateToOutput(Primitive64Matrix.FACTORY.row(0, 0, 1))
+                    .correct();
         }
 
 //        Log.d("IMU", String.valueOf(toDegrees(getAngle(imu.getAngularOrientation()))));

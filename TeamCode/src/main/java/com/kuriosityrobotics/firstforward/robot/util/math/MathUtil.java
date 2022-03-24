@@ -1,5 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
+import org.ojalgo.matrix.Primitive64Matrix;
+
 import java.util.Collection;
 
 public class MathUtil {
@@ -83,5 +88,13 @@ public class MathUtil {
                         .mapToDouble(n -> Math.pow(n - mean(t), 2))
                         .sum() / t.size()
         );
+    }
+
+    public static Primitive64Matrix rotate(double theta) {
+        return Primitive64Matrix.FACTORY.rows(new double[][]{
+                {cos(theta), sin(theta), 0},
+                {-sin(theta), cos(theta), 0},
+                {0, 0, 1}
+        });
     }
 }

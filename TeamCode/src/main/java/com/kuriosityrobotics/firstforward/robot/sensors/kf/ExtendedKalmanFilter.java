@@ -20,8 +20,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private final LinkedList<PostPredictionState> history = new LinkedList<>();
 
     private Primitive64Matrix mean, covariance;
-    private ExtendedKalmanFilter chain;
-    private long lastChainPrediction = -1;
 
     /**
      * @param initialState starting state
@@ -83,16 +81,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
-    /**
-     * Run the output of this filter as a prediction into next
-     */
-    @SuppressWarnings("unused")
-    public void chainTo(ExtendedKalmanFilter next) {
-        synchronized (lock) {
-            this.chain = next;
-        }
-    }
-
     public void predict(KalmanDatum datum) {
         synchronized (lock) {
             if (history.size() == 1 || history.getLast().getDatum() == null || datum.time > history.getLast().getDatum().time)
@@ -109,9 +97,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     private void predict(KalmanDatum datum, int index) {
-        if (!datum.isFullState())
-            throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
-
         synchronized (lock) {
             mean = mean.add(datum.outputToState().multiply(datum.getMean()));
             covariance = covariance.add(propagateError(datum.outputToState(), datum.getCovariance()));
@@ -121,8 +106,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 pushState(state);
             else
                 history.set(index, state);
-
-            chain();
         }
     }
 
@@ -177,19 +160,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             else
                 history.set(index, state);
 
-            chain();
-        }
-    }
-
-    private void chain() {
-        synchronized (lock) {
-            if (chain != null) {
-                var now = SystemClock.elapsedRealtime();
-                if (lastChainPrediction != -1)
-                    chain.predict(new KalmanDatum(mean.multiply((now - lastChainPrediction) / 1000.), covariance));
-
-                lastChainPrediction = now;
-            }
         }
     }
 
@@ -244,5 +214,85 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         public boolean isCorrection() {
             return isCorrection;
         }
+    }
+
+    @SuppressWarnings("unused")
+    public class KalmanDatumBuilder {
+        private Long time = SystemClock.elapsedRealtime();
+        private Primitive64Matrix mean, covariance, stateToOutput;
+
+        public KalmanDatumBuilder mean(double... mean) {
+            this.mean = Primitive64Matrix.FACTORY.column(mean);
+            return this;
+        }
+
+        public KalmanDatumBuilder mean(Primitive64Matrix mean) {
+            this.mean = mean;
+            return this;
+        }
+
+        public KalmanDatumBuilder variance(double... variance) {
+            this.covariance = diagonal(variance);
+            return this;
+        }
+
+        public KalmanDatumBuilder covariance(Primitive64Matrix covariance) {
+            this.covariance = covariance;
+            return this;
+        }
+
+        public KalmanDatumBuilder stateToOutput(Primitive64Matrix stateToOutput) {
+            this.stateToOutput = stateToOutput;
+            return this;
+        }
+
+        public KalmanDatumBuilder outputToState(Primitive64Matrix outputToState) {
+            this.stateToOutput = outputToState.invert();
+            return this;
+        }
+
+        public KalmanDatumBuilder time(long time) {
+            this.time = time;
+            return this;
+        }
+
+        private KalmanDatum build() {
+            if (mean == null)
+                throw new IllegalArgumentException("Mean must not be null.");
+            if (covariance == null)
+                throw new IllegalArgumentException("Covariance must not be null.");
+            if (stateToOutput == null)
+                stateToOutput = Primitive64Matrix.FACTORY.makeIdentity(mean.getRowDim());
+
+            if (!covariance.isSquare())
+                throw new IllegalArgumentException("Covariance must be square.");
+
+            if (covariance.getRank() != covariance.getMinDim())
+                throw new IllegalArgumentException("Covariance must be invertible.");
+
+            if (covariance.getRowDim() != mean.getRowDim())
+                throw new IllegalArgumentException("Covariance does not fit mean.");
+
+            if (stateToOutput.getColDim() != ExtendedKalmanFilter.this.mean.getRowDim())
+                throw new IllegalArgumentException("State to output matrix does not fit filter.");
+
+            return new KalmanDatum(time, mean, covariance, stateToOutput);
+        }
+
+        public void predict() {
+            var datum = build();
+            if (!(datum.isFullState() && mean.getRowDim() != ExtendedKalmanFilter.this.mean.getRowDim()))
+                throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
+
+            ExtendedKalmanFilter.this.predict(datum);
+        }
+
+        public void correct() {
+            ExtendedKalmanFilter.this.correction(build());
+        }
+    }
+
+    public KalmanDatumBuilder datumBuilder() {
+        return this.new KalmanDatumBuilder();
     }
 }
