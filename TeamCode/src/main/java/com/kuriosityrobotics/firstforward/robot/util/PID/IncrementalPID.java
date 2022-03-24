@@ -64,7 +64,7 @@ public class IncrementalPID {
 
         this.scale = initialScale;
 
-        this.lastUpdateTime = SystemClock.elapsedRealtime();
+        this.lastUpdateTime = SystemClock.elapsedRealtimeNanos();
 
         this.scaleMin = scaleMin;
         this.scaleMax = scaleMax;
@@ -80,7 +80,7 @@ public class IncrementalPID {
      * @return Updated PID scale
      */
     public double calculateScale(double error) {
-        long currentTime = SystemClock.elapsedRealtime();
+        long currentTime = SystemClock.elapsedRealtimeNanos();
         long timeDifference = (long) (currentTime - lastUpdateTime);
 
         // error is now relative to how much time since there was last update; will accumulate less error
