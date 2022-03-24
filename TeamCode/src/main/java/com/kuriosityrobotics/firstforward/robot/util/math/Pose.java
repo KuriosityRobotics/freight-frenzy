@@ -22,6 +22,9 @@ public class Pose extends Point {
     }
 
     public static Pose of(double[] values) {
+        if (values.length < 3)
+            return Pose.ZERO;
+
         return new Pose(values[0], values[1], values[2]);
     }
     public Pose fieldMirror() {

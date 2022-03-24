@@ -1,11 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 
+import android.os.SystemClock;
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
 
 import org.ojalgo.matrix.Primitive64Matrix;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,12 +15,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ExtendedKalmanFilter extends RollingVelocityCalculator implements Telemeter {
+    private static final int MOVING_WINDOW_SIZE = 500;
     private final Object lock = new Object();
     private final LinkedList<PostPredictionState> history = new LinkedList<>();
 
     private Primitive64Matrix mean, covariance;
     private ExtendedKalmanFilter chain;
-    private Instant lastChainPrediction;
+    private long lastChainPrediction = -1;
 
     /**
      * @param initialState starting state
@@ -27,16 +30,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (lock) {
             reset(initialState);
         }
-    }
-
-    public void reset(double... initialState) {
-        var variables = initialState.length;
-
-        history.clear();
-        mean = Primitive64Matrix.FACTORY.column(initialState);
-        covariance = Primitive64Matrix.FACTORY.make(variables, variables);
-
-        history.add(new PostPredictionState(mean, covariance, null, false));
     }
 
     public static Primitive64Matrix propagateError(
@@ -60,8 +53,19 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             throw new AssertionError();
     }
 
+    public void reset(double... initialState) {
+        var variables = initialState.length;
+
+        history.clear();
+        mean = Primitive64Matrix.FACTORY.column(initialState);
+        covariance = Primitive64Matrix.FACTORY.make(variables, variables);
+
+        history.add(new PostPredictionState(mean, covariance, null, false));
+    }
+
     public void replayHistory(int after) {
         synchronized (lock) {
+            Log.d("ExtendedKalmanFilter", "Replayed " + (history.size() - after) + "measurements.");
             var iter = history.listIterator(after);
             var state = iter.next();
             this.mean = state.getMean();
@@ -91,11 +95,11 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
     public void predict(KalmanDatum datum) {
         synchronized (lock) {
-            if (datum.time.isAfter(history.getLast().getDatum().time))
+            if (history.size() == 1 || history.getLast().getDatum() == null || datum.time > history.getLast().getDatum().time)
                 predict(datum, history.size() - 1);
             else {
                 var iter = history.listIterator(history.size());
-                while (iter.previous().getDatum().time.isAfter(datum.time));
+                while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
 
                 iter.add(new PostPredictionState(null, null, datum, false));
                 replayHistory(iter.previousIndex() - 1);
@@ -105,17 +109,29 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     private void predict(KalmanDatum datum, int index) {
+        if (!datum.isFullState())
+            throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
+
         synchronized (lock) {
-            mean = mean.add(datum.getMean());
-            covariance = covariance.add(datum.getCovariance());
+            mean = mean.add(datum.outputToState().multiply(datum.getMean()));
+            covariance = covariance.add(propagateError(datum.outputToState(), datum.getCovariance()));
 
             var state = new PostPredictionState(mean, covariance, datum, false);
             if (index >= history.size())
-                history.push(state);
+                pushState(state);
             else
                 history.set(index, state);
 
             chain();
+        }
+    }
+
+    private void pushState(PostPredictionState state) {
+        synchronized (lock) {
+            history.add(state);
+            if (history.size() > MOVING_WINDOW_SIZE)
+                for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++)
+                    history.removeFirst();
         }
     }
 
@@ -157,7 +173,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
             var state = new PostPredictionState(mean, covariance, datum, true);
             if (index >= history.size())
-                history.push(state);
+                pushState(state);
             else
                 history.set(index, state);
 
@@ -168,9 +184,9 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private void chain() {
         synchronized (lock) {
             if (chain != null) {
-                var now = Instant.now();
-                if (lastChainPrediction != null)
-                    chain.predict(new KalmanDatum(mean.multiply((now.toEpochMilli() - lastChainPrediction.toEpochMilli()) / 1000.), covariance));
+                var now = SystemClock.elapsedRealtime();
+                if (lastChainPrediction != -1)
+                    chain.predict(new KalmanDatum(mean.multiply((now - lastChainPrediction) / 1000.), covariance));
 
                 lastChainPrediction = now;
             }

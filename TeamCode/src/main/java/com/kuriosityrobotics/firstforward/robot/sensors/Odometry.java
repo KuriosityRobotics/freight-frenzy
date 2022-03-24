@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -11,7 +13,6 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import java.time.Instant;
 import java.util.ArrayList;
 
 public class Odometry extends RollingVelocityCalculator implements Telemeter, LocationProvider {
@@ -62,6 +63,8 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     private final ExtendedKalmanFilter kalmanFilter;
 
+    public double totalRotation = 0;
+
     public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter) {
         this.worldX = pose.x;
         this.worldY = pose.y;
@@ -81,7 +84,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     public void update() {
 
-        var now = Instant.now();
+        var now = SystemClock.elapsedRealtime();
         calculatePosition();
         kalmanFilter.predict(KalmanData.odometryDatum(now, kalmanFilter.outputVector()[2], dx, dy, dHeading));
 
@@ -172,6 +175,8 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         dy = dRobotY;
         dHeading = dTheta;
 
+        totalRotation += dTheta;
+
         worldX += dRobotX * Math.cos(worldHeadingRad) + dRobotY * Math.sin(worldHeadingRad);
         worldY += dRobotY * Math.cos(worldHeadingRad) - dRobotX * Math.sin(worldHeadingRad);
         worldHeadingRad = worldHeadingRad + dTheta;
@@ -238,7 +243,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees((worldHeadingRad)));
+        data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
 
         return data;
     }

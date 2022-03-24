@@ -23,7 +23,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot implements LocationProvider {
-    public static final boolean DEBUG = true;
+    public static final boolean DEBUG = false;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     public final SensorThread sensorThread;
@@ -44,8 +44,8 @@ public class Robot implements LocationProvider {
     public final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
 
-    public final LynxModule revHub1;
-    public final LynxModule revHub2;
+    public final LynxModule controlHub;
+    public final LynxModule expansionHub;
 
     public final WebcamName camera;
 
@@ -62,10 +62,10 @@ public class Robot implements LocationProvider {
         telemetryDump = new TelemetryDump(telemetry);
 
         try {
-            revHub1 = hardwareMap.get(LynxModule.class, "Control Hub");
-            revHub1.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-            revHub2 = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
-            revHub2.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            controlHub = hardwareMap.get(LynxModule.class, "Control Hub");
+            controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            expansionHub = hardwareMap.get(LynxModule.class, "Expansion Hub 2");
+            expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         } catch (RuntimeException e) {
             throw new RuntimeException("One or more of the REV hubs could not be found. More info: " + e);
         }
@@ -120,16 +120,16 @@ public class Robot implements LocationProvider {
         Thread[] threads;
         if (this.isCamera) {
             threads = new Thread[]{
-                    new Thread(sensorThread),
-                    new Thread(moduleThread),
-                    new Thread(visionThread),
-                    new Thread(debugThread)
+                    new Thread(sensorThread, "SensorThread"),
+                    new Thread(moduleThread, "ModuleThread"),
+                    new Thread(visionThread, "VisionThread"),
+                    new Thread(debugThread, "DebugThread")
             };
         } else {
             threads = new Thread[]{
-                    new Thread(sensorThread),
-                    new Thread(moduleThread),
-                    new Thread(debugThread)
+                    new Thread(sensorThread, "SensorThread"),
+                    new Thread(moduleThread, "ModuleThread"),
+                    new Thread(debugThread, "DebugThread")
             };
         }
 

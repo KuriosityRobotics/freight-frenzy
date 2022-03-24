@@ -52,9 +52,7 @@ public class TelemetryDump implements PoseWatcher {
             Canvas canvas = packet.fieldOverlay();
             for (Telemeter telemeter : telemeters) {
                 if (telemeter.getDashboardData() != null) {
-                    for (Map.Entry<String, Object> entry : telemeter.getDashboardData().entrySet()) {
-                        packet.put(entry.getKey(), entry.getValue());
-                    }
+                    packet.putAll(telemeter.getDashboardData());
                 }
             }
 

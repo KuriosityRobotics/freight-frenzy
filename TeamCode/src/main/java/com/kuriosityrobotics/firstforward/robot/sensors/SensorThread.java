@@ -1,7 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static java.util.concurrent.CompletableFuture.allOf;
+import static java.util.concurrent.CompletableFuture.runAsync;
 import static de.esoco.coroutine.Coroutine.first;
-import static de.esoco.coroutine.CoroutineScope.launch;
 import static de.esoco.coroutine.step.CodeExecution.consume;
 
 import android.os.SystemClock;
@@ -22,16 +23,6 @@ import de.esoco.coroutine.Coroutine;
 public class SensorThread implements Runnable, Telemeter {
 
     private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
-
-    private final Robot robot;
-
-    private final Odometry odometry;
-    private final IMU imu;
-
-    private long updateTime = 0;
-    private long lastLoopTime = 0;
-    private long lastPoseSendTime = 0;
-
     /**
      * This is a singleton.  Pose position and history is persisted through this.
      * Remember to register it as a telemeter each time a new Robot is created.
@@ -40,6 +31,25 @@ public class SensorThread implements Runnable, Telemeter {
 
     static {
         theKalmanFilter = new ExtendedKalmanFilter();
+    }
+
+    private final Robot robot;
+    private final Odometry odometry;
+    private final IMU imu;
+    private long updateTime = 0;
+    private long lastLoopTime = 0;
+    private long lastPoseSendTime = 0;
+
+    public SensorThread(Robot robot, String configLocation) {
+        this.robot = robot;
+
+        this.odometry = new Odometry(robot.hardwareMap, getPose(), theKalmanFilter);
+        this.imu = new IMU(robot.hardwareMap, theKalmanFilter);
+
+        robot.telemetryDump.registerTelemeter(this);
+        robot.telemetryDump.registerTelemeter(theKalmanFilter);
+        robot.telemetryDump.registerTelemeter(odometry);
+        robot.telemetryDump.registerTelemeter(imu);
     }
 
     public ExtendedKalmanFilter getKalmanFilter() {
@@ -52,30 +62,24 @@ public class SensorThread implements Runnable, Telemeter {
         robot.telemetryDump.removeTelemeter(theKalmanFilter);
 
         theKalmanFilter.reset(pose.x, pose.y, pose.heading);
-        imu.resetPose(pose);
+        getImu().resetPose(pose);
 
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
-    }
-
-    public SensorThread(Robot robot, String configLocation) {
-        this.robot = robot;
-
-        robot.telemetryDump.registerTelemeter(this);
-        robot.telemetryDump.registerTelemeter(theKalmanFilter);
-
-        this.odometry = new Odometry(robot.hardwareMap, getPose(), theKalmanFilter);
-        this.imu = new IMU(robot.hardwareMap, theKalmanFilter);
     }
 
     @Override
     public void run() {
+        var imuFuture = runAsync(imu::update);
+        var expansionHubFuture = runAsync(robot.expansionHub::getBulkData);
         while (robot.running()) {
-            launch(scope -> {
-                bulkDataCoroutine.runAsync(scope, robot.revHub1);
-                bulkDataCoroutine.runAsync(scope, robot.revHub2);
-            });
-            getOdometry().update();
-            imu.update();
+            if (imuFuture.isDone())
+                imuFuture = runAsync(imu::update);
+
+            if (expansionHubFuture.isDone())
+                expansionHubFuture = runAsync(robot.expansionHub::getBulkData);
+
+            robot.controlHub.getBulkData();
+            odometry.update();
 
             long currentTime = SystemClock.elapsedRealtime();
 
@@ -90,11 +94,11 @@ public class SensorThread implements Runnable, Telemeter {
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
-    public void predict(KalmanDatum datum){
+    public void predict(KalmanDatum datum) {
         theKalmanFilter.predict(datum);
     }
 
-    public void correct(KalmanDatum datum){
+    public void correct(KalmanDatum datum) {
         theKalmanFilter.correction(datum);
     }
 
@@ -106,7 +110,7 @@ public class SensorThread implements Runnable, Telemeter {
         return theKalmanFilter.getRollingVelocity();
     }
 
-    public Pose getOdometryVelocity(){
+    public Pose getOdometryVelocity() {
         return getOdometry().getRollingVelocity();
     }
 
@@ -115,11 +119,7 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
-        data.add("Robot Pose: " + getPose());
-
-        data.add("");
-        data.add("-- Odometry --");
-        data.addAll(getOdometry().getTelemetryData());
+        data.add("Robot Pose: " + getPose().toDegrees());
 
         return data;
     }
@@ -146,5 +146,9 @@ public class SensorThread implements Runnable, Telemeter {
 
     public Odometry getOdometry() {
         return odometry;
+    }
+
+    public IMU getImu() {
+        return imu;
     }
 }
