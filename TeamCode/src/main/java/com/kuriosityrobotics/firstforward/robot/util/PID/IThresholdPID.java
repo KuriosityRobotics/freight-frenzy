@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util.PID;
 
+import android.os.SystemClock;
+
 public class IThresholdPID {
     public final double P_FACTOR;
     public final double I_FACTOR;
@@ -11,6 +13,7 @@ public class IThresholdPID {
     private double lastError;
     private double errorSum;
     private double errorChange;
+    private long lastUpdatedTime;
 
     /**
      * Constructs a ClassicalPIDController
@@ -27,6 +30,7 @@ public class IThresholdPID {
         this.startIThreshold = startIThreshold;
 
         this.reset = true;
+        lastUpdatedTime = SystemClock.elapsedRealtimeNanos();
     }
 
     /**
@@ -37,6 +41,7 @@ public class IThresholdPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
+        error /= (SystemClock.elapsedRealtimeNanos() - lastUpdatedTime);
         if (Math.abs(error) < startIThreshold && Math.abs(error) > ignoreIThreshold) {
             errorSum += error;
         } else {
@@ -61,6 +66,8 @@ public class IThresholdPID {
 
         lastError = error;
         errorChange = d;
+
+        lastUpdatedTime = SystemClock.elapsedRealtimeNanos();
 
         return p + i + d;
     }

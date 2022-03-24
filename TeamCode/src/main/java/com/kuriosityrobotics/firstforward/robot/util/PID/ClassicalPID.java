@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util.PID;
 
+import android.os.SystemClock;
+
 public class ClassicalPID {
     public final double P_FACTOR;
     public final double I_FACTOR;
@@ -10,6 +12,8 @@ public class ClassicalPID {
     private double lastError;
     private double errorSum;
     private double errorChange;
+
+    private long lastUpdateTime;
 
     /**
      * Constructs a ClassicalPIDController
@@ -24,6 +28,7 @@ public class ClassicalPID {
         D_FACTOR = d;
 
         this.reset = true;
+        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
     }
 
     /**
@@ -34,6 +39,8 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
+        error /= (SystemClock.elapsedRealtimeNanos() - lastUpdateTime); // feature is back, now in nanos
+
         errorSum += error;
 
         double p = error * P_FACTOR;
@@ -54,6 +61,8 @@ public class ClassicalPID {
 
         lastError = error;
         errorChange = d;
+
+        lastUpdateTime = SystemClock.elapsedRealtimeNanos();
 
         return p + i + d;
     }
