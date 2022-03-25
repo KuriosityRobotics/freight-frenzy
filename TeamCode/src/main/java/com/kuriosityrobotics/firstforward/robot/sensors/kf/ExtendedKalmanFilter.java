@@ -173,6 +173,40 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
+    private void smoothe(KalmanDatum datum) {
+        synchronized (this) {
+            // TODO:  make this start when the kalmandatum was collected
+            for (int t = history.size() - 2; t >= 0; t--) {
+                PostPredictionState currentState = history.get(t);
+                var P_t = currentState.getCovariance();
+                PostPredictionState nextState = history.get(t + 1);
+                var P_t1 = nextState.getCovariance();
+
+                var L = P_t.multiply(datum.getStateToOutput().transpose()).multiply(P_t1.invert());
+
+                var X_t = currentState.getMean();
+                var X_t1 = nextState.getMean();
+                var X_tT = X_t.add(
+                        L.multiply(
+                                nextState.smoothedMean.subtract(nextState.mean)
+                        )
+                );
+
+                var P_tT = P_t.add(propagateError(L,
+                        nextState.smoothedCovariance.subtract(nextState.covariance)
+                ));
+
+                currentState.smoothedMean = X_tT;
+                currentState.smoothedCovariance = P_tT;
+            }
+
+            history.forEach(state -> {
+                state.mean = state.smoothedMean;
+                state.covariance = state.smoothedCovariance;
+            });
+        }
+    }
+
     @Override
     public List<String> getTelemetryData() {
         return new ArrayList<>() {{
@@ -201,14 +235,18 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     static class PostPredictionState {
-        private final Primitive64Matrix mean;
-        private final Primitive64Matrix covariance;
         private final KalmanDatum datum;
         private final boolean isCorrection;
+        public Primitive64Matrix smoothedMean, smoothedCovariance;
+        private Primitive64Matrix mean;
+        private Primitive64Matrix covariance;
+
 
         PostPredictionState(Primitive64Matrix mean, Primitive64Matrix covariance, KalmanDatum datum, boolean isCorrection) {
             this.mean = mean;
+            this.smoothedMean = mean;
             this.covariance = covariance;
+            this.smoothedCovariance = covariance;
             this.datum = datum;
             this.isCorrection = isCorrection;
         }
