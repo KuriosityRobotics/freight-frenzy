@@ -101,6 +101,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
                 iter.add(new PostPredictionState(null, null, datum, false));
                 replayHistory(iter.previousIndex() - 1);
+
             }
         }
 
@@ -155,6 +156,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
+    // TODO:  add moving window support for correction
     private void correction(KalmanDatum datum, int index) {
         synchronized (lock) {
             var W = stateCorrectionCovariance(datum.getStateToOutput(), datum.getCovariance());
@@ -165,27 +167,33 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             covariance = covariance.subtract(propagateError(W, propagateError(datum.getStateToOutput(), covariance)));
 
             var state = new PostPredictionState(mean, covariance, datum, true);
-            if (index >= history.size())
+            if (index >= history.size()) {
                 pushState(state);
-            else
+                smoothe(history.size() - 1);
+            }
+            else {
                 history.set(index, state);
-
+                smoothe(index);
+            }
         }
     }
 
-    private void smoothe(KalmanDatum datum) {
+    private void smoothe(int before) {
         synchronized (this) {
-            // TODO:  make this start when the kalmandatum was collected
-            for (int t = history.size() - 2; t >= 0; t--) {
+            if (!history.get(before).isCorrection)
+                throw new IllegalArgumentException("Can only smoothe starting from a correction.");
+
+            var latestCorrectionH = history.get(before).getDatum().getStateToOutput();
+
+            for (int t = before - 1; t >= 0; t--) {
                 PostPredictionState currentState = history.get(t);
                 var P_t = currentState.getCovariance();
                 PostPredictionState nextState = history.get(t + 1);
                 var P_t1 = nextState.getCovariance();
 
-                var L = P_t.multiply(datum.getStateToOutput().transpose()).multiply(P_t1.invert());
+                var L = P_t.multiply(latestCorrectionH.transpose()).multiply(P_t1.invert());
 
                 var X_t = currentState.getMean();
-                var X_t1 = nextState.getMean();
                 var X_tT = X_t.add(
                         L.multiply(
                                 nextState.smoothedMean.subtract(nextState.mean)
