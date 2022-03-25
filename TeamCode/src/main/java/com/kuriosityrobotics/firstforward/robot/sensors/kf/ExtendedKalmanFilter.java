@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 
 public class ExtendedKalmanFilter extends RollingVelocityCalculator implements Telemeter {
     private static final int MOVING_WINDOW_SIZE = 500;
@@ -71,7 +70,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         reset(initialState, new double[initialState.length]);
     }
 
-    public void replayHistory(int after) {
+    public void forwardPass(int after) {
         synchronized (lock) {
             Log.d("ExtendedKalmanFilter", "Replayed " + (history.size() - after) + "measurements.");
             var iter = history.listIterator(after);
@@ -91,101 +90,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
-    public void predict(KalmanDatum datum) {
-        synchronized (lock) {
-            if (history.size() == 1 || history.getLast().getDatum() == null || datum.time > history.getLast().getDatum().time)
-                predict(datum, history.size() - 1);
-            else {
-                var iter = history.listIterator(history.size());
-                while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
-
-                iter.add(new PostPredictionState(null, null, datum, false));
-                replayHistory(iter.previousIndex() - 1);
-
-            }
-        }
-
-    }
-
-    private void predict(KalmanDatum datum, int index) {
-        synchronized (lock) {
-            mean = mean.add(datum.outputToState().multiply(datum.getMean()));
-            covariance = covariance.add(propagateError(datum.outputToState(), datum.getCovariance()));
-
-            var state = new PostPredictionState(mean, covariance, datum, false);
-            if (index >= history.size())
-                pushState(state);
-            else
-                history.set(index, state);
-        }
-    }
-
-    private void pushState(PostPredictionState state) {
-        synchronized (lock) {
-            history.add(state);
-            if (history.size() > MOVING_WINDOW_SIZE)
-                for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++)
-                    history.removeFirst();
-        }
-    }
-
-    public double[] outputVector() {
-        synchronized (lock) {
-            return mean.columns().next().toRawCopy1D();
-        }
-    }
-
-    private Primitive64Matrix innovation(Primitive64Matrix stateToOutput, Primitive64Matrix output) {
-        synchronized (lock) {
-            return output.subtract(stateToOutput.multiply(mean));
-        }
-    }
-
-    private Primitive64Matrix stateCorrectionCovariance(Primitive64Matrix stateToOutput,
-                                                        Primitive64Matrix outputCovariance) {
-        synchronized (lock) {
-            assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
-            return covariance.multiply(stateToOutput.transpose()).multiply(propagateError(stateToOutput,
-                    covariance).add(outputCovariance).invert());
-        }
-    }
-
-    public void correct(KalmanDatum datum) {
-        synchronized (lock) {
-            if (history.size() == 1 || history.getLast().getDatum() == null || datum.time > history.getLast().getDatum().time)
-                correct(datum, history.size() - 1);
-            else {
-                var iter = history.listIterator(history.size());
-                while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
-
-                iter.add(new PostPredictionState(null, null, datum, true));
-                replayHistory(iter.previousIndex() - 1);
-            }
-        }
-    }
-
-    private void correct(KalmanDatum datum, int index) {
-        synchronized (lock) {
-            var W = stateCorrectionCovariance(datum.getStateToOutput(), datum.getCovariance());
-
-            var innovation = innovation(datum.getStateToOutput(), datum.getMean());
-
-            mean = mean.add(W.multiply(innovation));
-            covariance = covariance.subtract(propagateError(W, propagateError(datum.getStateToOutput(), covariance)));
-
-            var state = new PostPredictionState(mean, covariance, datum, true);
-            if (index >= history.size()) {
-                pushState(state);
-                smoothe(history.size() - 1);
-            }
-            else {
-                history.set(index, state);
-                smoothe(index);
-            }
-        }
-    }
-
-    private void smoothe(int before) {
+    private void backwardPass(int before) {
         synchronized (this) {
             if (!history.get(before).isCorrection)
                 throw new IllegalArgumentException("Can only smoothe starting from a correction.");
@@ -222,8 +127,94 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
+    public void predict(KalmanDatum datum) {
+        synchronized (lock) {
+            int nextIndex = getInsertionIndex(datum);
+
+            history.add(nextIndex, new PostPredictionState(null, null, datum, false));
+            forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
+        }
+    }
+
+    private void predict(KalmanDatum datum, int index) {
+        synchronized (lock) {
+            mean = mean.add(datum.outputToState().multiply(datum.getMean()));
+            covariance = covariance.add(propagateError(datum.outputToState(), datum.getCovariance()));
+
+            var state = new PostPredictionState(mean, covariance, datum, false);
+            if (index >= history.size())
+                pushState(state);
+            else
+                history.set(index, state);
+        }
+    }
+
+    public void correct(KalmanDatum datum) {
+        synchronized (lock) {
+            int nextIndex = getInsertionIndex(datum);
+
+            history.add(nextIndex, new PostPredictionState(null, null, datum, true));
+            // nextIndex - 1 because we need to calculate state for the newly-inserted datum
+            forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
+            backwardPass(nextIndex);
+        }
+    }
+
+    private void correct(KalmanDatum datum, int index) {
+        synchronized (lock) {
+            var W = stateCorrectionCovariance(datum.getStateToOutput(), datum.getCovariance());
+
+            var innovation = innovation(datum.getStateToOutput(), datum.getMean());
+
+            mean = mean.add(W.multiply(innovation));
+            covariance = covariance.subtract(propagateError(W, propagateError(datum.getStateToOutput(), covariance)));
+
+            var state = new PostPredictionState(mean, covariance, datum, true);
+            if (index >= history.size())
+                pushState(state);
+            else
+                history.set(index, state);
+        }
+    }
+
+    private Primitive64Matrix stateCorrectionCovariance(Primitive64Matrix stateToOutput,
+                                                        Primitive64Matrix outputCovariance) {
+        synchronized (lock) {
+            assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
+            return covariance.multiply(stateToOutput.transpose()).multiply(propagateError(stateToOutput,
+                    covariance).add(outputCovariance).invert());
+        }
+    }
+
+    private Primitive64Matrix innovation(Primitive64Matrix stateToOutput, Primitive64Matrix output) {
+        synchronized (lock) {
+            return output.subtract(stateToOutput.multiply(mean));
+        }
+    }
+
+    private int getInsertionIndex(KalmanDatum datum) {
+        var iter = history.listIterator(history.size());
+        while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
+        return iter.nextIndex();
+    }
+
+    private void pushState(PostPredictionState state) {
+        synchronized (lock) {
+            history.add(state);
+            if (history.size() > MOVING_WINDOW_SIZE)
+                for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++)
+                    history.removeFirst();
+        }
+    }
+
+    public double[] outputVector() {
+        synchronized (lock) {
+            return mean.columns().next().toRawCopy1D();
+        }
+    }
+
     @Override
-    public List<String> getTelemetryData() {
+    public Iterable<String> getTelemetryData() {
         return new ArrayList<>() {{
             add(Arrays.toString(outputVector()));
             add(covariance.toString());
