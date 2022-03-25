@@ -57,8 +57,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     public void reset(double[] initialState, double... initialVariance) {
-        var variables = initialState.length;
-
         history.clear();
         mean = Primitive64Matrix.FACTORY.column(initialState);
         covariance = diagonal(initialVariance);
@@ -131,7 +129,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (lock) {
             int nextIndex = getInsertionIndex(datum);
 
-            history.add(nextIndex, new PostPredictionState(null, null, datum, false));
+            pushState(nextIndex, new PostPredictionState(null, null, datum, false));
             forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
         }
     }
@@ -142,10 +140,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             covariance = covariance.add(propagateError(datum.outputToState(), datum.getCovariance()));
 
             var state = new PostPredictionState(mean, covariance, datum, false);
-            if (index >= history.size())
-                pushState(state);
-            else
-                history.set(index, state);
+            history.set(index, state);
         }
     }
 
@@ -153,7 +148,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (lock) {
             int nextIndex = getInsertionIndex(datum);
 
-            history.add(nextIndex, new PostPredictionState(null, null, datum, true));
+            pushState(nextIndex, new PostPredictionState(null, null, datum, true));
             // nextIndex - 1 because we need to calculate state for the newly-inserted datum
             forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
             backwardPass(nextIndex);
@@ -170,10 +165,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             covariance = covariance.subtract(propagateError(W, propagateError(datum.getStateToOutput(), covariance)));
 
             var state = new PostPredictionState(mean, covariance, datum, true);
-            if (index >= history.size())
-                pushState(state);
-            else
-                history.set(index, state);
+            history.set(index, state);
         }
     }
 
@@ -198,9 +190,9 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return iter.nextIndex();
     }
 
-    private void pushState(PostPredictionState state) {
+    private void pushState(int index, PostPredictionState state) {
         synchronized (lock) {
-            history.add(state);
+            history.add(index, state);
             if (history.size() > MOVING_WINDOW_SIZE)
                 for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++)
                     history.removeFirst();
