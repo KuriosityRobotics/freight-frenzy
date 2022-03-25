@@ -25,9 +25,11 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
      * @param initialState starting state
      */
     public ExtendedKalmanFilter(double... initialState) {
-        synchronized (lock) {
-            reset(initialState);
-        }
+        reset(initialState);
+    }
+
+    public ExtendedKalmanFilter(double[] initialState, double... initialVariance) {
+        reset(initialState, initialVariance);
     }
 
     public static Primitive64Matrix propagateError(
@@ -51,14 +53,22 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             throw new AssertionError();
     }
 
-    public void reset(double... initialState) {
+    public double[] getVariance() {
+        return covariance.diagonal().toRawCopy1D();
+    }
+
+    public void reset(double[] initialState, double... initialVariance) {
         var variables = initialState.length;
 
         history.clear();
         mean = Primitive64Matrix.FACTORY.column(initialState);
-        covariance = Primitive64Matrix.FACTORY.make(variables, variables);
+        covariance = diagonal(initialVariance);
 
         history.add(new PostPredictionState(mean, covariance, null, false));
+    }
+
+    public void reset(double... initialState) {
+        reset(initialState, new double[initialState.length]);
     }
 
     public void replayHistory(int after) {
@@ -186,6 +196,10 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return Telemeter.super.getDashboardData();
     }
 
+    public KalmanDatumBuilder datumBuilder() {
+        return this.new KalmanDatumBuilder();
+    }
+
     static class PostPredictionState {
         private final Primitive64Matrix mean;
         private final Primitive64Matrix covariance;
@@ -267,8 +281,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (!covariance.isSquare())
                 throw new IllegalArgumentException("Covariance must be square.");
 
-            if (covariance.getRank() != covariance.getMinDim())
-                throw new IllegalArgumentException("Covariance must be invertible.");
+//            if (covariance.getRank() != covariance.getMinDim())
+//                throw new IllegalArgumentException("Covariance must be invertible.");
 
             if (covariance.getRowDim() != mean.getRowDim())
                 throw new IllegalArgumentException("Covariance does not fit mean.");
@@ -284,7 +298,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
         public void predict() {
             var datum = build();
-            if (!(datum.isFullState() && mean.getRowDim() != ExtendedKalmanFilter.this.mean.getRowDim()))
+            if (!(datum.isFullState() && mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
                 throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
 
             ExtendedKalmanFilter.this.predict(datum);
@@ -293,9 +307,5 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         public void correct() {
             ExtendedKalmanFilter.this.correction(build());
         }
-    }
-
-    public KalmanDatumBuilder datumBuilder() {
-        return this.new KalmanDatumBuilder();
     }
 }

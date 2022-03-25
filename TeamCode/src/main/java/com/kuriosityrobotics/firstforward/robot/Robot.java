@@ -23,7 +23,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot implements LocationProvider {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true    ;
     private static final String configLocation = "configurations/mainconfig.toml";
 
     public final SensorThread sensorThread;
