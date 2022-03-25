@@ -90,6 +90,14 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
     private void backwardPass(int before) {
         synchronized (this) {
+            var smoothedMeans = new HashMap<PostPredictionState, Primitive64Matrix>();
+            var smoothedVariances = new HashMap<PostPredictionState, Primitive64Matrix>();
+
+            history.forEach(n -> {
+                smoothedMeans.put(n, n.mean);
+                smoothedVariances.put(n, n.covariance);
+            });
+
             if (!history.get(before).isCorrection)
                 throw new IllegalArgumentException("Can only smoothe starting from a correction.");
 
@@ -106,21 +114,21 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 var X_t = currentState.getMean();
                 var X_tT = X_t.add(
                         L.multiply(
-                                nextState.smoothedMean.subtract(nextState.mean)
+                                smoothedMeans.get(nextState).subtract(nextState.mean)
                         )
                 );
 
                 var P_tT = P_t.add(propagateError(L,
-                        nextState.smoothedCovariance.subtract(nextState.covariance)
+                        smoothedVariances.get(nextState).subtract(nextState.covariance)
                 ));
 
-                currentState.smoothedMean = X_tT;
-                currentState.smoothedCovariance = P_tT;
+                smoothedMeans.put(currentState, X_tT);
+                smoothedVariances.put(currentState, P_tT);
             }
 
             history.forEach(state -> {
-                state.mean = state.smoothedMean;
-                state.covariance = state.smoothedCovariance;
+                state.mean = smoothedMeans.get(state);
+                state.covariance = smoothedVariances.get(state);
             });
         }
     }
@@ -151,7 +159,15 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             pushState(nextIndex, new PostPredictionState(null, null, datum, true));
             // nextIndex - 1 because we need to calculate state for the newly-inserted datum
             forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
-            backwardPass(nextIndex);
+            backwardPass(findLatestCorrection());
+        }
+    }
+
+    private int findLatestCorrection() {
+        synchronized (lock) {
+            var iter = history.listIterator(history.size() - 1);
+            while (iter.hasPrevious() && !iter.previous().isCorrection);
+            return iter.nextIndex();
         }
     }
 
@@ -235,16 +251,13 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     static class PostPredictionState {
         private final KalmanDatum datum;
         private final boolean isCorrection;
-        public Primitive64Matrix smoothedMean, smoothedCovariance;
         private Primitive64Matrix mean;
         private Primitive64Matrix covariance;
 
 
         PostPredictionState(Primitive64Matrix mean, Primitive64Matrix covariance, KalmanDatum datum, boolean isCorrection) {
             this.mean = mean;
-            this.smoothedMean = mean;
             this.covariance = covariance;
-            this.smoothedCovariance = covariance;
             this.datum = datum;
             this.isCorrection = isCorrection;
         }
