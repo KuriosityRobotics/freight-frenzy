@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static java.lang.Math.toRadians;
-import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
@@ -100,7 +98,7 @@ public class SensorThread implements Runnable, Telemeter {
     }
 
     public void correct(KalmanDatum datum) {
-        theKalmanFilter.correction(datum);
+        theKalmanFilter.correct(datum);
     }
 
     public Pose getPose() {

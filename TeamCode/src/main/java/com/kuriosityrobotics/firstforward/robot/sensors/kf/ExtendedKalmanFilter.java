@@ -84,7 +84,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 var measurement = iter.next();
 
                 if (measurement.isCorrection())
-                    correction(measurement.getDatum(), idx);
+                    correct(measurement.getDatum(), idx);
                 else
                     predict(measurement.getDatum(), idx);
             }
@@ -150,14 +150,21 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
-    public void correction(KalmanDatum datum) {
+    public void correct(KalmanDatum datum) {
         synchronized (lock) {
-            correction(datum, history.size() - 1);
+            if (history.size() == 1 || history.getLast().getDatum() == null || datum.time > history.getLast().getDatum().time)
+                correct(datum, history.size() - 1);
+            else {
+                var iter = history.listIterator(history.size());
+                while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
+
+                iter.add(new PostPredictionState(null, null, datum, true));
+                replayHistory(iter.previousIndex() - 1);
+            }
         }
     }
 
-    // TODO:  add moving window support for correction
-    private void correction(KalmanDatum datum, int index) {
+    private void correct(KalmanDatum datum, int index) {
         synchronized (lock) {
             var W = stateCorrectionCovariance(datum.getStateToOutput(), datum.getCovariance());
 
@@ -351,7 +358,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
 
         public void correct() {
-            ExtendedKalmanFilter.this.correction(build());
+            ExtendedKalmanFilter.this.correct(build());
         }
     }
 }
