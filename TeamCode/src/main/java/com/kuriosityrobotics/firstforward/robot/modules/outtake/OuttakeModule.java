@@ -355,8 +355,8 @@ public class OuttakeModule implements Module, Telemeter {
     @Override
     public List<String> getTelemetryData() {
         return new ArrayList<>() {{
-            add("Target State: " + targetState.toString());
-            add("State:  " + currentState.toString());
+            add("Target State: " + targetState);
+            add("State:  " + currentState);
 //            add("last:  " + lastRan);
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
