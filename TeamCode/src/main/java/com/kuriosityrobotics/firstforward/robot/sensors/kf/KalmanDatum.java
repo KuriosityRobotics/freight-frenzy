@@ -45,5 +45,13 @@ public class KalmanDatum {
                 && stateToOutput.getRank() == stateToOutput.getMinDim();
     }
 
-
+    @Override
+    public String toString() {
+        return "KalmanDatum{" +
+                "time=" + time +
+                ", mean=" + mean +
+                ", covariance=" + covariance +
+                ", stateToOutput=" + stateToOutput +
+                '}';
+    }
 }

@@ -1,9 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 
-import android.os.SystemClock;
-import android.util.Log;
+import static com.kuriosityrobotics.firstforward.robot.Robot.assertThat;
 
-import com.kuriosityrobotics.firstforward.robot.Robot;
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
 
@@ -61,10 +61,10 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         reset(initialState, new double[initialState.length]);
     }
 
-    public void forwardPass(int after) {
+    public void forwardPass(int startingFrom) {
         synchronized (lock) {
-            Log.d("ExtendedKalmanFilter", "Replayed " + (history.size() - after) + "measurements.");
-            var iter = history.listIterator(after);
+//            Log.d("EKF", "Replayed " + (history.size() - startingFrom - 1) + "measurements.");
+            var iter = history.listIterator(startingFrom);
             var state = iter.next();
             this.mean = state.getMean();
             this.covariance = state.getCovariance();
@@ -83,7 +83,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
     @SuppressWarnings("ConstantConditions")
     private void backwardPass(int before) {
-        synchronized (this) {
+        synchronized (lock) {
             var smoothedMeans = new HashMap<PostPredictionState, Primitive64Matrix>();
             var smoothedVariances = new HashMap<PostPredictionState, Primitive64Matrix>();
 
@@ -95,6 +95,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (!history.get(before).isCorrection())
                 throw new IllegalArgumentException("Can only smoothe starting from a correction.");
 
+            assertThat(history.get(before).isCorrection() && history.get(before).getDatum().isFullState());
             var latestCorrectionH = history.get(before).getDatum().getStateToOutput();
 
             for (int t = before - 1; t >= 0; t--) {
@@ -103,7 +104,18 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 PostPredictionState nextState = history.get(t + 1);
                 var P_t1 = nextState.getCovariance();
 
-                var L = P_t.multiply(latestCorrectionH.transpose()).multiply(P_t1.invert());
+//                Log.d("EKF", format("curr:  {0}, next:  {1}", currentState.isCorrection, nextState.isCorrection));
+
+                assertThat(P_t.isSquare());
+//                Log.d("EKF", format("latestCorrectionH:  {0}", Arrays.deepToString(latestCorrectionH.toRawCopy2D())));
+                assertThat(P_t.multiply(
+                        latestCorrectionH.transpose()
+                ).isSquare());
+                assertThat(P_t1.isSquare());
+
+                var L = P_t.multiply(
+                        latestCorrectionH.transpose()
+                ).multiply(P_t1.invert());
 
                 var X_t = currentState.getMean();
                 var X_tT = X_t.add(
@@ -153,15 +165,22 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             pushState(nextIndex, new PostPredictionState(null, null, datum, true));
             // nextIndex - 1 because we need to calculate state for the newly-inserted datum
             forwardPass(nextIndex - 1); // TODO:  might have introduced a bug changing this from - 2 to -1
-            backwardPass(findLatestCorrection());
+            var latest = findLatestCorrection();
+            if (latest != -1)
+                backwardPass(latest);
         }
     }
 
     private int findLatestCorrection() {
         synchronized (lock) {
             var iter = history.listIterator(history.size() - 1);
-            while (iter.hasPrevious() && !iter.previous().isCorrection());
-            return iter.nextIndex();
+            PostPredictionState thing = null;
+            while (iter.hasPrevious() && !(thing = iter.previous()).isCorrection() && !thing.getDatum().isFullState())
+                ;
+            if (thing == null || !thing.isCorrection() || !thing.getDatum().isFullState())
+                return -1;
+            else
+                return iter.nextIndex();
         }
     }
 
@@ -182,7 +201,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private Primitive64Matrix stateCorrectionCovariance(Primitive64Matrix stateToOutput,
                                                         Primitive64Matrix outputCovariance) {
         synchronized (lock) {
-            Robot.assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
+            assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
             return covariance.multiply(stateToOutput.transpose()).multiply(propagateError(stateToOutput,
                     covariance).add(outputCovariance).invert());
         }
@@ -196,16 +215,19 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
     private int getInsertionIndex(KalmanDatum datum) {
         var iter = history.listIterator(history.size());
-        while (iter.previousIndex() > 1 && iter.previous().getDatum().time > datum.time) ;
+        while (iter.previousIndex() >= 1 && iter.previous().getDatum().time > datum.time) ;
         return iter.nextIndex();
     }
 
     private void pushState(int index, PostPredictionState state) {
         synchronized (lock) {
-            history.add(index, state);
             if (history.size() > MOVING_WINDOW_SIZE)
-                for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++)
+                for (int i = 0; i < (history.size() - MOVING_WINDOW_SIZE); i++) {
+                    assertThat(history.get(i).getMean() != null);
                     history.removeFirst();
+                }
+
+            history.add(index, state);
         }
     }
 
@@ -244,24 +266,32 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
     static class PostPredictionState {
         private final KalmanDatum datum;
-        private final boolean isCorrection;
+        private final boolean correction;
         private Primitive64Matrix mean;
         private Primitive64Matrix covariance;
 
 
-        PostPredictionState(Primitive64Matrix mean, Primitive64Matrix covariance, KalmanDatum datum, boolean isCorrection) {
+        PostPredictionState(Primitive64Matrix mean, Primitive64Matrix covariance, KalmanDatum datum, boolean correction) {
             this.setMean(mean);
             this.setCovariance(covariance);
             this.datum = datum;
-            this.isCorrection = isCorrection;
+            this.correction = correction;
         }
 
         public Primitive64Matrix getMean() {
             return mean;
         }
 
+        public void setMean(Primitive64Matrix mean) {
+            this.mean = mean;
+        }
+
         public Primitive64Matrix getCovariance() {
             return covariance;
+        }
+
+        public void setCovariance(Primitive64Matrix covariance) {
+            this.covariance = covariance;
         }
 
         public KalmanDatum getDatum() {
@@ -269,15 +299,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
 
         public boolean isCorrection() {
-            return isCorrection;
-        }
-
-        public void setCovariance(Primitive64Matrix covariance) {
-            this.covariance = covariance;
-        }
-
-        public void setMean(Primitive64Matrix mean) {
-            this.mean = mean;
+            return correction;
         }
     }
 
@@ -349,11 +371,14 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (!(datum.isFullState() && mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
                 throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
 
+            System.out.println("prediction:  " + datum);
             ExtendedKalmanFilter.this.predict(datum);
         }
 
         public void correct() {
-            ExtendedKalmanFilter.this.correct(build());
+            var datum = build();
+            System.out.println("correction:  " + datum);
+            ExtendedKalmanFilter.this.correct(datum);
         }
     }
 }

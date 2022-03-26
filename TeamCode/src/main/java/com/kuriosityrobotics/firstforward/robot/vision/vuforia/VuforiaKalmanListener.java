@@ -43,7 +43,7 @@ public class VuforiaKalmanListener extends VuforiaTrackableDefaultListener imple
     }
 
     @SuppressWarnings("ConstantConditions")
-    public void onTracked(TrackableResult trackableResult, CameraName cameraName, Camera camera, VuforiaTrackable child) {
+    public synchronized void onTracked(TrackableResult trackableResult, CameraName cameraName, Camera camera, VuforiaTrackable child) {
         super.onTracked(trackableResult, cameraName, camera, child);
         assertThat(isVisible());
 
@@ -81,13 +81,13 @@ public class VuforiaKalmanListener extends VuforiaTrackableDefaultListener imple
     }
 
     @Override
-    public void onNotTracked() {
+    public synchronized void onNotTracked() {
         super.onNotTracked();
         assertThat(!isVisible());
         this.lastDetection = null;
     }
 
-    private boolean isValidDetection(VuMarkDetection detection) {
+    private synchronized boolean isValidDetection(VuMarkDetection detection) {
         // filter out by peripherals
         if (Math.abs(detection.getDetectedHorizPeripheralAngle()) >= toRadians(28)
                 || Math.abs(detection.getDetectedVertPeripheralAngle()) >= toRadians(25)) {
@@ -110,10 +110,13 @@ public class VuforiaKalmanListener extends VuforiaTrackableDefaultListener imple
     }
 
     @Override
-    public List<String> getTelemetryData() {
-        assertThat(isVisible() && lastDetection != null);
+    public synchronized List<String> getTelemetryData() {
+        assertThat(isVisible());
 
         ArrayList<String> data = new ArrayList<>();
+
+        if (lastDetection == null)
+            return data;
 
         data.add("Horizontal Peripheral Angle: " + toDegrees(lastDetection.getDetectedHorizPeripheralAngle()));
         data.add("Vertical Peripheral Angle: " + toDegrees(lastDetection.getDetectedVertPeripheralAngle()));

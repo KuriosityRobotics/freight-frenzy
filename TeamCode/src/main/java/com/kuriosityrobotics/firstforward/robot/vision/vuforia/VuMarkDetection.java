@@ -25,7 +25,6 @@ public class VuMarkDetection {
     private final double detectedVertPeripheralAngle;
     private final long detectedTime;
 
-
     public VuMarkDetection(VuforiaTrackable detectedTrackable, OpenGLMatrix detectedData, double detectedHorizPeripheralAngle, double detectedVertPeripheralAngle, long detectedTime) {
         this.detectedTrackable = detectedTrackable;
         this.detectedData = detectedData;
