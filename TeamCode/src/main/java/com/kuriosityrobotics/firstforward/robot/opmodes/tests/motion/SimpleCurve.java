@@ -13,13 +13,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleCurve extends LinearOpMode {
     public void runOpMode() {
-        Robot robot = null;
-        try {
-            robot = new Robot(hardwareMap, telemetry, this);
-        } catch (Exception e) {
-            this.stop();
-            throw new RuntimeException(e);
-        }
+        Robot robot = new Robot(hardwareMap, telemetry, this);
 
         robot.resetPose(new Pose(0, 0, 0));
 

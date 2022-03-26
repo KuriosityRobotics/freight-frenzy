@@ -63,10 +63,12 @@ public class CarouselModule implements Module, Telemeter {
         }
     }
 
+    @Override
     public boolean isOn() {
         return true;
     }
 
+    @Override
     public String getName() {
         return "CarouselModule";
     }
@@ -80,5 +82,10 @@ public class CarouselModule implements Module, Telemeter {
         data.add("target: " + target);
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 }

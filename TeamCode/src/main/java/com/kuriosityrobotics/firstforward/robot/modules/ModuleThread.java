@@ -7,27 +7,30 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
  * from the hubs.
  */
 public class ModuleThread implements Runnable, Telemeter {
-    static final boolean SHOW_UPDATE_SPEED = true;
-
     private final Robot robot;
     private final Module[] modules;
 
     private boolean started = false;
 
     private long updateDuration = 0;
-    private long timeOfLastUpdate = 0;
+    private Map<Module, Long> moduleUpdateTimes;
 
     public ModuleThread(Robot robot, Module[] modules) {
         this.robot = robot;
         this.modules = modules;
 
         robot.telemetryDump.registerTelemeter(this);
+        moduleUpdateTimes = new HashMap<>(5);
     }
 
     /**
@@ -35,6 +38,7 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
+            long overallStart = SystemClock.elapsedRealtime();
             if (!started && robot.started()) {
                 for (Module module : modules) {
                     if (module.isOn()) {
@@ -45,17 +49,18 @@ public class ModuleThread implements Runnable, Telemeter {
                 started = true;
             }
 
+            Map<Module, Long> aTime = new HashMap<>(5);
             for (Module module : modules) {
                 if (module.isOn()) {
+                    long start = SystemClock.elapsedRealtime();
                     module.update();
+                    aTime.put(module, SystemClock.elapsedRealtime() - start);
                 }
             }
 
             robot.telemetryDump.update();
-
-            long currentTime = SystemClock.elapsedRealtime();
-            updateDuration = currentTime - timeOfLastUpdate;
-            timeOfLastUpdate = currentTime;
+            moduleUpdateTimes = aTime;
+            updateDuration = SystemClock.elapsedRealtime() - overallStart;
         }
 
         for (Module module : modules) {
@@ -79,10 +84,21 @@ public class ModuleThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> data = new ArrayList<>();
+        synchronized (this) {
+            ArrayList<String> data = new ArrayList<>();
 
-        data.add("Update time: " + updateDuration);
+            data.add("Overall Update time: " + updateDuration);
+            long moduleUpdate = 0; // what is this
+            for (Map.Entry<Module, Long> entry : moduleUpdateTimes.entrySet()) { // so much cleaner compared to foreach
+                Module module = entry.getKey();
+                Long time = entry.getValue();
+                data.add(module.getName() + "Update Time: " + time);
+                moduleUpdate += time;
+            }
 
-        return data;
+            data.add("Update Time not including modules: " + (updateDuration - moduleUpdate));
+
+            return data;
+        }
     }
 }

@@ -21,6 +21,7 @@ import org.checkerframework.dataflow.qual.Pure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PurePursuit implements Telemeter {
     // constants
@@ -296,7 +297,7 @@ public class PurePursuit implements Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
         data.add("target point: " + ((Point) target).toString());
         data.add("Target heading: " + targhead);
@@ -318,5 +319,10 @@ public class PurePursuit implements Telemeter {
         map.put("vel", "" + vel);
 
         return map;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 0;
     }
 }

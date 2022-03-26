@@ -64,7 +64,6 @@ public class SensorThread implements Runnable, Telemeter {
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
 
-        robot.telemetryDump.registerTelemeter(this);
         robot.telemetryDump.registerTelemeter(theKalmanFilter);
 
         this.odometry = new Odometry(robot, robot.hardwareMap, theKalmanFilter.getPose());

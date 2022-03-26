@@ -144,7 +144,6 @@ public class IntakeModule implements Module, Telemeter {
                 extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
                 break;
         }
-
     }
 
     private void transitionIntake(IntakePosition position) {
@@ -240,6 +239,11 @@ public class IntakeModule implements Module, Telemeter {
         data.add(String.format(Locale.US, "Mineral is in intake: %b", hasMineral));
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 
     public String getName() {

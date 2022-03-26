@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.max;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
@@ -51,6 +53,8 @@ class DrivetrainModule implements Module, Telemeter {
         bRPower *= scale;
 
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
+
+        long currentTime = SystemClock.elapsedRealtime();
     }
 
     @Override
@@ -92,10 +96,12 @@ class DrivetrainModule implements Module, Telemeter {
         }
     }
 
+    @Override
     public boolean isOn() {
         return true;
     }
 
+    @Override
     public String getName() {
         return "DrivetrainModule";
     }
@@ -109,5 +115,10 @@ class DrivetrainModule implements Module, Telemeter {
         data.add("turnMov: " + turnMov);
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 }

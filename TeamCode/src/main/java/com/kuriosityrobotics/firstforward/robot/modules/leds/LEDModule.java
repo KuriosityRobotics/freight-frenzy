@@ -9,6 +9,9 @@ import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LEDModule implements Module, Telemeter {
     BlinkinPattern VUF_INITING = BlinkinPattern.DARK_BLUE;
     BlinkinPattern INTAKE_OCCUPIED = BlinkinPattern.GREEN;
@@ -58,7 +61,7 @@ public class LEDModule implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
-        return null;
+    public int getShowIndex() {
+        return 1;
     }
 }

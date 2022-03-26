@@ -34,14 +34,7 @@ public class BlueCycle extends LinearOpMode {
     public static final Point BLUE_EXIT_WALLGAP = Point.fieldMirror(9, 64);
 
     public void runOpMode() {
-        Robot robot = null;
-        try {
-            robot = new Robot(hardwareMap, telemetry, this);
-        } catch (Exception e) {
-            this.stop();
-            e.printStackTrace();
-            return;
-        }
+        Robot robot = new Robot(hardwareMap, telemetry, this);
 
         Robot.isBlue = true;
         Robot.isCarousel = false;

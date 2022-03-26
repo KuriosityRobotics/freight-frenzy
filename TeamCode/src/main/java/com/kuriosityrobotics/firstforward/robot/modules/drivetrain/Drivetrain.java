@@ -2,6 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import android.os.SystemClock;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -94,5 +96,10 @@ public class Drivetrain implements Module, Telemeter {
         data.add("Stall Status: " + stallDetector.isStalled());
 
         return data;
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 }

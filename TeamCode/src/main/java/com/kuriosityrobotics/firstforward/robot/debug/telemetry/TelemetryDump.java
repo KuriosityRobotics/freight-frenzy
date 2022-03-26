@@ -1,5 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.debug.telemetry;
 
+import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.canvas.Canvas;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -10,15 +15,17 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
 
     private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
-    private String alert = null;
+    private String alert;
 
     private final FtcDashboard dashboard;
     private final List<Pose> poseHistory = new ArrayList<>();
@@ -33,33 +40,14 @@ public class TelemetryDump implements PoseWatcher {
 
     public TelemetryDump(Telemetry telemetry) {
         this.telemetry = telemetry;
+        alert = null;
 
         this.dashboard = FtcDashboard.getInstance();
         this.dashboard.setTelemetryTransmissionInterval(25);
     }
 
     public void update() {
-        StringBuilder msg = new StringBuilder();
-
-        if (alert != null)
-            msg.append(alert).append("\n \n");
-
-        for (Telemeter telemeter : telemeters) {
-            if (telemeter.isOn()) {
-                // ---Name---\n
-                msg.append("---").append(telemeter.getName()).append("---\n");
-
-                for (String line : telemeter.getTelemetryData()) {
-                    // telemetry_line\n
-                    msg.append(line).append("\n");
-                }
-
-                // newline for every section
-                msg.append("\n");
-            }
-        }
-
-        telemetry.addLine(msg.toString());
+        telemetry.addLine(getData(telemeters));
         telemetry.update();
     }
 
@@ -105,4 +93,25 @@ public class TelemetryDump implements PoseWatcher {
 //                    }
 //                })).entrySet();
 //    }
+
+    private String getData(ConcurrentLinkedQueue<Telemeter> telemetors) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        if (alert != null)
+            stringBuilder.append(alert).append("\n \n");
+
+        var a =  telemetors.stream().sorted(Comparator.comparing(Telemeter::getShowIndex))
+                .filter(Telemeter::isOn)
+                .map(telemeter ->
+                        stringBuilder
+                                .append("---")
+                                .append(telemeter.getName())
+                                .append("---\n")
+                                // please java SHUT THE GELL UP I DON'T WANT TO USE STRING.JOIN
+                                .append(telemeter.getTelemetryData().stream().collect(Collectors.joining("\n")))
+                                .append("\n\n")
+                ).collect(Collectors.toList()).toString();
+
+        return stringBuilder.toString();
+    }
 }

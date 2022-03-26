@@ -36,14 +36,7 @@ public class RedCycle extends LinearOpMode {
     public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
 
     public void runOpMode() {
-        Robot robot = null;
-        try {
-            robot = new Robot(hardwareMap, telemetry, this);
-        } catch (Exception e) {
-            this.stop();
-            e.printStackTrace();
-            return;
-        }
+        Robot robot = new Robot(hardwareMap, telemetry, this);
 
         Robot.isCarousel = false;
         Robot.isBlue = false;

@@ -53,7 +53,7 @@ public class Robot implements LocationProvider {
     public static boolean isCarousel = false;
     public boolean isCamera;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) throws RuntimeException {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -74,6 +74,7 @@ public class Robot implements LocationProvider {
 
         // init sensorThread up here since drivetrain depends on it
         sensorThread = new SensorThread(this, configLocation);
+        telemetryDump.registerTelemeter(sensorThread);
 
         // modules
         drivetrain = new Drivetrain(sensorThread.odometry, hardwareMap);
@@ -86,10 +87,10 @@ public class Robot implements LocationProvider {
         telemetryDump.registerTelemeter(intakeModule);
 
         carouselModule = new CarouselModule(hardwareMap);
-        //telemetryDump.registerTelemeter(carouselModule);
+        telemetryDump.registerTelemeter(carouselModule);
 
         ledModule = new LEDModule(this);
-//        telemetryDump.registerTelemeter(ledModule);
+        telemetryDump.registerTelemeter(ledModule);
 
         Module[] modules = new Module[]{
                 drivetrain,
@@ -106,6 +107,7 @@ public class Robot implements LocationProvider {
         visionThread = new VisionThread(this, camera);
 
         debugThread = new DebugThread(this, DEBUG);
+//        telemetryDump.registerTelemeter(debugThread);
 
         this.start();
     }
