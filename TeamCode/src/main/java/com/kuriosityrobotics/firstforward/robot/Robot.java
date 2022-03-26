@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.leds.LEDModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.opmodes.TeleOp;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.ActionExecutor;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
@@ -137,8 +138,6 @@ public class Robot implements LocationProvider {
             thread.start();
         }
     }
-
-
 
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
