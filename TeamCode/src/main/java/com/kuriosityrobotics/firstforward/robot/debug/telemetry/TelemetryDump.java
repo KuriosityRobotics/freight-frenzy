@@ -25,7 +25,7 @@ public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
 
     private final ConcurrentLinkedQueue<Telemeter> telemeters = new ConcurrentLinkedQueue<>();
-    private String alert = null;
+    private String alert;
 
     private final FtcDashboard dashboard;
     private final List<Pose> poseHistory = new ArrayList<>();

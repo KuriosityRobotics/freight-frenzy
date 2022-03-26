@@ -87,7 +87,7 @@ public class Pose extends Point {
     public Pose toFTCSystem() {
         double x = -this.y + (FULL_FIELD / 2.);
         double y = this.x - (FULL_FIELD / 2.);
-        double heading = angleWrap(this.heading - Math.PI);
+        double heading = angleWrap(Math.PI - this.heading);
         return new Pose(x, y, heading);
     }
 
