@@ -84,11 +84,7 @@ public class IMU implements Telemeter {
         return imu.readCalibrationData();
     }
 
-    int i = 0;
     public void update() {
-        if ((i = (i + 1) % 25) != 0)
-            return;
-
         var rawOrientation = imu.getAngularOrientation();
         rawOrientation.acquisitionTime /= 1_000_000;
         rawOrientation.acquisitionTime += timeOffset;

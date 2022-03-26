@@ -2,7 +2,10 @@ package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 
 import static com.kuriosityrobotics.firstforward.robot.Robot.assertThat;
 
+import static java.text.MessageFormat.format;
+
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
@@ -120,12 +123,12 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 var X_t = currentState.getMean();
                 var X_tT = X_t.add(
                         L.multiply(
-                                smoothedMeans.get(nextState).subtract(nextState.getMean())
+                                smoothedMeans.get(nextState).subtract(currentState.getMean())
                         )
                 );
 
                 var P_tT = P_t.add(propagateError(L,
-                        smoothedVariances.get(nextState).subtract(nextState.getCovariance())
+                        smoothedVariances.get(nextState).subtract(P_t)
                 ));
 
                 smoothedMeans.put(currentState, X_tT);
@@ -133,6 +136,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             }
 
             history.forEach(state -> {
+//                if (!state.getMean().equals(smoothedMeans.get(state)))
+//                    Log.d("EKF/smooth", format("before:  {0},  after:  {1}", state.getMean(), smoothedMeans.get(state)));
                 state.setMean(smoothedMeans.get(state));
                 state.setCovariance(smoothedVariances.get(state));
             });
@@ -371,13 +376,11 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (!(datum.isFullState() && mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
                 throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
 
-            System.out.println("prediction:  " + datum);
             ExtendedKalmanFilter.this.predict(datum);
         }
 
         public void correct() {
             var datum = build();
-            System.out.println("correction:  " + datum);
             ExtendedKalmanFilter.this.correct(datum);
         }
     }
