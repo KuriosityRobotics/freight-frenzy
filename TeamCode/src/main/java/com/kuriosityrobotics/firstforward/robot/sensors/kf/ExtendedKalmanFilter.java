@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
 
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 public class ExtendedKalmanFilter extends RollingVelocityCalculator implements Telemeter {
     private static final int MOVING_WINDOW_SIZE = 500;
@@ -47,15 +49,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return Primitive64Matrix.FACTORY.rows(data);
     }
 
-    public static void assertThat(boolean condition) {
-        if (!condition)
-            throw new AssertionError();
-    }
-
-    public double[] getVariance() {
-        return covariance.diagonal().toRawCopy1D();
-    }
-
     public void reset(double[] initialState, double... initialVariance) {
         history.clear();
         mean = Primitive64Matrix.FACTORY.column(initialState);
@@ -88,17 +81,18 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void backwardPass(int before) {
         synchronized (this) {
             var smoothedMeans = new HashMap<PostPredictionState, Primitive64Matrix>();
             var smoothedVariances = new HashMap<PostPredictionState, Primitive64Matrix>();
 
             history.forEach(n -> {
-                smoothedMeans.put(n, n.mean);
-                smoothedVariances.put(n, n.covariance);
+                smoothedMeans.put(n, n.getMean());
+                smoothedVariances.put(n, n.getCovariance());
             });
 
-            if (!history.get(before).isCorrection)
+            if (!history.get(before).isCorrection())
                 throw new IllegalArgumentException("Can only smoothe starting from a correction.");
 
             var latestCorrectionH = history.get(before).getDatum().getStateToOutput();
@@ -114,12 +108,12 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
                 var X_t = currentState.getMean();
                 var X_tT = X_t.add(
                         L.multiply(
-                                smoothedMeans.get(nextState).subtract(nextState.mean)
+                                smoothedMeans.get(nextState).subtract(nextState.getMean())
                         )
                 );
 
                 var P_tT = P_t.add(propagateError(L,
-                        smoothedVariances.get(nextState).subtract(nextState.covariance)
+                        smoothedVariances.get(nextState).subtract(nextState.getCovariance())
                 ));
 
                 smoothedMeans.put(currentState, X_tT);
@@ -127,8 +121,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             }
 
             history.forEach(state -> {
-                state.mean = smoothedMeans.get(state);
-                state.covariance = smoothedVariances.get(state);
+                state.setMean(smoothedMeans.get(state));
+                state.setCovariance(smoothedVariances.get(state));
             });
         }
     }
@@ -166,7 +160,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private int findLatestCorrection() {
         synchronized (lock) {
             var iter = history.listIterator(history.size() - 1);
-            while (iter.hasPrevious() && !iter.previous().isCorrection);
+            while (iter.hasPrevious() && !iter.previous().isCorrection());
             return iter.nextIndex();
         }
     }
@@ -188,7 +182,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private Primitive64Matrix stateCorrectionCovariance(Primitive64Matrix stateToOutput,
                                                         Primitive64Matrix outputCovariance) {
         synchronized (lock) {
-            assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
+            Robot.assertThat(outputCovariance.isSquare() && outputCovariance.getDeterminant() != 0);
             return covariance.multiply(stateToOutput.transpose()).multiply(propagateError(stateToOutput,
                     covariance).add(outputCovariance).invert());
         }
@@ -222,7 +216,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         return new ArrayList<>() {{
             add(Arrays.toString(outputVector()));
             add(covariance.toString());
@@ -256,8 +250,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
 
         PostPredictionState(Primitive64Matrix mean, Primitive64Matrix covariance, KalmanDatum datum, boolean isCorrection) {
-            this.mean = mean;
-            this.covariance = covariance;
+            this.setMean(mean);
+            this.setCovariance(covariance);
             this.datum = datum;
             this.isCorrection = isCorrection;
         }
@@ -276,6 +270,14 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
         public boolean isCorrection() {
             return isCorrection;
+        }
+
+        public void setCovariance(Primitive64Matrix covariance) {
+            this.covariance = covariance;
+        }
+
+        public void setMean(Primitive64Matrix mean) {
+            this.mean = mean;
         }
     }
 
@@ -329,9 +331,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
             if (!covariance.isSquare())
                 throw new IllegalArgumentException("Covariance must be square.");
-
-//            if (covariance.getRank() != covariance.getMinDim())
-//                throw new IllegalArgumentException("Covariance must be invertible.");
 
             if (covariance.getRowDim() != mean.getRowDim())
                 throw new IllegalArgumentException("Covariance does not fit mean.");

@@ -26,34 +26,32 @@ public class Robot implements LocationProvider {
     public static final boolean DEBUG = true    ;
     private static final String configLocation = "configurations/mainconfig.toml";
 
-    public final SensorThread sensorThread;
-    public final ModuleThread moduleThread;
-    public VisionThread visionThread;
-    public final DebugThread debugThread;
+    private final SensorThread sensorThread;
+    private final ModuleThread moduleThread;
+    private final VisionThread visionThread;
+    private final DebugThread debugThread;
 
-    public final Drivetrain drivetrain;
-    public final IntakeModule intakeModule;
+    private final Drivetrain drivetrain;
+    private final IntakeModule intakeModule;
 
-    public final OuttakeModule outtakeModule;
-    public final CarouselModule carouselModule;
+    private final OuttakeModule outtakeModule;
+    private final CarouselModule carouselModule;
 
-    public final LEDModule ledModule;
+    private final TelemetryDump telemetryDump;
 
-    public final TelemetryDump telemetryDump;
-
-    public final HardwareMap hardwareMap;
+    private final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
 
-    public final LynxModule controlHub;
-    public final LynxModule expansionHub;
+    private final LynxModule controlHub;
+    private final LynxModule expansionHub;
 
-    public final WebcamName camera;
+    private final WebcamName camera;
 
-    public static boolean isBlue = false;
-    public static boolean isCarousel = false;
-    public boolean isCamera;
+    private static boolean blue = false;
+    private static boolean carousel = false;
+    private final boolean useCamera;
 
-    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean isCamera) {
+    public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean useCamera) {
         this.hardwareMap = hardwareMap;
         this.linearOpMode = linearOpMode;
 
@@ -89,7 +87,7 @@ public class Robot implements LocationProvider {
         carouselModule = new CarouselModule(hardwareMap);
         telemetryDump.registerTelemeter(carouselModule);
 
-        ledModule = new LEDModule(this);
+        LEDModule ledModule = new LEDModule(this);
         telemetryDump.registerTelemeter(ledModule);
 
         Module[] modules = new Module[]{
@@ -103,7 +101,7 @@ public class Robot implements LocationProvider {
         // threads
         moduleThread = new ModuleThread(this, modules);
 
-        this.isCamera = isCamera;
+        this.useCamera = useCamera;
         visionThread = new VisionThread(this, camera);
 
         debugThread = new DebugThread(this, DEBUG);
@@ -116,9 +114,33 @@ public class Robot implements LocationProvider {
         this(hardwareMap, telemetry, linearOpMode, true);
     }
 
+    public static void assertThat(boolean condition) {
+        if (!condition)
+            if (DEBUG)
+                throw new AssertionError();
+            else
+                new AssertionError().printStackTrace();
+    }
+
+    public static boolean isBlue() {
+        return blue;
+    }
+
+    public static void setBlue(boolean blue) {
+        Robot.blue = blue;
+    }
+
+    public static boolean isCarousel() {
+        return carousel;
+    }
+
+    public static void setCarousel(boolean carousel) {
+        Robot.carousel = carousel;
+    }
+
     public void start() {
         Thread[] threads;
-        if (this.isCamera) {
+        if (this.useCamera) {
             threads = new Thread[]{
                     new Thread(sensorThread, "SensorThread"),
                     new Thread(moduleThread, "ModuleThread"),
@@ -144,8 +166,8 @@ public class Robot implements LocationProvider {
         return linearOpMode.opModeIsActive();
     }
 
-    public boolean isAuto() {
-        return linearOpMode.getClass().isAnnotationPresent(Autonomous.class);
+    public boolean isTeleOp() {
+        return !linearOpMode.getClass().isAnnotationPresent(Autonomous.class);
     }
 
     public boolean running() {
@@ -180,5 +202,49 @@ public class Robot implements LocationProvider {
         telemetryDump.registerTelemeter(path);
         while (isOpModeActive() && path.update(this, drivetrain));
         telemetryDump.removeTelemeter(path);
+    }
+
+    public SensorThread getSensorThread() {
+        return sensorThread;
+    }
+
+    public VisionThread getVisionThread() {
+        return visionThread;
+    }
+
+    public Drivetrain getDrivetrain() {
+        return drivetrain;
+    }
+
+    public IntakeModule getIntakeModule() {
+        return intakeModule;
+    }
+
+    public OuttakeModule getOuttakeModule() {
+        return outtakeModule;
+    }
+
+    public CarouselModule getCarouselModule() {
+        return carouselModule;
+    }
+
+    public TelemetryDump getTelemetryDump() {
+        return telemetryDump;
+    }
+
+    public HardwareMap getHardwareMap() {
+        return hardwareMap;
+    }
+
+    public LynxModule getControlHub() {
+        return controlHub;
+    }
+
+    public LynxModule getExpansionHub() {
+        return expansionHub;
+    }
+
+    public WebcamName isUseCamera() {
+        return camera;
     }
 }

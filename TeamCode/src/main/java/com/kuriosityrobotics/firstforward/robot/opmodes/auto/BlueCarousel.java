@@ -24,39 +24,39 @@ public class BlueCarousel extends LinearOpMode {
     public static final Pose PARK = Pose.fieldMirror(35, 5 * 23.5 + 12, Math.toRadians(-90));
 
     public void runOpMode() {
-        Robot robot = new Robot(hardwareMap, telemetry, this);
+        Robot robot = new Robot(hardwareMap, telemetry, this, true);
 
-        Robot.isBlue = true;
-        Robot.isCarousel = true;
+        Robot.setBlue(true);
+        Robot.setCarousel(true);
 
         robot.resetPose(START);
 
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
+                new WayPoint(START, new VelocityLock(10, false), robot.getOuttakeModule().extendOuttakeAction(detected)),
                 new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
-                new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
+                new WayPoint(WOBBLE, 0, robot.getOuttakeModule().dumpOuttakeAction())
         }, true, 4);
 
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(PRE_CAROUSEL, 13),
-                new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
+                new WayPoint(CAROUSEL, 0, robot.getCarouselModule().carouselAction())
         }, false, 4);
 
         if (detected == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             Pose drop = new Pose(Constants.Field.FULL_FIELD - 48, 108, Math.toRadians(5));
             toWobble = new PurePursuit(new WayPoint[]{
-                    new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.DOWN)),
+                    new WayPoint(START, new VelocityLock(10, false), robot.getOuttakeModule().extendOuttakeAction(OuttakeModule.VerticalSlideLevel.DOWN)),
                     new WayPoint(START.add(new Pose(-15, 0, 0)), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
-                    new WayPoint(drop, 0, robot.outtakeModule.dumpOuttakeAction())
+                    new WayPoint(drop, 0, robot.getOuttakeModule().dumpOuttakeAction())
             }, true, 3);
 
             toCarousel = new PurePursuit(new WayPoint[]{
                     new WayPoint(drop),
                     new WayPoint(PRE_CAROUSEL, 13),
-                    new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
+                    new WayPoint(CAROUSEL, 0, robot.getCarouselModule().carouselAction())
             }, false, 4);
         }
 
@@ -66,10 +66,10 @@ public class BlueCarousel extends LinearOpMode {
         }, true, 4);
 
         robot.followPath(toWobble);
-        robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.STAY_RETRACTED;
+        robot.getIntakeModule().targetIntakePosition = IntakeModule.IntakePosition.STAY_RETRACTED;
         robot.followPath(toCarousel);
         robot.followPath(toPark);
 
-        Robot.isCarousel = false;
+        Robot.setCarousel(false);
     }
 }

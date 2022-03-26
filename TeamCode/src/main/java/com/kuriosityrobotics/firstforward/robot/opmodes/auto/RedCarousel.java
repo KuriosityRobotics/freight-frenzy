@@ -25,23 +25,23 @@ public class RedCarousel extends LinearOpMode {
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap, telemetry, this);
 
-        Robot.isBlue = false;
-        Robot.isCarousel = true;
+        Robot.setBlue(false);
+        Robot.setCarousel(true);
 
         robot.resetPose(START);
 
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
+                new WayPoint(START, new VelocityLock(10, false), robot.getOuttakeModule().extendOuttakeAction(detected)),
                 new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
-                new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
+                new WayPoint(WOBBLE, 0, robot.getOuttakeModule().dumpOuttakeAction())
         }, true, 4);
 
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(PRE_CAROUSEL, 13),
-                new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
+                new WayPoint(CAROUSEL, 0, robot.getCarouselModule().carouselAction())
         }, false, 4);
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
@@ -50,10 +50,10 @@ public class RedCarousel extends LinearOpMode {
         }, true, 4);
 
         robot.followPath(toWobble);
-        robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.STAY_RETRACTED;
+        robot.getIntakeModule().targetIntakePosition = IntakeModule.IntakePosition.STAY_RETRACTED;
         robot.followPath(toCarousel);
         robot.followPath(toPark);
 
-        Robot.isCarousel = false;
+        Robot.setCarousel(false);
     }
 }

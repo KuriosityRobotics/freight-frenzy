@@ -20,7 +20,7 @@ public interface LocationProvider {
 
     default double getOrthVelocity() {
         Pose velo = getVelocity();
-        return Math.sqrt(Math.pow(velo.x, 2) + Math.pow(velo.y, 2));
+        return Math.hypot(velo.x, velo.y);
     }
 
     default Rotation3D getRotation() {

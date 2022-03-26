@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.tests.motion;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
-import com.kuriosityrobotics.firstforward.robot.opmodes.auto.RedCarousel;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -23,9 +22,9 @@ public class MaxVelo extends LinearOpMode {
             }
 
             if (!flip) {
-                robot.drivetrain.setMovements(0.5, 0.5, 0);
+                robot.getDrivetrain().setMovements(0.5, 0.5, 0);
             } else {
-                robot.drivetrain.setMovements(-0.5, -0.5, 0);
+                robot.getDrivetrain().setMovements(-0.5, -0.5, 0);
             }
         }
     }

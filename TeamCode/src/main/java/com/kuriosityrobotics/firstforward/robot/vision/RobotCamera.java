@@ -23,10 +23,10 @@ class RobotCamera extends PhysicalCamera {
     }
 
     public float robotRelativeCameraAngle() {
-        if(robot.visionThread == null)
+        if(robot.getVisionThread() == null)
             return 0f;
         else
-            return (float) robot.visionThread.getCameraAngle();
+            return (float) robot.getVisionThread().getCameraAngle();
     }
 
     @Override

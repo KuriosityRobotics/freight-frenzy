@@ -23,6 +23,7 @@ import org.ojalgo.matrix.Primitive64Matrix;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -138,7 +139,7 @@ public class IMU implements Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         return new ArrayList<>() {{
             add("Heading:  " + toDegrees(angleWrap(lastTheta)));
         }};

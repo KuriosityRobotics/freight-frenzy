@@ -9,8 +9,6 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
@@ -29,7 +27,7 @@ public class ModuleThread implements Runnable, Telemeter {
         this.robot = robot;
         this.modules = modules;
 
-        robot.telemetryDump.registerTelemeter(this);
+        robot.getTelemetryDump().registerTelemeter(this);
         moduleUpdateTimes = new HashMap<>(5);
     }
 
@@ -58,7 +56,7 @@ public class ModuleThread implements Runnable, Telemeter {
                 }
             }
 
-            robot.telemetryDump.update();
+            robot.getTelemetryDump().update();
             moduleUpdateTimes = aTime;
             updateDuration = SystemClock.elapsedRealtime() - overallStart;
         }

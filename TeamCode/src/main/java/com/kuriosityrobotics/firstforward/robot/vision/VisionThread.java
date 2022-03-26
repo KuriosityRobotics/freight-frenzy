@@ -26,7 +26,7 @@ public class VisionThread implements Runnable, Telemeter {
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public boolean started = false;
+    private boolean started = false;
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
@@ -34,7 +34,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.teamMarkerDetector = new TeamMarkerDetector(robot);
 
         if (camera.isAttached()) {
-            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot.sensorThread.getKalmanFilter(), robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
+            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot.getSensorThread().getKalmanFilter(), robot, robot.getHardwareMap());
         } else {
             this.vuforiaLocalizationConsumer = null;
         }
@@ -42,7 +42,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> telemetryData = new ArrayList<>(getVuforiaLocalizationConsumer().logPositionAndDetection());
+        ArrayList<String> telemetryData = new ArrayList<>();
         telemetryData.add("Team marker location: " + getTeamMarkerDetector().getLocation());
         telemetryData.add("Update time: " + updateTime);
         return telemetryData;
@@ -69,7 +69,7 @@ public class VisionThread implements Runnable, Telemeter {
 
             this.managedCamera = new
                     ManagedCamera(
-                    robot.camera,
+                    robot.isUseCamera(),
                     getVuforiaLocalizationConsumer(),
                     robot, openCVDumper,
                     getTeamMarkerDetector()
@@ -79,15 +79,15 @@ public class VisionThread implements Runnable, Telemeter {
 //            cargoDetectionThread = new Thread(cargoDetectorConsumer);
 //            cargoDetectionThread.start();
 
-            robot.telemetryDump.registerTelemeter(this);
-            robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
+            robot.getTelemetryDump().registerTelemeter(this);
+            robot.getTelemetryDump().registerTelemeter(cargoDetectorConsumer);
 
             Log.v("VisionThread", "Done initing camera");
 
             started = true;
 
             while (robot.running()) {
-                if (!robot.isAuto()) {
+                if (robot.isTeleOp()) {
                     teamMarkerDetector.deactivate();
                 }
 
@@ -136,5 +136,9 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VuforiaLocalizationConsumer getVuforiaLocalizationConsumer() {
         return vuforiaLocalizationConsumer;
+    }
+
+    public boolean isStarted() {
+        return started;
     }
 }

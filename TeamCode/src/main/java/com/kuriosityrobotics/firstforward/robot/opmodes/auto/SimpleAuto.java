@@ -5,10 +5,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-
-import java.util.ArrayList;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleAuto extends LinearOpMode {
@@ -26,7 +23,7 @@ public class SimpleAuto extends LinearOpMode {
             return;
         }
 
-        Robot.isBlue = true;
+        Robot.setBlue(true);
         robot.resetPose(Pose.fieldMirror(9.75, (23.5 * 5) - 0.5 - (11.5 / 2), Math.toRadians(-90)));
             AutoPaths.calibrateVuforia(robot);
 

@@ -1,13 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_MEAT;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TILE_TAB;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
-
-import android.util.Log;
 
 import android.graphics.Bitmap;
 
@@ -69,8 +65,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
     }*/
 
     private Vector3D[] levelOne(double cameraAngle) {
-        var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel ? 2 * (23.5) : 0) + 3.365f * cos(cameraAngle));
-        if (Robot.isBlue) {
+        var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel() ? 2 * (23.5) : 0) + 3.365f * cos(cameraAngle));
+        if (Robot.isBlue()) {
             return new Vector3D[]{
                     Vector3D.of(FULL_FIELD - 34.5, 0, FULL_FIELD - 73.5 + 3).add(offset),
                     Vector3D.of(FULL_FIELD - 34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
@@ -84,7 +80,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
     private Vector3D[] levelTwo(double cameraAngle) {
         var levelOne = levelOne(cameraAngle);
-        if (Robot.isBlue) {
+        if (Robot.isBlue()) {
             return new Vector3D[]{
                     levelOne[0].add(Vector3D.of(0, 0, -8.35)),
                     levelOne[1].add(Vector3D.of(0, 0, -8.35))};
@@ -168,9 +164,9 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         }
 
         if (!isSub1 && !isSub2)
-            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3;
+            this.location = Robot.isBlue() ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3;
         else if (isSub1)
-            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;
+            this.location = Robot.isBlue() ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;
         else
             this.location = TeamMarkerLocation.LEVEL_2;
     }

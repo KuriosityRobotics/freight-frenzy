@@ -42,13 +42,13 @@ public class SensorThread implements Runnable, Telemeter {
     public SensorThread(Robot robot, String configLocation) {
         this.robot = robot;
 
-        this.odometry = new Odometry(robot.hardwareMap, getPose(), theKalmanFilter);
-        this.imu = new IMU(robot.hardwareMap, theKalmanFilter);
+        this.odometry = new Odometry(robot.getHardwareMap(), getPose(), theKalmanFilter);
+        this.imu = new IMU(robot.getHardwareMap(), theKalmanFilter);
 
-        robot.telemetryDump.registerTelemeter(this);
-        robot.telemetryDump.registerTelemeter(theKalmanFilter);
-        robot.telemetryDump.registerTelemeter(odometry);
-        robot.telemetryDump.registerTelemeter(imu);
+        robot.getTelemetryDump().registerTelemeter(this);
+        robot.getTelemetryDump().registerTelemeter(theKalmanFilter);
+        robot.getTelemetryDump().registerTelemeter(odometry);
+        robot.getTelemetryDump().registerTelemeter(imu);
     }
 
     public ExtendedKalmanFilter getKalmanFilter() {
@@ -58,32 +58,32 @@ public class SensorThread implements Runnable, Telemeter {
     public void resetPose(Pose pose) {
         getOdometry().setPose(pose);
 
-        robot.telemetryDump.removeTelemeter(theKalmanFilter);
+        robot.getTelemetryDump().removeTelemeter(theKalmanFilter);
 
         theKalmanFilter.reset(pose.x, pose.y, pose.heading);
         getImu().resetPose(pose);
 
-        robot.telemetryDump.registerTelemeter(theKalmanFilter);
+        robot.getTelemetryDump().registerTelemeter(theKalmanFilter);
     }
 
     @Override
     public void run() {
         var imuFuture = runAsync(imu::update);
-        var expansionHubFuture = runAsync(robot.expansionHub::getBulkData);
+        var expansionHubFuture = runAsync(robot.getExpansionHub()::getBulkData);
         while (robot.running()) {
             if (imuFuture.isDone())
                 imuFuture = runAsync(imu::update);
 
             if (expansionHubFuture.isDone())
-                expansionHubFuture = runAsync(robot.expansionHub::getBulkData);
+                expansionHubFuture = runAsync(robot.getExpansionHub()::getBulkData);
 
-            robot.controlHub.getBulkData();
+            robot.getControlHub().getBulkData();
             odometry.update();
 
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - lastPoseSendTime >= 250) {
-                robot.telemetryDump.sendPose(getPose().toDegrees());
+                robot.getTelemetryDump().sendPose(getPose().toDegrees());
                 lastPoseSendTime = currentTime;
             }
 

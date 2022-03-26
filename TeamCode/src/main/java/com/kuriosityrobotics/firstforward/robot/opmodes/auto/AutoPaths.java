@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -23,46 +21,52 @@ public class AutoPaths {
     public static OuttakeModule.VerticalSlideLevel delayedStartLogic(LinearOpMode opMode, Robot robot, Pose reset) {
         while (!robot.started() && robot.running()) {
             delay = Math.max(0, delay - (opMode.gamepad1.left_stick_y * 0.01));
-            robot.telemetryDump.setAlert("Auto start delay (ms): " + delay);
+            robot.getTelemetryDump().setAlert("Auto start delay (ms): " + delay);
         }
 
         robot.resetPose(reset);
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.awaitBarcodeDetection(robot);
 
-        robot.telemetryDump.setAlert("Currently delaying for " + delay + " milliseconds.");
+        robot.getTelemetryDump().setAlert("Currently delaying for " + delay + " milliseconds.");
         opMode.sleep((long) delay);
 
-        robot.telemetryDump.clearAlert();
+        robot.getTelemetryDump().clearAlert();
 
         return detected;
     }
 
     public static OuttakeModule.VerticalSlideLevel awaitBarcodeDetection(Robot robot) {
         TeamMarkerDetector.TeamMarkerLocation location;
-        robot.visionThread.getTeamMarkerDetector().activate();
+        robot.getVisionThread().getTeamMarkerDetector().activate();
         do {
-            location = robot.visionThread.getTeamMarkerDetector().getLocation();
-        } while ((location == null || location == TeamMarkerDetector.TeamMarkerLocation.UNKNOWN) && robot.running());
+            if (!robot.running())
+                return null;
 
-        robot.visionThread.getTeamMarkerDetector().deactivate();
+            location = robot.getVisionThread().getTeamMarkerDetector().getLocation();
+        } while ((location == null || location == TeamMarkerDetector.TeamMarkerLocation.UNKNOWN));
+
+        robot.getVisionThread().getTeamMarkerDetector().deactivate();
 
         return location.slideLevel();
     }
 
     public static void calibrateVuforia(Robot robot) {
-        while (robot.running() && !robot.visionThread.started) {
+        while (robot.running() && !robot.getVisionThread().isStarted()) {
             // wait for vuforia to start
         }
 
         Pose expectedRobotPosition = new Pose(29.375, 64.5, Math.toRadians(90));
-        if (Robot.isBlue) {
+        if (Robot.isBlue()) {
             expectedRobotPosition = expectedRobotPosition.fieldMirror();
         }
 
-        Pose gottenPosition = null;
+        Pose gottenPosition;
         do {
-            gottenPosition = robot.visionThread.getVuforiaLocalizationConsumer().lastRawRobotPosition();
-        } while (gottenPosition == null && robot.running());
+            if (!robot.running())
+                return;
+
+            gottenPosition = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastVuforiaPosition();
+        } while (gottenPosition == null);
 
         Log.v("VUF", "gotten: " + gottenPosition);
 
@@ -70,8 +74,8 @@ public class AutoPaths {
 
         Log.v("VUF", "offsetby: " + offsetBy);
 
-        robot.visionThread.getVuforiaLocalizationConsumer().changeAllianceWallOffsetBy(offsetBy);
-        robot.visionThread.getVuforiaLocalizationConsumer().setDoneCalibrating(true);
+        robot.getVisionThread().getVuforiaLocalizationConsumer().changeAllianceWallOffsetBy(offsetBy);
+        robot.getVisionThread().getVuforiaLocalizationConsumer().setDoneCalibrating(true);
     }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
@@ -86,25 +90,25 @@ public class AutoPaths {
                 new WayPoint(complete, new VelocityLock(0))
         }, 4);
 
-        robot.intakeModule.intakePower = 1;
-        robot.intakeModule.newMineral = false;
+        robot.getIntakeModule().intakePower = 1;
+        robot.getIntakeModule().newMineral = false;
 
         long start = SystemClock.elapsedRealtime();
 
         while (robot.running() && !path.atEnd(robot)) {
-            if (robot.intakeModule.hasMineral() || robot.intakeModule.newMineral) {
-                robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
-                robot.intakeModule.intakePower = 0;
+            if (robot.getIntakeModule().hasMineral() || robot.getIntakeModule().newMineral) {
+                robot.getIntakeModule().targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
+                robot.getIntakeModule().intakePower = 0;
 
-                robot.intakeModule.newMineral = false;
+                robot.getIntakeModule().newMineral = false;
                 break;
             } else if (SystemClock.elapsedRealtime() - start >= killswitchMillis) {
                 break;
             } else {
-                path.update(robot, robot.drivetrain);
+                path.update(robot, robot.getDrivetrain());
             }
         }
-        robot.drivetrain.setMovements(0, 0, 0);
+        robot.getDrivetrain().setMovements(0, 0, 0);
     }
 
     public static void waitForVuforia(Robot robot, LinearOpMode linearOpMode, long killSwitch, Pose offsetPoseByIfKilled) {
@@ -115,12 +119,12 @@ public class AutoPaths {
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - startTime >= killSwitch) {
-                robot.sensorThread.resetPose(robot.getPose().add(offsetPoseByIfKilled));
+                robot.getSensorThread().resetPose(robot.getPose().add(offsetPoseByIfKilled));
                 return;
             }
 
             if (sawTime == null) {
-                long lastAccepted = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime();
+                long lastAccepted = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime();
                 if (lastAccepted > startTime) {
                     sawTime = lastAccepted;
                 }
@@ -137,12 +141,12 @@ public class AutoPaths {
     public static void wallRidePath(Robot robot, PurePursuit path) {
         path.reset();
         while (robot.running()) {
-            boolean callAgain = path.update(robot, robot.drivetrain);
+            boolean callAgain = path.update(robot, robot.getDrivetrain());
 
-            Pose currPose = robot.sensorThread.getPose();
+            Pose currPose = robot.getSensorThread().getPose();
 
             if (Math.abs(currPose.y - 49) < 1) {
-                robot.sensorThread.resetPose(Robot.isBlue ? Pose.fieldMirror(7.25, currPose.y, Math.toRadians(180)) : new Pose(7.25, currPose.y, Math.toRadians(180)));
+                robot.getSensorThread().resetPose(Robot.isBlue() ? Pose.fieldMirror(7.25, currPose.y, Math.toRadians(180)) : new Pose(7.25, currPose.y, Math.toRadians(180)));
             }
 
             if (!callAgain) {

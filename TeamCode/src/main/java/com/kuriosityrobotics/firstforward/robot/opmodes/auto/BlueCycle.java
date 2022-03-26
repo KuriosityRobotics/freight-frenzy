@@ -36,8 +36,8 @@ public class BlueCycle extends LinearOpMode {
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap, telemetry, this);
 
-        Robot.isBlue = true;
-        Robot.isCarousel = false;
+        Robot.setBlue(true);
+        Robot.setCarousel(false);
 
         robot.resetPose(BLUE_START_W);
 
@@ -52,7 +52,7 @@ public class BlueCycle extends LinearOpMode {
         OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
+        wobbleActions.add(robot.getOuttakeModule().dumpOuttakeAction());
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_START_W),
                 new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W)),
@@ -76,8 +76,8 @@ public class BlueCycle extends LinearOpMode {
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
-        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
-        exitActions.add(robot.intakeModule.intakePowerAction(0));
+        exitActions.add(robot.getOuttakeModule().extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
+        exitActions.add(robot.getIntakeModule().intakePowerAction(0));
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(blueWarehouse),
                 new WayPoint(BLUE_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
@@ -95,8 +95,8 @@ public class BlueCycle extends LinearOpMode {
         } else {
             sleep(500);
         }
-        assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
-        boolean sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
+        assert robot.getVisionThread().getVuforiaLocalizationConsumer() != null;
+        boolean sawFirst = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
@@ -150,8 +150,8 @@ public class BlueCycle extends LinearOpMode {
                 sleep(150);
             }
 
-            assert robot.visionThread.getVuforiaLocalizationConsumer() != null;
-            sawFirst = robot.visionThread.getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
+            assert robot.getVisionThread().getVuforiaLocalizationConsumer() != null;
+            sawFirst = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);
