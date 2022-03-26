@@ -23,7 +23,7 @@ public class ModuleThread implements Runnable, Telemeter {
     private boolean started = false;
 
     private long updateDuration = 0;
-    private final Map<Module, Long> moduleUpdateTimes;
+    private Map<Module, Long> moduleUpdateTimes;
 
     public ModuleThread(Robot robot, Module[] modules) {
         this.robot = robot;
@@ -57,13 +57,10 @@ public class ModuleThread implements Runnable, Telemeter {
                     aTime.put(module, SystemClock.elapsedRealtime() - start);
                 }
             }
-            moduleUpdateTimes.clear();
-            moduleUpdateTimes.putAll(aTime);
 
             robot.telemetryDump.update();
-
-            long currentTime = SystemClock.elapsedRealtime();
-            updateDuration = currentTime - overallStart;
+            moduleUpdateTimes = aTime;
+            updateDuration = SystemClock.elapsedRealtime() - overallStart;
         }
 
         for (Module module : modules) {
