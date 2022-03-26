@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 public class DelaySet extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        double delay = AutoPaths.delay;
+        double delay = AutoHelper.delay;
         while ((!isStarted() && !isStopRequested()) || opModeIsActive()) {
             delay = (long) Math.max(0, delay + gamepad1.left_stick_y);
 
@@ -15,6 +15,6 @@ public class DelaySet extends LinearOpMode {
             telemetry.update();
         }
 
-        AutoPaths.delay = delay;
+        AutoHelper.delay = delay;
     }
 }

@@ -15,7 +15,7 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-public class AutoPaths {
+public class AutoHelper {
     public static final double INTAKE_VELO = 10;
     public static final long VUF_DELAY = 150;
 
@@ -27,7 +27,7 @@ public class AutoPaths {
         }
 
         robot.resetPose(reset);
-        OuttakeModule.VerticalSlideLevel detected = AutoPaths.awaitBarcodeDetection(robot);
+        OuttakeModule.VerticalSlideLevel detected = AutoHelper.awaitBarcodeDetection(robot);
 
         robot.telemetryDump.setAlert("Currently delaying for " + delay + " milliseconds.");
         opMode.sleep((long) delay);

@@ -23,8 +23,8 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
-    private static final Point BLUE_GOAL_ENTRANCE = new Point(FULL_FIELD - 8, 55);
-    private static final Point RED_GOAL_ENTRANCE = new Point(8, 55);
+    private static final Point BLUE_GOAL_ENTRANCE = new Point(FULL_FIELD - 7, 48);
+    private static final Point RED_GOAL_ENTRANCE = new Point(7, 48);
 
     boolean isRed;
     PurePursuit wallridePursuit = null;
@@ -56,10 +56,10 @@ public class TeleOp extends LinearOpMode {
 
     private Point getClosestEntrance() {
         Pose pose = robot.sensorThread.getPose();
-        double distanceToBlueEntrace = pose.distance(BLUE_GOAL_ENTRANCE);
+        double distanceToBlueEntrance = pose.distance(BLUE_GOAL_ENTRANCE);
         double distanceToRedEntrance = pose.distance(RED_GOAL_ENTRANCE);
 
-        if (distanceToBlueEntrace < distanceToRedEntrance)
+        if (distanceToBlueEntrance < distanceToRedEntrance)
             return BLUE_GOAL_ENTRANCE;
         else
             return RED_GOAL_ENTRANCE;
@@ -68,8 +68,6 @@ public class TeleOp extends LinearOpMode {
     private void startFollowingWall() {
         WayPoint start = new WayPoint(robot.sensorThread.getPose());
 
-        // hack so purepursuit doesn't hit the wall when trying to pivot
-        // TODO:  make pure pursuit do this for us
         Pose pivotPose = new Pose(
                 start, closestNum(robot.sensorThread.getPose().heading, new double[]{0, Math.PI})
         );
@@ -82,7 +80,7 @@ public class TeleOp extends LinearOpMode {
 
         WayPoint insideGoal = new WayPoint(
                 entrancePose.x,
-                24,
+                36,
                 new AngleLock(isInGoal() ? LOCK : NO_LOCK, entrancePose.heading)
         );
 

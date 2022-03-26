@@ -30,7 +30,7 @@ public class RedCarousel extends LinearOpMode {
 
         robot.resetPose(START);
 
-        OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
+        OuttakeModule.VerticalSlideLevel detected = AutoHelper.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),

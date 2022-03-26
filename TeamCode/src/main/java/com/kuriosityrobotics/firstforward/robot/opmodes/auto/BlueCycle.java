@@ -41,7 +41,7 @@ public class BlueCycle extends LinearOpMode {
 
         robot.resetPose(BLUE_START_W);
 
-        AutoPaths.calibrateVuforia(robot);
+        AutoHelper.calibrateVuforia(robot);
 
         waitForStart();
 
@@ -49,7 +49,7 @@ public class BlueCycle extends LinearOpMode {
 
         robot.resetPose(BLUE_START_W);
 
-        OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
+        OuttakeModule.VerticalSlideLevel detection = AutoHelper.awaitBarcodeDetection(robot);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
@@ -64,7 +64,7 @@ public class BlueCycle extends LinearOpMode {
                 new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(18
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(blueWarehouse, AutoPaths.INTAKE_VELO)
+                new WayPoint(blueWarehouse, AutoHelper.INTAKE_VELO)
         }, 4);
 
         PurePursuit wobbleToWarehouseOdometryOnly = new PurePursuit(new WayPoint[]{
@@ -72,7 +72,7 @@ public class BlueCycle extends LinearOpMode {
                 new WayPoint(BLUE_WOBBLE_WALL_POINT, new VelocityLock(25, true)),
                 new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(blueWarehouse, AutoPaths.INTAKE_VELO)
+                new WayPoint(blueWarehouse, AutoHelper.INTAKE_VELO)
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
@@ -101,7 +101,7 @@ public class BlueCycle extends LinearOpMode {
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
         } else {
-            AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+            AutoHelper.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
         }
 
         int numCycles = 4;
@@ -114,7 +114,7 @@ public class BlueCycle extends LinearOpMode {
 
             intakeVary = Pose.relativeMirror(1.5*i, -4, Math.toRadians(-18));
 
-            AutoPaths.intakePath(robot, blueWarehouse.add(intakeVary), 4500);
+            AutoHelper.intakePath(robot, blueWarehouse.add(intakeVary), 4500);
 
 //            if (blueWarehouse.y > 7.5)
             if (i % 2 == 1) {
@@ -140,12 +140,12 @@ public class BlueCycle extends LinearOpMode {
                         new WayPoint(BLUE_WOBBLE_W.add(Pose.relativeMirror(-1, -3, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
 
-                AutoPaths.wallRidePath(robot, backToWobble);
+                AutoHelper.wallRidePath(robot, backToWobble);
             }
             startSleep = SystemClock.elapsedRealtime();
 
             if (sawFirst) {
-                AutoPaths.waitForVuforia(robot, this, 250, Pose.relativeMirror(0, 0, 0));
+                AutoHelper.waitForVuforia(robot, this, 250, Pose.relativeMirror(0, 0, 0));
             } else {
                 sleep(150);
             }
@@ -156,7 +156,7 @@ public class BlueCycle extends LinearOpMode {
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);
             } else {
-                AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+                AutoHelper.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
             }
         }
     }

@@ -3,7 +3,6 @@ package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -13,7 +12,6 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ public class RedCycle extends LinearOpMode {
 
         robot.resetPose(RED_START_W);
 
-        AutoPaths.calibrateVuforia(robot);
+        AutoHelper.calibrateVuforia(robot);
 
         waitForStart();
 
@@ -51,7 +49,7 @@ public class RedCycle extends LinearOpMode {
 
         robot.resetPose(RED_START_W);
 
-        OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
+        OuttakeModule.VerticalSlideLevel detection = AutoHelper.awaitBarcodeDetection(robot);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
         wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
@@ -66,7 +64,7 @@ public class RedCycle extends LinearOpMode {
                 new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(18
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
+                new WayPoint(redWarehouse, AutoHelper.INTAKE_VELO)
         }, 4);
 
         PurePursuit wobbleToWarehouseOdometryOnly = new PurePursuit(new WayPoint[]{
@@ -74,7 +72,7 @@ public class RedCycle extends LinearOpMode {
                 new WayPoint(RED_WOBBLE_WALL_POINT, new VelocityLock(25, true)),
                 new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
+                new WayPoint(redWarehouse, AutoHelper.INTAKE_VELO)
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
@@ -103,7 +101,7 @@ public class RedCycle extends LinearOpMode {
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
         } else {
-            AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+            AutoHelper.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
         }
 
         int numCycles = 4;
@@ -116,7 +114,7 @@ public class RedCycle extends LinearOpMode {
 
             intakeVary = new Pose(1.5*i, -4, Math.toRadians(-18));
 
-            AutoPaths.intakePath(robot, redWarehouse.add(intakeVary), 4500);
+            AutoHelper.intakePath(robot, redWarehouse.add(intakeVary), 4500);
 
 //            if (redWarehouse.y > 7.5)
             if (i % 2 == 1) {
@@ -142,12 +140,12 @@ public class RedCycle extends LinearOpMode {
                         new WayPoint(RED_WOBBLE_W.add(new Pose(-1, -3, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
 
-                AutoPaths.wallRidePath(robot, backToWobble);
+                AutoHelper.wallRidePath(robot, backToWobble);
             }
             startSleep = SystemClock.elapsedRealtime();
 
             if (sawFirst) {
-                AutoPaths.waitForVuforia(robot, this, 250, new Pose(0, 0, 0));
+                AutoHelper.waitForVuforia(robot, this, 250, new Pose(0, 0, 0));
             } else {
                 sleep(150);
             }
@@ -158,7 +156,7 @@ public class RedCycle extends LinearOpMode {
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);
             } else {
-                AutoPaths.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
+                AutoHelper.wallRidePath(robot, wobbleToWarehouseOdometryOnly);
             }
         }
     }
