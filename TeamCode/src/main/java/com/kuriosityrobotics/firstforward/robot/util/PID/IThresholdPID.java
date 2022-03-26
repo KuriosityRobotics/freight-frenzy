@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.util.PID;
 
-import android.os.SystemClock;
-
 public class IThresholdPID {
     public final double P_FACTOR;
     public final double I_FACTOR;
