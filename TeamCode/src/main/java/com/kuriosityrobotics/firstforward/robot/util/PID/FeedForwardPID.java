@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.util.PID;
 
-import android.os.SystemClock;
-
 public class FeedForwardPID {
     public final double f;
     private long lastUpdateTime;

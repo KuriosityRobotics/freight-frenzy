@@ -18,7 +18,7 @@ public class IncrementalPID {
 
     private double lastError;
     private double errorSum;
-    private double lastUpdateTime;
+    private long lastUpdateTime;
 
     private final double scaleMin;
     private final double scaleMax;
@@ -80,8 +80,7 @@ public class IncrementalPID {
      * @return Updated PID scale
      */
     public double calculateScale(double error) {
-        long currentTime = NanoClock.now();
-        long timeDifference = (long) (currentTime - lastUpdateTime);
+        long timeDifference = (NanoClock.now() - lastUpdateTime);
 
         // error is now relative to how much time since there was last update; will accumulate less error
         error /= timeDifference;
@@ -111,7 +110,7 @@ public class IncrementalPID {
         // more responsiveness
         scale = Range.clip(scale + increment, scaleMin, scaleMax);
 
-        lastUpdateTime = currentTime;
+        lastUpdateTime = NanoClock.now();
         errorSum = error;
 
         return scale;
