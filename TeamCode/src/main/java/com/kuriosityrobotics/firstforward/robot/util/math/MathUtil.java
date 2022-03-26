@@ -85,4 +85,18 @@ public class MathUtil {
                         .sum() / t.size()
         );
     }
+
+    public static double closestNum(double n, double[] arr){
+        double closest = Double.MAX_VALUE;
+        double leastDistance = Double.MAX_VALUE;
+
+        for (double num : arr){
+            if (Math.abs(n - num) < leastDistance){
+                leastDistance = Math.abs(n - num);
+                closest = num;
+            }
+        }
+
+        return closest;
+    }
 }

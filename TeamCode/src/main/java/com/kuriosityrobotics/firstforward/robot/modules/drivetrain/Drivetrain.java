@@ -53,8 +53,13 @@ public class Drivetrain implements Module, Telemeter {
     // gets updated in robot
     public void update() {
         if (opmodeStarted) {
-            if (movementsZero() && !locationProvider.getVelocity().equals(Pose.ZERO)) {
-                Pose brakeMovements = brake.getBrakeMovement(locationProvider.getPose().wrapped(), locationProvider.getVelocity());
+            if (!locationProvider.isWallRide() && movementsZero() && !locationProvider.getVelocity().equals(Pose.ZERO)) {
+                Pose brakeMovements = brake.getBrakeMovement
+                        (
+                                locationProvider.isTeleOp() && !locationProvider.isWallRide(),
+                                locationProvider.getPose().wrapped(),
+                                locationProvider.getVelocity()
+                        );
                 drivetrainModule.setMovements(brakeMovements);
             } else {
                 if (brake.isBraking())

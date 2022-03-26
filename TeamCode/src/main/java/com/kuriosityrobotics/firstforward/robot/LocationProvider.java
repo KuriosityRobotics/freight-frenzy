@@ -1,5 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.linearOpMode;
+
+import com.kuriosityrobotics.firstforward.robot.opmodes.TeleOp;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
@@ -56,6 +59,16 @@ public interface LocationProvider {
                 return velocity;
             }
         };
+    }
+
+    public default boolean isTeleOp() {
+        return linearOpMode.getClass().isAnnotationPresent(com.qualcomm.robotcore.eventloop.opmode.TeleOp.class);
+    }
+
+    public default boolean isWallRide() {
+        return isTeleOp() &&
+                linearOpMode instanceof TeleOp &&
+                ((TeleOp) linearOpMode).isFollowingWall();
     }
 
 }

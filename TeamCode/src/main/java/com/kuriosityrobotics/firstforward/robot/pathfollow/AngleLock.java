@@ -14,7 +14,7 @@ public class AngleLock {
 
     public AngleLock(AngleLockType type, double heading) {
         this.type = type;
-        this.heading = angleWrap(heading, Math.PI);
+        this.heading = angleWrap(heading);
     }
 
     public AngleLock() {
