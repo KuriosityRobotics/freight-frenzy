@@ -1,14 +1,16 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import android.os.SystemClock;
+import static java.text.MessageFormat.format;
+
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchProcess;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
@@ -16,19 +18,21 @@ import java.util.Map;
  */
 public class ModuleThread implements Runnable, Telemeter {
     private final Robot robot;
-    private final Module[] modules;
+    private final HashMap<Module, AsynchProcess> modules;
 
     private boolean started = false;
 
-    private long updateDuration = 0;
-    private Map<Module, Long> moduleUpdateTimes;
-
-    public ModuleThread(Robot robot, Module[] modules) {
+    public ModuleThread(Robot robot, Module... modules) {
         this.robot = robot;
-        this.modules = modules;
+        this.modules = new HashMap<>(modules.length);
+        for (Module module : modules)
+            if (module.maxFrequency() == 0)
+                this.modules.put(module, AsynchProcess.blocking(module::update));
+            else
+                this.modules.put(module, AsynchProcess.blocking(module::update, module.maxFrequency()));
+
 
         robot.getTelemetryDump().registerTelemeter(this);
-        moduleUpdateTimes = new HashMap<>(5);
     }
 
     /**
@@ -36,32 +40,22 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
-            long overallStart = SystemClock.elapsedRealtime();
             if (!started && robot.started()) {
-                for (Module module : modules) {
-                    if (module.isOn()) {
+                for (Module module : modules.keySet())
+                    if (module.isOn())
                         module.onStart();
-                    }
-                }
-
                 started = true;
             }
 
-            Map<Module, Long> aTime = new HashMap<>(5);
-            for (Module module : modules) {
-                if (module.isOn()) {
-                    long start = SystemClock.elapsedRealtime();
-                    module.update();
-                    aTime.put(module, SystemClock.elapsedRealtime() - start);
-                }
-            }
+            for (var module : modules.entrySet())
+                if (module.getKey().isOn())
+                    module.getValue().update();
+
 
             robot.getTelemetryDump().update();
-            moduleUpdateTimes = aTime;
-            updateDuration = SystemClock.elapsedRealtime() - overallStart;
         }
 
-        for (Module module : modules) {
+        for (Module module : modules.keySet()) {
             if (module.isOn()) {
                 module.onClose();
             }
@@ -85,16 +79,8 @@ public class ModuleThread implements Runnable, Telemeter {
         synchronized (this) {
             ArrayList<String> data = new ArrayList<>();
 
-            data.add("Overall Update time: " + updateDuration);
-            long moduleUpdate = 0; // what is this
-            for (Map.Entry<Module, Long> entry : moduleUpdateTimes.entrySet()) { // so much cleaner compared to foreach
-                Module module = entry.getKey();
-                Long time = entry.getValue();
-                data.add(module.getName() + "Update Time: " + time);
-                moduleUpdate += time;
-            }
-
-            data.add("Update Time not including modules: " + (updateDuration - moduleUpdate));
+            for (var module : modules.entrySet())
+                data.add(module.getKey().getName() + " " + module.getValue().toString());
 
             return data;
         }

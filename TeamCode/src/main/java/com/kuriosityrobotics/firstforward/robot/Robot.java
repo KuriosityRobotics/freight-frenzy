@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
-import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.carousel.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
@@ -23,8 +22,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot implements LocationProvider {
-    public static final boolean DEBUG = true    ;
-    private static final String configLocation = "configurations/mainconfig.toml";
+    public static final boolean DEBUG = true;
+    private static boolean blue = false;
+    private static boolean carousel = false;
 
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
@@ -33,22 +33,15 @@ public class Robot implements LocationProvider {
 
     private final Drivetrain drivetrain;
     private final IntakeModule intakeModule;
-
     private final OuttakeModule outtakeModule;
     private final CarouselModule carouselModule;
-
     private final TelemetryDump telemetryDump;
 
     private final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
-
     private final LynxModule controlHub;
     private final LynxModule expansionHub;
-
     private final WebcamName camera;
-
-    private static boolean blue = false;
-    private static boolean carousel = false;
     private final boolean useCamera;
 
     public Robot(HardwareMap hardwareMap, Telemetry telemetry, LinearOpMode linearOpMode, boolean useCamera) {
@@ -90,16 +83,14 @@ public class Robot implements LocationProvider {
         LEDModule ledModule = new LEDModule(this);
         telemetryDump.registerTelemeter(ledModule);
 
-        Module[] modules = new Module[]{
+        // threads
+        moduleThread = new ModuleThread(this,
                 drivetrain,
                 intakeModule,
                 outtakeModule,
                 carouselModule,
                 ledModule
-        };
-
-        // threads
-        moduleThread = new ModuleThread(this, modules);
+        );
 
         this.useCamera = useCamera;
         visionThread = new VisionThread(this, camera);
@@ -161,7 +152,6 @@ public class Robot implements LocationProvider {
     }
 
 
-
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
     }
@@ -200,7 +190,7 @@ public class Robot implements LocationProvider {
         path.reset();
 
         telemetryDump.registerTelemeter(path);
-        while (isOpModeActive() && path.update(this, drivetrain));
+        while (isOpModeActive() && path.update(this, drivetrain)) ;
         telemetryDump.removeTelemeter(path);
     }
 
