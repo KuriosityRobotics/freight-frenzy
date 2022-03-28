@@ -2,7 +2,6 @@ package com.kuriosityrobotics.firstforward.robot;
 
 import com.kuriosityrobotics.firstforward.robot.debug.DebugThread;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.TelemetryDump;
-import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.modules.carousel.CarouselModule;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
@@ -24,18 +23,20 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot implements LocationProvider {
     public static final boolean DEBUG = false;
-    private static final String configLocation = "configurations/mainconfig.toml";
     private static boolean blue = false;
     private static boolean carousel = false;
+
     private final SensorThread sensorThread;
     private final ModuleThread moduleThread;
     private final VisionThread visionThread;
     private final DebugThread debugThread;
+
     private final Drivetrain drivetrain;
     private final IntakeModule intakeModule;
     private final OuttakeModule outtakeModule;
     private final CarouselModule carouselModule;
     private final TelemetryDump telemetryDump;
+
     private final HardwareMap hardwareMap;
     private final LinearOpMode linearOpMode;
     private final LynxModule controlHub;
@@ -82,16 +83,14 @@ public class Robot implements LocationProvider {
         LEDModule ledModule = new LEDModule(this);
         telemetryDump.registerTelemeter(ledModule);
 
-        Module[] modules = new Module[]{
+        // threads
+        moduleThread = new ModuleThread(this,
                 drivetrain,
                 intakeModule,
                 outtakeModule,
                 carouselModule,
                 ledModule
-        };
-
-        // threads
-        moduleThread = new ModuleThread(this, modules);
+        );
 
         this.useCamera = useCamera;
         visionThread = new VisionThread(this, camera);
