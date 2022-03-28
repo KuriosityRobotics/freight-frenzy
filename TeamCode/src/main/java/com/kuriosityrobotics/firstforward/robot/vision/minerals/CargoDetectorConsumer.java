@@ -63,7 +63,7 @@ public class CargoDetectorConsumer implements Runnable, OpenCvConsumer, Telemete
             u = (u / 416) * PhysicalCamera.FRAME_WIDTH;
             v = (v / 416) * PhysicalCamera.FRAME_HEIGHT;
 
-            var fieldAbsolutePosition = pinholeCamera.getLocationOnField(Vector3D.of(robotPose.getX(), 0, robotPose.getY()), robotPose.heading + cameraAngle, u, v);
+            var fieldAbsolutePosition = pinholeCamera.getLocationOnField(Vector3D.of(robotPose.getX(), 0, robotPose.getY()), cameraAngle, robotPose.heading , u, v);
 
             detectedGameElements.put(new Point(fieldAbsolutePosition.getX(), fieldAbsolutePosition.getZ()), detection);
         }

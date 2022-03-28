@@ -29,15 +29,15 @@ public class BlueCycle extends LinearOpMode {
 
     public static final Pose BLUE_BETWEEN_WOBBLE_WALLGAP = Pose.fieldMirror(7, 62.5, Math.toRadians(180));
     public static final Pose BLUE_WALL_GAP = Pose.fieldMirror(7, 46.5, Math.toRadians(180));
-    private Pose blueWarehouse = Pose.fieldMirror(8, 33, Math.toRadians(175));
+    public static Pose blueWarehouse = Pose.fieldMirror(8, 33, Math.toRadians(175));
 
     public static final Point BLUE_EXIT_WALLGAP = Point.fieldMirror(9, 64);
 
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap, telemetry, this);
 
-        Robot.isBlue = true;
-        Robot.isCarousel = false;
+        Robot.setBlue(true);
+        Robot.setCarousel(false);
 
         robot.resetPose(BLUE_START_W);
 
@@ -52,17 +52,17 @@ public class BlueCycle extends LinearOpMode {
         OuttakeModule.VerticalSlideLevel detection = AutoPaths.awaitBarcodeDetection(robot);
 
         ArrayList<Action> wobbleActions = new ArrayList<>();
-        wobbleActions.add(robot.outtakeModule.dumpOuttakeAction());
+        wobbleActions.add(robot.getOuttakeModule().dumpOuttakeAction());
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(BLUE_START_W, robot.outtakeModule.extendOuttakeAction(detection, OuttakeModule.TurretPosition.STRAIGHT)),
+                new WayPoint(BLUE_START_W),
                 new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W)),
-                new WayPoint(FIRST_WOBBLE, 0, wobbleActions)
+                new WayPoint(FIRST_WOBBLE, 0)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_WOBBLE_W, new VelocityLock(15, false)),
                 new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(18
-                        , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        , true)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(blueWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
@@ -70,19 +70,19 @@ public class BlueCycle extends LinearOpMode {
         PurePursuit wobbleToWarehouseOdometryOnly = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_WOBBLE_W, new VelocityLock(25, true)),
                 new WayPoint(BLUE_WOBBLE_WALL_POINT, new VelocityLock(25, true)),
-                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22, true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22, true)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(BLUE_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(blueWarehouse, AutoPaths.INTAKE_VELO)
         }, 4);
 
         ArrayList<Action> exitActions = new ArrayList<>();
-        exitActions.add(robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
-        exitActions.add(robot.intakeModule.intakePowerAction(0));
+        exitActions.add(robot.getOuttakeModule().extendOuttakeAction(OuttakeModule.VerticalSlideLevel.TOP));
+        exitActions.add(robot.getIntakeModule().intakePowerAction(0));
         PurePursuit warehouseToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(blueWarehouse),
                 new WayPoint(BLUE_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(BLUE_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                new WayPoint(BLUE_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
+                new WayPoint(BLUE_EXIT_WALLGAP),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                new WayPoint(BLUE_WOBBLE_W, 0)
         }, true, 4);
 
         robot.followPath(blueStartwToWobble);
@@ -95,8 +95,8 @@ public class BlueCycle extends LinearOpMode {
         } else {
             sleep(500);
         }
-        assert robot.visionThread.vuforiaLocalizationConsumer != null;
-        boolean sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+        assert robot.getVisionThread().getVuforiaLocalizationConsumer() != null;
+        boolean sawFirst = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
         if (sawFirst) {
             robot.followPath(wobbleToWarehouse);
@@ -114,7 +114,7 @@ public class BlueCycle extends LinearOpMode {
 
             intakeVary = Pose.relativeMirror(1.5*i, -4, Math.toRadians(-18));
 
-            AutoPaths.intakePath(robot, blueWarehouse.add(intakeVary), 4500);
+//            AutoPaths.intakePath(robot, blueWarehouse.add(intakeVary), 4500);
 
 //            if (blueWarehouse.y > 7.5)
             if (i % 2 == 1) {
@@ -125,9 +125,9 @@ public class BlueCycle extends LinearOpMode {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
                         new WayPoint(BLUE_WALL_GAP, new VelocityLock(40, false)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                        new WayPoint(BLUE_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(BLUE_EXIT_WALLGAP),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(BLUE_EXIT_WALLGAP.x-7,BLUE_EXIT_WALLGAP.y+2),
-                        new WayPoint(BLUE_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
+                        new WayPoint(BLUE_WOBBLE_W, 0)
                 }, true, 4);
 
                 robot.followPath(backToWobble);
@@ -135,9 +135,9 @@ public class BlueCycle extends LinearOpMode {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
                         new WayPoint(BLUE_WALL_GAP.add(Pose.relativeMirror(-1, 0, 0)),  new VelocityLock(40, true)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                        new WayPoint(BLUE_EXIT_WALLGAP.add(Pose.relativeMirror(-1, 0, 0)), exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(BLUE_EXIT_WALLGAP.add(Pose.relativeMirror(-1, 0, 0))),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(BLUE_EXIT_WALLGAP.x-7,BLUE_EXIT_WALLGAP.y+2),
-                        new WayPoint(BLUE_WOBBLE_W.add(Pose.relativeMirror(-1, -3, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
+                        new WayPoint(BLUE_WOBBLE_W.add(Pose.relativeMirror(-1, -3, 0)), 0)
                 }, true, 4);
 
                 AutoPaths.wallRidePath(robot, backToWobble);
@@ -150,8 +150,8 @@ public class BlueCycle extends LinearOpMode {
                 sleep(150);
             }
 
-            assert robot.visionThread.vuforiaLocalizationConsumer != null;
-            sawFirst = robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() >= startSleep;
+            assert robot.getVisionThread().getVuforiaLocalizationConsumer() != null;
+            sawFirst = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime() >= startSleep;
 
             if (sawFirst) {
                 robot.followPath(wobbleToWarehouse);

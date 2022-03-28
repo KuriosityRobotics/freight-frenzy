@@ -1,10 +1,12 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes;
 
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.OpModes.JOYSTICK_EPSILON;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
+import com.kuriosityrobotics.firstforward.robot.opmodes.auto.AutoPaths;
 import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -14,12 +16,25 @@ public class TeleOp extends LinearOpMode {
     Robot robot = null;
 
     Button retractButton = new Button();
+    boolean wasSet = false;
+    Button dpad_up = new Button();
+    Button lBump = new Button();
+    Button yGamepad2 = new Button();
+    Button xG1 = new Button();
+    OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
+    private boolean capPicked = false;
+    private boolean capLifted = false;
+    private boolean capDropped = false;
 
     @Override
     public void runOpMode() {
         robot = new Robot(hardwareMap, telemetry, this, true);
-//        robot.resetPose(new Pose(0,0,0));
-////      robot.resetPose(new Pose(28, 60, Math.toRadians(-90)));
+
+        Robot.setBlue(true);
+        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+        AutoPaths.calibrateVuforia(robot);
+        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -43,45 +58,36 @@ public class TeleOp extends LinearOpMode {
             turnMov /= 2;
         }
 
-        robot.drivetrain.setMovements(xMov, yMov, turnMov);
+        robot.getDrivetrain().setMovements(xMov, yMov, turnMov);
     }
-
-    boolean wasSet = false;
 
     private void updateIntakeStates() {
         boolean setPower = Math.abs(gamepad2.left_stick_y) > JOYSTICK_EPSILON;
 
         if (setPower && !wasSet) {
-            robot.intakeModule.retracted = false;
+            robot.getIntakeModule().retracted = false;
         }
 
-        robot.intakeModule.intakePower = setPower && !robot.intakeModule.retracted
+        robot.getIntakeModule().intakePower = setPower && !robot.getIntakeModule().retracted
                 ? Math.signum(gamepad2.left_stick_y)
                 : 0;
 
         if (retractButton.isSelected(gamepad2.a)) {
-            robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
+            robot.getIntakeModule().targetIntakePosition = IntakeModule.IntakePosition.RETRACTED;
         }
 
         wasSet = setPower;
 
-        robot.intakeModule.enableAutoExtend = gamepad1.right_trigger < 0.15;
+        robot.getIntakeModule().enableAutoExtend = gamepad1.right_trigger < 0.15;
     }
-
-    Button dpad_up = new Button();
-    Button lBump = new Button();
-    Button yGamepad2 = new Button();
-    Button xG1 = new Button();
-
-    OuttakeModule.TurretPosition lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
     private void updateOuttakeStates() {
         if (xG1.isSelected(gamepad1.x)) {
-            robot.outtakeModule.resetSlides();
+            robot.getOuttakeModule().resetSlides();
         }
 
-        if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.COLLAPSE)
-            robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
+        if ((gamepad1.right_bumper || gamepad2.right_bumper) && robot.getOuttakeModule().targetState != OuttakeModule.OuttakeState.COLLAPSE)
+            robot.getOuttakeModule().targetState = OuttakeModule.OuttakeState.COLLAPSE;
 
         boolean up = dpad_up.isSelected(gamepad2.dpad_up),
                 right = gamepad2.dpad_right,
@@ -91,30 +97,30 @@ public class TeleOp extends LinearOpMode {
                 b = gamepad2.b,
                 lTrigger = gamepad2.left_trigger > 0;
         if (up || left || right) {
-            robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-            robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+            robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+            robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.OUT;
 
             lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
             if (up) {
-                if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.RAISE && robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
-                    robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                if (robot.getOuttakeModule().targetState != OuttakeModule.OuttakeState.RAISE && robot.getOuttakeModule().targetState != OuttakeModule.OuttakeState.EXTEND) {
+                    robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
                 } else {
-                    if (robot.outtakeModule.targetSlideLevel == OuttakeModule.VerticalSlideLevel.TOP) {
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP_TOP;
+                    if (robot.getOuttakeModule().targetSlideLevel == OuttakeModule.VerticalSlideLevel.TOP) {
+                        robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP_TOP;
                     } else {
-                        robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                        robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
                     }
                 }
-            } else if (left || right) {
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
+            } else {
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.MID;
             }
 
-            if (robot.outtakeModule.targetState != OuttakeModule.OuttakeState.EXTEND) {
-                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.RAISE;
+            if (robot.getOuttakeModule().targetState != OuttakeModule.OuttakeState.EXTEND) {
+                robot.getOuttakeModule().targetState = OuttakeModule.OuttakeState.RAISE;
             }
         } else if (y) {
-            if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.EXTEND) {
+            if (robot.getOuttakeModule().targetState == OuttakeModule.OuttakeState.EXTEND) {
                 if (lastTurretTarget == OuttakeModule.TurretPosition.STRAIGHT) {
                     lastTurretTarget = OuttakeModule.TurretPosition.ALLIANCE_LOCK;
                 } else {
@@ -123,51 +129,47 @@ public class TeleOp extends LinearOpMode {
             } else {
                 lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
 
-                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.OUT;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
 
-                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+                robot.getOuttakeModule().targetState = OuttakeModule.OuttakeState.EXTEND;
             }
         } else if (x || b) {
-            robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
-            robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
-            robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.SHARED;
+            robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+            robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.OUT;
+            robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.SHARED;
 
             if (x) {
                 lastTurretTarget = OuttakeModule.TurretPosition.SHARED_LEFT;
-            } else if (b) {
+            } else {
                 lastTurretTarget = OuttakeModule.TurretPosition.SHARED_RIGHT;
             }
         } else if (gamepad2.dpad_down) {
-            robot.outtakeModule.skipToCollapse();
+            robot.getOuttakeModule().skipToCollapse();
         }
 
 
         if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_LEFT || lastTurretTarget == OuttakeModule.TurretPosition.SHARED_RIGHT) {
             if (lTrigger) {
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
 
                 if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_LEFT) {
-                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
+                    robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.SHARED_LEFT_MORE_EXTREME_ANGLE;
                 } else if (lastTurretTarget == OuttakeModule.TurretPosition.SHARED_RIGHT) {
-                    robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
+                    robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.SHARED_RIGHT_MORE_EXTREME_ANGLE;
                 }
             } else {
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
-                robot.outtakeModule.targetTurret = lastTurretTarget;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+                robot.getOuttakeModule().targetTurret = lastTurretTarget;
             }
         } else {
-            robot.outtakeModule.targetTurret = lastTurretTarget;
+            robot.getOuttakeModule().targetTurret = lastTurretTarget;
         }
     }
 
-    private boolean capPicked = false;
-    private boolean capLifted = false;
-    private boolean capDropped = false;
-
     private void updateCapStates() {
-        if (robot.outtakeModule.targetState == OuttakeModule.OuttakeState.COLLAPSE) {
+        if (robot.getOuttakeModule().targetState == OuttakeModule.OuttakeState.COLLAPSE) {
             capPicked = false;
             capLifted = false;
             capDropped = false;
@@ -175,40 +177,40 @@ public class TeleOp extends LinearOpMode {
 
         if (lBump.isSelected(gamepad2.left_bumper)) {
             if (!capPicked) {
-                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_PICKUP;
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+                robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.CAP_PICKUP;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
                 lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
+                robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.DOWN;
 
-                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.EXTEND;
+                robot.getOuttakeModule().targetState = OuttakeModule.OuttakeState.EXTEND;
 
                 capPicked = true;
             } else if (!capLifted) {
-                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.CAP_DROP;
+                robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.CAP_DROP;
                 lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
+                robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP;
 
                 capLifted = true;
             } else if (!capDropped) {
-                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.OUT;
                 lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
+                robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.CAP_DROP;
 
                 capDropped = true;
             } else {
                 // done capping, collapse outtake and reset states to resume alliance hub
-                robot.outtakeModule.targetState = OuttakeModule.OuttakeState.COLLAPSE;
+                robot.getOuttakeModule().targetState = OuttakeModule.OuttakeState.COLLAPSE;
 
-                robot.outtakeModule.targetPivot = OuttakeModule.PivotPosition.OUT;
+                robot.getOuttakeModule().targetPivot = OuttakeModule.PivotPosition.OUT;
                 lastTurretTarget = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
-                robot.outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
-                robot.outtakeModule.targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
+                robot.getOuttakeModule().targetTurret = OuttakeModule.TurretPosition.STRAIGHT;
+                robot.getOuttakeModule().targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
+                robot.getOuttakeModule().targetSlideLevel = OuttakeModule.VerticalSlideLevel.TOP;
 
                 capPicked = false;
                 capLifted = false;
@@ -218,6 +220,6 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCarouselStates() {
-        robot.carouselModule.spin = gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0;
+        robot.getCarouselModule().setSpin(gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0);
     }
 }

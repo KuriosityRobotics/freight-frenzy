@@ -30,20 +30,20 @@ public class LEDModule implements Module, Telemeter {
     private final RevBlinkinLedDriver led;
 
     public LEDModule(Robot robot) {
-        led = robot.hardwareMap.get(RevBlinkinLedDriver.class, "LED");
+        led = robot.getHardwareMap().get(RevBlinkinLedDriver.class, "LED");
 
         this.robot = robot;
-        this.intake = robot.intakeModule;
+        this.intake = robot.getIntakeModule();
     }
 
     public void update() {
         if (intake != null && intake.hasMineral()) {
             led.setPattern(INTAKE_OCCUPIED);
-        } else if (!robot.visionThread.started) {
+        } else if (!robot.getVisionThread().isStarted()) {
             led.setPattern(VUF_INITING);
-        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastAcceptedTime() + SHOW_VUF) {
+        } else if (SystemClock.elapsedRealtime() <= robot.getVisionThread().getVuforiaLocalizationConsumer().getLastAcceptedTime() + SHOW_VUF) {
             led.setPattern(VUF_USED);
-        } else if (SystemClock.elapsedRealtime() <= robot.visionThread.vuforiaLocalizationConsumer.getLastDetectedTime() + SHOW_VUF) {
+        } else if (SystemClock.elapsedRealtime() <= robot.getVisionThread().getVuforiaLocalizationConsumer().getLastDetectedTime() + SHOW_VUF) {
             led.setPattern(VUF_SAW);
         } else {
             led.setPattern(IDLE);

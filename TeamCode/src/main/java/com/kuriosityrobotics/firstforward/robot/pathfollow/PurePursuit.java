@@ -40,7 +40,7 @@ public class PurePursuit implements Telemeter {
 //    private final FeedForwardPID yPID = new FeedForwardPID(0.021, 0.007, 0, 0.00);
 //    private final FeedForwardPID xPID = new FeedForwardPID(0.058, 0.027, 0.0000, 0);
     private final FeedForwardPID yPID = new FeedForwardPID(0.0185, 0.015, 0, 0.00);
-    private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.026, 0.0000, 0);
+    private final FeedForwardPID xPID = new FeedForwardPID(0.020, 0.020 , 0.0000, 0);
     private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
 //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
@@ -106,7 +106,7 @@ public class PurePursuit implements Telemeter {
         if (atEnd && !executedLastAction) {
             ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
-        } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
+        } else if (atEnd && ActionExecutor.doneExecuting()) {
             drivetrain.setMovements(0, 0, 0);
             return false;
         }
@@ -299,7 +299,7 @@ public class PurePursuit implements Telemeter {
     @Override
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
-        data.add("target point: " + ((Point) target).toString());
+        data.add("target point: " + (target).toString());
         data.add("Target heading: " + targhead);
         data.add("Target velocity: " + targvel);
         return data;

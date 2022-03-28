@@ -1,19 +1,18 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
+import static java.lang.Math.pow;
+
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
-import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
 
 import java.util.ArrayList;
 
@@ -63,10 +62,9 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
     private static final double B_ENCODER_DIST_FROM_CENTER = 2.9761730787305137386664648856740921319601002407647215925090672904 * (3622.009011720834 / 3600.);
 
 
-    private final Robot robot;
+    private final ExtendedKalmanFilter kalmanFilter;
 
-    public Odometry(Robot robot, HardwareMap hardwareMap, Pose pose) {
-        this.robot = robot;
+    public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter) {
         this.worldX = pose.x;
         this.worldY = pose.y;
         this.worldHeadingRad = pose.heading;
@@ -75,6 +73,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         yRightEncoder = hardwareMap.get(DcMotor.class, "fRight");
         mecanumBackEncoder = hardwareMap.get(DcMotor.class, "bLeft");
         mecanumFrontEncoder = hardwareMap.get(DcMotor.class, "bRight");
+        this.kalmanFilter = kalmanFilter;
 
         resetEncoders();
 
@@ -84,9 +83,14 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     public void update() {
 
-        long currentTimeMillis = SystemClock.elapsedRealtime();
+        var now = SystemClock.elapsedRealtime();
         calculatePosition();
-        robot.sensorThread.addGoodie(new KalmanData(0, getDeltaMatrix()), currentTimeMillis);
+        kalmanFilter.datumBuilder()
+                .time(now)
+                .mean(dx, dy, dHeading)
+                .outputToState(rotate(kalmanFilter.outputVector()[2]))
+                .variance(pow(.8 * dx, 2), pow(.8 * dy, 2), pow(.8 * dHeading, 2))
+                .predict();
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
@@ -235,22 +239,13 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         lastMecanumFrontPosition = 0;
     }
 
-    public RealMatrix getDeltaMatrix() {
-        // gets deltas to be inputted into kalman filter
-        return MatrixUtils.createRealMatrix(new double[][]{
-                {dx},
-                {dy},
-                {dHeading}
-        });
-    }
-
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees((worldHeadingRad)));
+        data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
 
         return data;
     }
@@ -269,8 +264,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
      * Get the robot's current pose, containing x, y, and heading.
      * <p>
      * There is only one getter method to reduce the likelihood of values changing between getters.
-     *
-     * @return
      */
     public Pose getPose() {
         return new Pose(worldX, worldY, worldHeadingRad);

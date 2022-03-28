@@ -1,18 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.*;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.RADIANS;
-
 import static java.lang.Math.PI;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 
-import org.apache.commons.math3.geometry.euclidean.threed.Rotation;
-import org.apache.commons.math3.geometry.euclidean.threed.RotationConvention;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.apache.commons.geometry.euclidean.threed.rotation.Rotation3D;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -38,10 +35,10 @@ public abstract class PhysicalCamera {
         return LocationProvider.of(Pose.ZERO, Pose.ZERO);
     }
     public abstract Vector3D robotToCameraTranslation();
-    public abstract Rotation robotToCameraRotation();
+    public abstract Rotation3D robotToCameraRotation();
 
     public OpenGLMatrix rotationMatrix() {
-        var vec = robotToCameraRotation().getAxis(RotationConvention.VECTOR_OPERATOR);
+        var vec = robotToCameraRotation().getAxis();
         return OpenGLMatrix.rotation(RADIANS, (float) robotToCameraRotation().getAngle(), (float)vec.getX(), (float)vec.getY(), (float)vec.getZ())
                 .rotated(AxesReference.INTRINSIC, AxesOrder.XZY, RADIANS, (float)PI/2, (float)PI/2, 0);
     }
@@ -55,7 +52,7 @@ public abstract class PhysicalCamera {
         ).scaled(MM_PER_INCH);
     }
 
-    public static PhysicalCamera of(Vector3D translation, Rotation rotation) {
+    public static PhysicalCamera of(Vector3D translation, Rotation3D rotation) {
         return new PhysicalCamera() {
 
             @Override
@@ -64,7 +61,7 @@ public abstract class PhysicalCamera {
             }
 
             @Override
-            public Rotation robotToCameraRotation() {
+            public Rotation3D robotToCameraRotation() {
                 return rotation;
             }
         };

@@ -9,7 +9,6 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCvConsumer;
-import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -45,6 +44,7 @@ public final class ManagedCamera {
         initializeVuforia(cameraName);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void initializeVuforia(WebcamName webcamName) {
         if (vuforia != null) {
             vuforia.close();
@@ -68,11 +68,7 @@ public final class ManagedCamera {
             vuforia = ClassFactory.getInstance().createVuforia(parameters);
 
             vuforiaConsumer.setup(vuforia);
-         /*   var exposureControl = vuforia.getCamera().getControl(WhiteBalanceControl.class);
 
-            vuforia.getCamera().getControl(ExposureControl.class).setMode(ExposureControl.Mode.Manual);
-            exposureControl.setMode(WhiteBalanceControl.Mode.MANUAL);
-            exposureControl.setWhiteBalanceTemperature(4500);*/
             vuforia.getCamera().getControl(FocusControl.class).setMode(FocusControl.Mode.Infinity);
             openCvCamera = OpenCvCameraFactory.getInstance().createVuforiaPassthrough(vuforia, parameters);
 
@@ -118,11 +114,11 @@ public final class ManagedCamera {
                 return input;
 
             if (vuforiaActive) {
-                Coroutine<VuforiaConsumer, Void> vuforiaCoro = first(consume((VuforiaConsumer::update)));
+                Coroutine<VuforiaLocalizationConsumer, Void> vuforiaCoro = first(consume((VuforiaLocalizationConsumer::update)));
                 // !!
                 Coroutine<OpenCvConsumer, Void> openCvCoro = first(consume((OpenCvConsumer consumer) -> { //!!
                     Mat matCopy = input.clone();
-                    consumer.processFrame(angleWrap(locationProvider.getPose().heading + vuforiaConsumer.getTargetCameraAngle()), matCopy);
+                    consumer.processFrame(angleWrap(vuforiaConsumer.getTargetCameraAngle()), matCopy);
                     matCopy.release();
                 }));
 

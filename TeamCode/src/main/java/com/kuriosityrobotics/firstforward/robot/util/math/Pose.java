@@ -21,6 +21,12 @@ public class Pose extends Point {
         this.heading = heading;
     }
 
+    public static Pose of(double[] values) {
+        if (values.length < 3)
+            return Pose.ZERO;
+
+        return new Pose(values[0], values[1], values[2]);
+    }
     public Pose fieldMirror() {
         return fieldMirror(this.x, this.y, this.heading);
     }
@@ -95,7 +101,6 @@ public class Pose extends Point {
      * Get the global absolute angle of the line between the robot's position and the given point,
      * where 0 is along the y axis.
      *
-     * @param point
      * @return absolute heading to that point
      */
     public double absoluteHeadingToPoint(Point point) {
@@ -105,7 +110,6 @@ public class Pose extends Point {
     /**
      * The heading a robot at this pose would have to turn by to face the point directly. Returned value is angleWrapped.
      *
-     * @param point
      * @return relative heading to that point
      */
     public double relativeHeadingToPoint(Point point) {

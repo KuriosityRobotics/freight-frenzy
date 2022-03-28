@@ -9,6 +9,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorCon
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.ArrayList;
@@ -19,13 +20,13 @@ public class VisionThread implements Runnable, Telemeter {
     private final CargoDetectorConsumer cargoDetectorConsumer;
     private Thread cargoDetectionThread;
 
-    public final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
+    private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
     private ManagedCamera managedCamera;
     private long updateTime = 0;
     private long lastLoopTime = 0;
 
-    public boolean started = false;
+    private boolean started = false;
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
@@ -33,7 +34,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.teamMarkerDetector = new TeamMarkerDetector(robot);
 
         if (camera.isAttached()) {
-            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
+            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot.getSensorThread().getKalmanFilter(), robot, robot.getHardwareMap());
         } else {
             this.vuforiaLocalizationConsumer = null;
         }
@@ -41,12 +42,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     @Override
     public ArrayList<String> getTelemetryData() {
-        ArrayList<String> telemetryData;
-        if (vuforiaLocalizationConsumer != null) {
-             telemetryData = new ArrayList<>(vuforiaLocalizationConsumer.logPositionAndDetection());
-        } else {
-            telemetryData = new ArrayList<>();
-        }
+        ArrayList<String> telemetryData = new ArrayList<>();
         telemetryData.add("Team marker location: " + getTeamMarkerDetector().getLocation());
         telemetryData.add("Update time: " + updateTime);
         return telemetryData;
@@ -67,14 +63,14 @@ public class VisionThread implements Runnable, Telemeter {
         try {
             OpenCVDumper openCVDumper = new OpenCVDumper();
 
-            if (vuforiaLocalizationConsumer == null || !robot.running()) {
+            if (getVuforiaLocalizationConsumer() == null || !robot.running()) {
                 return;
             }
 
             this.managedCamera = new
                     ManagedCamera(
-                    robot.camera,
-                    vuforiaLocalizationConsumer,
+                    robot.isUseCamera(),
+                    getVuforiaLocalizationConsumer(),
                     robot, openCVDumper,
                     getTeamMarkerDetector()
 //                    cargoDetectorConsumer
@@ -83,15 +79,15 @@ public class VisionThread implements Runnable, Telemeter {
 //            cargoDetectionThread = new Thread(cargoDetectorConsumer);
 //            cargoDetectionThread.start();
 
-            robot.telemetryDump.registerTelemeter(this);
-            robot.telemetryDump.registerTelemeter(cargoDetectorConsumer);
+            robot.getTelemetryDump().registerTelemeter(this);
+            robot.getTelemetryDump().registerTelemeter(cargoDetectorConsumer);
 
             Log.v("VisionThread", "Done initing camera");
 
             started = true;
 
             while (robot.running()) {
-                if (!robot.isAuto()) {
+                if (robot.isTeleOp()) {
                     teamMarkerDetector.deactivate();
                 }
 
@@ -100,7 +96,7 @@ public class VisionThread implements Runnable, Telemeter {
                 lastLoopTime = currentTime;
             }
 
-            this.vuforiaLocalizationConsumer.deactivate();
+            this.getVuforiaLocalizationConsumer().deactivate();
             this.managedCamera.close();
             managedCamera = null;
             Log.v("VisionThread", "Exited due to opMode's no longer being active.");
@@ -122,7 +118,7 @@ public class VisionThread implements Runnable, Telemeter {
     }*/
 
     public double getCameraAngle() {
-        return vuforiaLocalizationConsumer.getTargetCameraAngle();
+        return getVuforiaLocalizationConsumer().getTargetCameraAngle();
     }
 
     public TeamMarkerDetector getTeamMarkerDetector() {
@@ -138,8 +134,11 @@ public class VisionThread implements Runnable, Telemeter {
         }
     }
 
-    @Override
-    public int getShowIndex() {
-        return 6;
+    public VuforiaLocalizationConsumer getVuforiaLocalizationConsumer() {
+        return vuforiaLocalizationConsumer;
+    }
+
+    public boolean isStarted() {
+        return started;
     }
 }
