@@ -64,4 +64,9 @@ public class LEDModule implements Module, Telemeter {
     public int getShowIndex() {
         return 1;
     }
+
+    @Override
+    public int maxFrequency() {
+        return 2;
+    }
 }
