@@ -180,6 +180,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     //motors
     private final DcMotorEx slide;
+    private final DcMotorEx slide2;
 
     // helpers
     private long transitionTime;
@@ -199,11 +200,16 @@ public class OuttakeModule implements Module, Telemeter {
         turret = hardwareMap.servo.get("nothingServo");*/
 
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
-
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setTargetPosition(0);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
+        
+        slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setTargetPosition(0);
+        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
@@ -216,6 +222,9 @@ public class OuttakeModule implements Module, Telemeter {
     public void resetSlides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -246,6 +255,7 @@ public class OuttakeModule implements Module, Telemeter {
                     linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                     clamp.setPosition(CLAMP_CLAMP);
                     slide.setTargetPosition(targetSlideLevel.position);
+                    slide2.setTargetPosition(-targetSlideLevel.position);
                     break;
                 case EXTEND:
                     pivot.setPosition(targetPivot.position);
@@ -265,6 +275,7 @@ public class OuttakeModule implements Module, Telemeter {
                     pivot.setPosition(PivotPosition.IN.position);
                     linkage.setPosition(LinkagePosition.RETRACT.position);
                     slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
                     break;
             }
 
@@ -279,6 +290,8 @@ public class OuttakeModule implements Module, Telemeter {
         if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             slide.setPower(0);
+            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            slide2.setPower(0);
 
             if (timerComplete()) {
                 clamp.setPosition(CLAMP_INTAKE);
@@ -287,6 +300,10 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             slide.setTargetPosition(targetSlideLevel.position);
             slide.setPower(1);
+            
+            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slide2.setTargetPosition(-targetSlideLevel.position);
+            slide2.setPower(1);
         }
 
         if (currentState == EXTEND) {
