@@ -30,7 +30,7 @@ public class OuttakeModule implements Module, Telemeter {
     LocationProvider locationProvider;
 
     // states
-    public VerticalSlideLevel targetSlideLevel = VerticalSlideLevel.TOP;
+    public VerticalslideLevel targetslideLevel = VerticalslideLevel.TOP;
     public TurretPosition targetTurret = TurretPosition.STRAIGHT;
     public LinkagePosition targetLinkage = LinkagePosition.EXTEND;
     public PivotPosition targetPivot = PivotPosition.OUT;
@@ -69,7 +69,7 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
-    public enum VerticalSlideLevel {
+    public enum VerticalslideLevel {
         CAP(-1400),
         CAP_DROP(-1200),
         TOP_TOP(-1200),
@@ -81,7 +81,7 @@ public class OuttakeModule implements Module, Telemeter {
 
         private final int position;
 
-        VerticalSlideLevel(int position) {
+        VerticalslideLevel(int position) {
             this.position = position;
         }
     }
@@ -136,7 +136,7 @@ public class OuttakeModule implements Module, Telemeter {
 
         switch (currentState) {
             case RAISE:
-                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP) {
+                if (targetslideLevel == VerticalslideLevel.TOP || targetslideLevel == VerticalslideLevel.TOP_TOP) {
                     return slidesAtTarget;
                 } else {
                     return true;
@@ -150,7 +150,7 @@ public class OuttakeModule implements Module, Telemeter {
                     return timerComplete;
                 }
             case RETRACT:
-                if (targetSlideLevel == VerticalSlideLevel.TOP || targetSlideLevel == VerticalSlideLevel.TOP_TOP || targetSlideLevel == VerticalSlideLevel.CAP) {
+                if (targetslideLevel == VerticalslideLevel.TOP || targetslideLevel == VerticalslideLevel.TOP_TOP || targetslideLevel == VerticalslideLevel.CAP) {
                     return true;
                 } else {
                     return timerComplete;
@@ -206,6 +206,7 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
         
         slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
+        slide2.setDirection(DcMotorSimple.Direction.REVERSE);
         slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide2.setTargetPosition(0);
         slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -219,7 +220,7 @@ public class OuttakeModule implements Module, Telemeter {
         this.currentState = COLLAPSE;
     }
 
-    public void resetSlides() {
+    public void resetslides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         
@@ -254,8 +255,8 @@ public class OuttakeModule implements Module, Telemeter {
                 case RAISE:
                     linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                     clamp.setPosition(CLAMP_CLAMP);
-                    slide.setTargetPosition(targetSlideLevel.position);
-                    slide2.setTargetPosition(-targetSlideLevel.position);
+                    slide.setTargetPosition(targetslideLevel.position);
+                    slide2.setTargetPosition(-targetslideLevel.position);
                     break;
                 case EXTEND:
                     pivot.setPosition(targetPivot.position);
@@ -274,8 +275,8 @@ public class OuttakeModule implements Module, Telemeter {
                     clamp.setPosition(CLAMP_CLAMP);
                     pivot.setPosition(PivotPosition.IN.position);
                     linkage.setPosition(LinkagePosition.RETRACT.position);
-                    slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
+                    slide.setTargetPosition(VerticalslideLevel.DOWN.position);
+                    slide2.setTargetPosition(-VerticalslideLevel.DOWN.position);
                     break;
             }
 
@@ -283,7 +284,7 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
 //        if (slide.getCurrentPosition() > 10) {
-//            resetSlides();
+//            resetslides();
 //        }
 
         // if current position is higher than the target
@@ -298,11 +299,11 @@ public class OuttakeModule implements Module, Telemeter {
             }
         } else {
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            slide.setTargetPosition(targetSlideLevel.position);
+            slide.setTargetPosition(targetslideLevel.position);
             slide.setPower(1);
             
             slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            slide2.setTargetPosition(-targetSlideLevel.position);
+            slide2.setTargetPosition(-targetslideLevel.position);
             slide2.setPower(1);
         }
 
@@ -330,7 +331,7 @@ public class OuttakeModule implements Module, Telemeter {
                 }
                 turret.setPosition(targetTurretServoPosition);
 
-                if (targetSlideLevel == VerticalSlideLevel.CAP_DROP) {
+                if (targetslideLevel == VerticalslideLevel.CAP_DROP) {
                     clamp.setPosition(CLAMP_RELEASE);
                 } else {
                     clamp.setPosition(CLAMP_CLAMP);
@@ -375,7 +376,7 @@ public class OuttakeModule implements Module, Telemeter {
             add("Target State: " + targetState);
             add("State:  " + currentState);
 //            add("last:  " + lastRan);
-            add("slideLevel: " + targetSlideLevel.name());
+            add("slideLevel: " + targetslideLevel.name());
             add("Turret: " + targetTurret.name());
             add("Linkage: " + targetLinkage.name());
 //            add("pivot postiong: " + pivot.getPosition());
@@ -393,11 +394,11 @@ public class OuttakeModule implements Module, Telemeter {
         return new DumpOuttakeAction(this);
     }
 
-    public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel) {
+    public ExtendOuttakeAction extendOuttakeAction(VerticalslideLevel slideLevel) {
         return new ExtendOuttakeAction(this, slideLevel, TurretPosition.ALLIANCE_LOCK);
     }
 
-    public ExtendOuttakeAction extendOuttakeAction(VerticalSlideLevel slideLevel, TurretPosition turretPosition) {
+    public ExtendOuttakeAction extendOuttakeAction(VerticalslideLevel slideLevel, TurretPosition turretPosition) {
         return new ExtendOuttakeAction(this, slideLevel, turretPosition);
     }
 
