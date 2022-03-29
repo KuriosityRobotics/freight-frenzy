@@ -11,6 +11,7 @@ import java.util.Arrays;
  * All units are in inches and radians unless otherwise specified.
  */
 public class Constants {
+    public static final double ROBOT_WIDTH = 11.5, ROBOT_HEIGHT = 13;
 
     public static class OpModes {
         public static final double JOYSTICK_EPSILON = 0.1;

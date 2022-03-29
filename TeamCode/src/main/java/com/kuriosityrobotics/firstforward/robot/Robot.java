@@ -105,12 +105,16 @@ public class Robot implements LocationProvider {
         this(hardwareMap, telemetry, linearOpMode, true);
     }
 
-    public static void assertThat(boolean condition) {
+    public static void assertThat(boolean condition, String message) {
         if (!condition)
             if (DEBUG)
-                throw new AssertionError();
+                throw new AssertionError(message);
             else
-                new AssertionError().printStackTrace();
+                new AssertionError(message).printStackTrace();
+    }
+
+    public static void assertThat(boolean condition) {
+        assertThat(condition, "Assertion failed");
     }
 
     public static boolean isBlue() {
