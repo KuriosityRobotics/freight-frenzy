@@ -61,6 +61,7 @@ public class SensorThread implements Runnable, Telemeter {
             robot.getControlHub().getBulkData();
             odometry.update();
         }));
+        sensors.put("DistanceSensors", AsynchProcess.parallel())
     }
 
     public ExtendedKalmanFilter getKalmanFilter() {

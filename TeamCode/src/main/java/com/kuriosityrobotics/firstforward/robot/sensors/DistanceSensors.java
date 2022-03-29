@@ -12,7 +12,7 @@ import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchSensor;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchProcess;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -24,8 +24,6 @@ import org.apache.commons.numbers.core.Precision;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.ojalgo.matrix.Primitive64Matrix;
 
-import java.util.ArrayList;
-
 import kotlin.NotImplementedError;
 
 public class DistanceSensors {
@@ -35,22 +33,23 @@ public class DistanceSensors {
     public static final Segment bottomWall = Lines.fromPointAndDirection(Vector2D.of(0, 0), Vector2D.of(1, 0), p).segment(0, FULL_FIELD);
     public static final Segment topWall = Lines.fromPointAndDirection(Vector2D.of(0, 140.5), Vector2D.of(1, 0), p).segment(0, FULL_FIELD);
 
-    private final ArrayList<AsynchSensor> sensors;
+    private final AsynchProcess[] sensors;
     private final LocationProvider locationProvider;
     private final ExtendedKalmanFilter filter;
 
     public DistanceSensors(HardwareMap hardwareMap, LocationProvider locationProvider, ExtendedKalmanFilter filter) {
-        this.sensors = new ArrayList<>() {{
-            add(asynchDistanceSensor(LEFT, hardwareMap.get(DistanceSensor.class, "dleft")));
-            add(asynchDistanceSensor(RIGHT, hardwareMap.get(DistanceSensor.class, "dright")));
-            add(asynchDistanceSensor(BACK, hardwareMap.get(DistanceSensor.class, "dback")));
-        }};
+        this.sensors = new AsynchProcess[]{
+                asynchDistanceSensor(LEFT, hardwareMap.get(DistanceSensor.class, "dleft")),
+                asynchDistanceSensor(RIGHT, hardwareMap.get(DistanceSensor.class, "dright")),
+                asynchDistanceSensor(BACK, hardwareMap.get(DistanceSensor.class, "dback"))
+        };
         this.locationProvider = locationProvider;
         this.filter = filter;
     }
 
-    private AsynchSensor asynchDistanceSensor(PhysicalDistanceSensor physical, DistanceSensor sensor) {
-        return new AsynchSensor(5, () -> {
+    // TODO:  dont use asynchprocess in thsi class
+    private AsynchProcess asynchDistanceSensor(PhysicalDistanceSensor physical, DistanceSensor sensor) {
+        return AsynchProcess.parallel(() -> {
             var dist = sensor.getDistance(DistanceUnit.INCH);
             var pose = physical.getRobotPose(dist, locationProvider.getPose().heading);
             filter.datumBuilder()
@@ -61,11 +60,13 @@ public class DistanceSensors {
                     }))
                     .variance(dist/20., dist/20.)
                     .correct();
-        });
+        }, 5);
     }
 
     void update() {
-        sensors.forEach(AsynchSensor::update);
+        for (AsynchProcess sensor : sensors)
+            sensor.update();
+
     }
 
     enum PhysicalDistanceSensor {
@@ -73,7 +74,7 @@ public class DistanceSensors {
         RIGHT(new Point(ROBOT_WIDTH / 2, 0)),
         BACK(new Point(0, -ROBOT_HEIGHT / 2));
 
-        public final Point relativePose;
+        private final Point relativePose;
 
         PhysicalDistanceSensor(Point relativePose) {
             this.relativePose = relativePose;
