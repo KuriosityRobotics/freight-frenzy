@@ -1,22 +1,17 @@
 package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
-import static java.text.MessageFormat.format;
-
-import org.ojalgo.optimisation.ExpressionsBasedModel;
-import org.ojalgo.optimisation.Optimisation;
-import org.ojalgo.optimisation.Variable;
+import org.ojalgo.optimisation.*;
 
 import java.util.HashMap;
 import java.util.Objects;
 
+import static java.lang.Math.PI;
+import static java.text.MessageFormat.format;
+
 public class ConstrainedMovementCalculator {
     public static final double maxxMovement, maxyMovement, maxangularMovement;
-    private static final double r = 3.77952756 / 2, WHEEL_MAX_VEL = 29.1041666, Lx = 4.16700, Ly = 4.2125;
-
-    private final ExpressionsBasedModel model;
-    private final Variable angularMovement, xMovement, yMovement, fr, fl, bl, br;
-
     public static final ConstrainedMovementCalculator CONSTRAINED_MOVEMENT_CALCULATOR;
+    private static final double r = 3.77952756 / 2, WHEEL_MAX_VEL = 29.1041666, Lx = 4.16700, Ly = 4.2125;
 
     static {
         CONSTRAINED_MOVEMENT_CALCULATOR = new ConstrainedMovementCalculator();
@@ -25,9 +20,14 @@ public class ConstrainedMovementCalculator {
                 .solve().xMov();
         maxyMovement = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
                 .solve().yMov();
-        maxangularMovement = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement())
-                .solve().angularMov();
+        maxangularMovement =
+                CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement())
+                        .solve().angularMov();
     }
+
+    private final ExpressionsBasedModel model;
+    private final Variable angularMovement, xMovement, yMovement, fr, fl, bl, br;
+    private final Expression manhattanMovement;
 
     private ConstrainedMovementCalculator() {
         model = new ExpressionsBasedModel();
@@ -39,6 +39,10 @@ public class ConstrainedMovementCalculator {
         fr = model.addVariable("w2").upper(WHEEL_MAX_VEL).lower(-WHEEL_MAX_VEL);
         bl = model.addVariable("w3").upper(WHEEL_MAX_VEL).lower(-WHEEL_MAX_VEL);
         br = model.addVariable("w4").upper(WHEEL_MAX_VEL).lower(-WHEEL_MAX_VEL);
+
+        manhattanMovement = model.addExpression("Manhattan Movement")
+                .set(xMovement, 1)
+                .set(yMovement, 1);
 
         model.addExpression("Front left")
                 .lower(0)
@@ -73,6 +77,38 @@ public class ConstrainedMovementCalculator {
                 .set(br, -1);
     }
 
+    public static void main(String[] args) {
+        var follower = new ConstrainedMovementCalculator();
+        var max =
+                follower.maximiser(follower.angularMovement)
+                        .constrainEq(follower.yMovement, 0)
+                        .constrainEq(follower.xMovement, 0)
+                        .solve();
+        var min = follower.minimiser(follower.angularMovement)
+                .constrainEq(follower.yMovement, 0)
+                .constrainEq(follower.xMovement, 0)
+                .solve();
+
+        var maxY =
+                follower.maximiser(follower.manhattanMovement)
+                        .constrainEq(follower.angularMovement, 0)
+                        .constrainEq(follower.xMovement, 0)
+                        .solve();
+        System.out.println(follower.maximiser(follower.manhattanMovement)
+                .constrainEq(follower.angularMovement, PI/6)
+                .constrainLeq(follower.xMovement, 3)
+                .constrainLeq(follower.yMovement, 5).solve());
+
+
+        var start = System.currentTimeMillis();
+        for (double Mov = min.angularMov; Mov <= max.angularMov; Mov += (max.angularMov - min.angularMov) / 10000)
+            follower.maximiser(follower.yMovement)
+                    .constrainEq(follower.xMovement, 0)
+                    .constrainEq(follower.angularMovement, Mov).solve();
+
+        System.out.println(System.currentTimeMillis() - start);
+    }
+
     private static WheelMovements getState(ConstrainedMovementCalculator constrainedMovementCalculator) {
         return new WheelMovements
                 (
@@ -98,6 +134,10 @@ public class ConstrainedMovementCalculator {
         return yMovement;
     }
 
+    public Expression getManhattanMovement() {
+        return manhattanMovement;
+    }
+
     private void clearConstraints() {
         angularMovement.upper(null).lower(null).weight(0);
         xMovement.upper(null).lower(null).weight(0);
@@ -108,11 +148,11 @@ public class ConstrainedMovementCalculator {
         return new WheelSolver();
     }
 
-    public WheelSolver maximiser(Variable optimisationVariable) {
+    public WheelSolver maximiser(ModelEntity<?> optimisationVariable) {
         return new WheelSolver(optimisationVariable, true);
     }
 
-    public WheelSolver minimiser(Variable optimisationVariable) {
+    public WheelSolver minimiser(ModelEntity<?> optimisationVariable) {
         return new WheelSolver(optimisationVariable, false);
     }
 
@@ -124,18 +164,6 @@ public class ConstrainedMovementCalculator {
         private final double fr;
         private final double bl;
         private final double br;
-        
-        public static WheelMovements fromMovements(double xMov, double yMov, double turnMov) {
-            return new WheelMovements(
-                    xMov,
-                    yMov,
-                    turnMov,
-                    yMov + turnMov + xMov,
-                    yMov - turnMov - xMov,
-                    yMov + turnMov - xMov,
-                    yMov - turnMov + xMov
-            );
-        }
 
         public WheelMovements(double xMov, double yMov, double angularMov, double fl, double fr, double bl,
                               double br) {
@@ -146,6 +174,18 @@ public class ConstrainedMovementCalculator {
             this.fr = fr;
             this.bl = bl;
             this.br = br;
+        }
+
+        public static WheelMovements fromMovements(double xMov, double yMov, double turnMov) {
+            return new WheelMovements(
+                    xMov,
+                    yMov,
+                    turnMov,
+                    yMov + turnMov + xMov,
+                    yMov - turnMov - xMov,
+                    yMov + turnMov - xMov,
+                    yMov - turnMov + xMov
+            );
         }
 
         public double xMov() {
@@ -183,7 +223,9 @@ public class ConstrainedMovementCalculator {
 
         @Override
         public String toString() {
-            return format("[xMov={0,number,#.#}, yMov={1,number,#.#}, angularMov={2,number,#.#}, fl={3,number,.##}, fr={4,number,.##}, bl={5,number,.##}, br={6,number,.##}]", xMov, yMov, angularMov, fl, fr, bl, br);
+            return format("[xMov={0,number,#.#}, yMov={1,number,#.#}, angularMov={2,number,#.#}, fl={3,number,.##}, " +
+                            "fr={4,number,.##}, bl={5,number,.##}, br={6,number,.##}]", xMov, yMov, angularMov, fl, fr,
+                    bl, br);
         }
 
     }
@@ -191,10 +233,10 @@ public class ConstrainedMovementCalculator {
     public class WheelSolver {
         private final HashMap<Variable, Double> equalityConstraints = new HashMap<>();
         private final HashMap<Variable, Double> lessThanEqConstraints = new HashMap<>();
-        private final Variable optimisationVariable;
+        private final ModelEntity<?> optimisationVariable;
         private final boolean maximise;
 
-        WheelSolver(Variable optimisationVariable, boolean maximise) {
+        WheelSolver(ModelEntity<?> optimisationVariable, boolean maximise) {
             this.optimisationVariable = optimisationVariable;
             this.maximise = maximise;
         }

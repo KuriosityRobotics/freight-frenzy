@@ -170,9 +170,9 @@ public class PurePursuit implements Telemeter {
 //        }
 
         var movements = CONSTRAINED_MOVEMENT_CALCULATOR
-                .maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
+                .maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getManhattanMovement())
                 .constrainLeq(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement(), yPow * ConstrainedMovementCalculator.maxyMovement)
-                .constrainEq(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement(), xPow * ConstrainedMovementCalculator.maxxMovement)
+                .constrainLeq(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement(), xPow * ConstrainedMovementCalculator.maxxMovement)
                 .constrainEq(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement(), angPow * ConstrainedMovementCalculator.maxangularMovement)
                 .solve();
         drivetrain.setMovements(movements);
