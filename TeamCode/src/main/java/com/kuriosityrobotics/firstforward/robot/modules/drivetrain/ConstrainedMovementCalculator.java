@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class ConstrainedMovementCalculator {
-    public static final double maxXVelocity, maxYVelocity, maxAngularVelocity;
+    public static final double maxxMovement, maxyMovement, maxangularMovement;
     private static final double r = 3.77952756 / 2, WHEEL_MAX_VEL = 29.1041666, Lx = 4.16700, Ly = 4.2125;
 
     private final ExpressionsBasedModel model;
@@ -21,11 +21,11 @@ public class ConstrainedMovementCalculator {
     static {
         CONSTRAINED_MOVEMENT_CALCULATOR = new ConstrainedMovementCalculator();
 
-        maxXVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement())
+        maxxMovement = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement())
                 .solve().xMov();
-        maxYVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
+        maxyMovement = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
                 .solve().yMov();
-        maxAngularVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement())
+        maxangularMovement = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement())
                 .solve().angularMov();
     }
 
@@ -40,32 +40,37 @@ public class ConstrainedMovementCalculator {
         bl = model.addVariable("w3").upper(WHEEL_MAX_VEL).lower(-WHEEL_MAX_VEL);
         br = model.addVariable("w4").upper(WHEEL_MAX_VEL).lower(-WHEEL_MAX_VEL);
 
-        model.addExpression("Left-right velocity")
+        model.addExpression("Front left")
                 .lower(0)
                 .upper(0)
-                .set(fl, -r / 4)
-                .set(fr, r / 4)
-                .set(bl, r / 4)
-                .set(br, -r / 4)
-                .set(xMovement, -1);
+                .set(yMovement, 1)
+                .set(xMovement, 1)
+                .set(angularMovement, 1)
+                .set(fl, -1);
 
-        model.addExpression("Angular Velocity")
-                .upper(0)
+        model.addExpression("Front right")
                 .lower(0)
-                .set(fl, -r / (4 * (Lx + Ly)))
-                .set(fr, r / (4 * (Lx + Ly)))
-                .set(bl, -r / (4 * (Lx + Ly)))
-                .set(br, r / (4 * (Lx + Ly)))
-                .set(angularMovement, -1);
+                .upper(0)
+                .set(yMovement, 1)
+                .set(xMovement, -1)
+                .set(angularMovement, -1)
+                .set(fr, -1);
 
-        model.addExpression("Forward Velocity")
+        model.addExpression("Back left")
                 .lower(0)
                 .upper(0)
-                .set(fr, r / 4)
-                .set(fl, r / 4)
-                .set(bl, r / 4)
-                .set(br, r / 4)
-                .set(yMovement, -1);
+                .set(yMovement, 1)
+                .set(xMovement, -1)
+                .set(angularMovement, 1)
+                .set(bl, -1);
+
+        model.addExpression("Back right")
+                .lower(0)
+                .upper(0)
+                .set(yMovement, 1)
+                .set(xMovement, 1)
+                .set(angularMovement, -1)
+                .set(br, -1);
     }
 
     private static WheelMovements getState(ConstrainedMovementCalculator constrainedMovementCalculator) {
