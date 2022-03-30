@@ -2,13 +2,10 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.max;
 
-import android.os.SystemClock;
-
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -17,7 +14,7 @@ import java.util.ArrayList;
 
 class DrivetrainModule implements Module, Telemeter {
     //states
-    private AngleLockedFollower.WheelMovements wheelMovements;
+    private ConstrainedMovementCalculator.WheelMovements wheelMovements;
 
     //motors
     private final DcMotor fLeft;
@@ -58,12 +55,12 @@ class DrivetrainModule implements Module, Telemeter {
         return max;
     }
 
-    void setMovements(AngleLockedFollower.WheelMovements wheelMovements) {
+    void setMovements(ConstrainedMovementCalculator.WheelMovements wheelMovements) {
         this.wheelMovements = wheelMovements;
     }
 
     public void setMovements(Pose movementPose) {
-        this.setMovements(AngleLockedFollower.WheelMovements.fromMovements(movementPose.x, movementPose.y, movementPose.heading));
+        this.setMovements(ConstrainedMovementCalculator.WheelMovements.fromMovements(movementPose.x, movementPose.y, movementPose.heading));
     }
 
     private void setMotorPowers(double fLPower, double fRPower, double bLPower, double bRPower) {

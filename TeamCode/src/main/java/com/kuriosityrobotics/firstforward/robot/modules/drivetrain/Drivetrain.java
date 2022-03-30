@@ -16,7 +16,7 @@ public class Drivetrain implements Module, Telemeter {
     private final DrivetrainModule drivetrainModule;
 
     //states
-    private AngleLockedFollower.WheelMovements wheelMovements;
+    private ConstrainedMovementCalculator.WheelMovements wheelMovements;
 
     //braking states
     private final Braking brake = new Braking(); // whether or not to actively brake
@@ -32,10 +32,10 @@ public class Drivetrain implements Module, Telemeter {
 
 
     public void setMovements(double xMov, double yMov, double turnMov) {
-        wheelMovements = AngleLockedFollower.WheelMovements.fromMovements(xMov, yMov, turnMov);
+        wheelMovements = ConstrainedMovementCalculator.WheelMovements.fromMovements(xMov, yMov, turnMov);
     }
 
-    public void setMovements(AngleLockedFollower.WheelMovements movements) {
+    public void setMovements(ConstrainedMovementCalculator.WheelMovements movements) {
         wheelMovements = movements;
     }
 

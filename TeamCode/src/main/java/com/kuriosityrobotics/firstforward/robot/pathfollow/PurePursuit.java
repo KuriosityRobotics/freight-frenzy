@@ -1,13 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
-import static com.kuriosityrobotics.firstforward.robot.modules.drivetrain.AngleLockedFollower.theAngleLockedFollower;
+import static com.kuriosityrobotics.firstforward.robot.modules.drivetrain.ConstrainedMovementCalculator.CONSTRAINED_MOVEMENT_CALCULATOR;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.AngleLockedFollower;
+import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.ConstrainedMovementCalculator;
 import com.kuriosityrobotics.firstforward.robot.util.PID.IThresholdPID;
 import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.util.math.Line;
@@ -15,11 +15,8 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
-import com.kuriosityrobotics.firstforward.robot.util.PID.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.PID.FeedForwardPID;
 import com.qualcomm.robotcore.util.Range;
-
-import org.checkerframework.dataflow.qual.Pure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -172,10 +169,11 @@ public class PurePursuit implements Telemeter {
 //            angPow *= 0.6; // idk? it's less important??
 //        }
 
-        var movements = theAngleLockedFollower
-                .maximiser(theAngleLockedFollower.getyMovement())
-                .constrain(theAngleLockedFollower.getxMovement(), 0)
-                .constrain(theAngleLockedFollower.getangularMovement(), angPow * AngleLockedFollower.maxAngularVelocity)
+        var movements = CONSTRAINED_MOVEMENT_CALCULATOR
+                .maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
+                .constrainLeq(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement(), yPow * ConstrainedMovementCalculator.maxYVelocity)
+                .constrainEq(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement(), xPow * ConstrainedMovementCalculator.maxXVelocity)
+                .constrainEq(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement(), angPow * ConstrainedMovementCalculator.maxAngularVelocity)
                 .solve();
         drivetrain.setMovements(movements);
 

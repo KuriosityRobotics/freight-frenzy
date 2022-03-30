@@ -6,31 +6,30 @@ import org.ojalgo.optimisation.ExpressionsBasedModel;
 import org.ojalgo.optimisation.Optimisation;
 import org.ojalgo.optimisation.Variable;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Objects;
 
-public class AngleLockedFollower {
+public class ConstrainedMovementCalculator {
     public static final double maxXVelocity, maxYVelocity, maxAngularVelocity;
     private static final double r = 3.77952756 / 2, WHEEL_MAX_VEL = 29.1041666, Lx = 4.16700, Ly = 4.2125;
 
     private final ExpressionsBasedModel model;
     private final Variable angularMovement, xMovement, yMovement, fr, fl, bl, br;
 
-    public static final AngleLockedFollower theAngleLockedFollower;
+    public static final ConstrainedMovementCalculator CONSTRAINED_MOVEMENT_CALCULATOR;
 
     static {
-        theAngleLockedFollower = new AngleLockedFollower();
+        CONSTRAINED_MOVEMENT_CALCULATOR = new ConstrainedMovementCalculator();
 
-        maxXVelocity = theAngleLockedFollower.maximiser(theAngleLockedFollower.getxMovement())
+        maxXVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getxMovement())
                 .solve().xMov();
-        maxYVelocity = theAngleLockedFollower.maximiser(theAngleLockedFollower.getyMovement())
+        maxYVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getyMovement())
                 .solve().yMov();
-        maxAngularVelocity = theAngleLockedFollower.maximiser(theAngleLockedFollower.getangularMovement())
+        maxAngularVelocity = CONSTRAINED_MOVEMENT_CALCULATOR.maximiser(CONSTRAINED_MOVEMENT_CALCULATOR.getangularMovement())
                 .solve().angularMov();
     }
 
-    private AngleLockedFollower() {
+    private ConstrainedMovementCalculator() {
         model = new ExpressionsBasedModel();
         angularMovement = model.addVariable("angularMovement");
         xMovement = model.addVariable("xMovement");
@@ -69,16 +68,16 @@ public class AngleLockedFollower {
                 .set(yMovement, -1);
     }
 
-    private static WheelMovements getState(AngleLockedFollower angleLockedFollower) {
+    private static WheelMovements getState(ConstrainedMovementCalculator constrainedMovementCalculator) {
         return new WheelMovements
                 (
-                        angleLockedFollower.xMovement.getValue().doubleValue(),
-                        angleLockedFollower.yMovement.getValue().doubleValue(),
-                        angleLockedFollower.angularMovement.getValue().doubleValue(),
-                        angleLockedFollower.fl.getValue().doubleValue(),
-                        angleLockedFollower.fr.getValue().doubleValue(),
-                        angleLockedFollower.bl.getValue().doubleValue(),
-                        angleLockedFollower.br.getValue().doubleValue()
+                        constrainedMovementCalculator.xMovement.getValue().doubleValue(),
+                        constrainedMovementCalculator.yMovement.getValue().doubleValue(),
+                        constrainedMovementCalculator.angularMovement.getValue().doubleValue(),
+                        constrainedMovementCalculator.fl.getValue().doubleValue(),
+                        constrainedMovementCalculator.fr.getValue().doubleValue(),
+                        constrainedMovementCalculator.bl.getValue().doubleValue(),
+                        constrainedMovementCalculator.br.getValue().doubleValue()
                 );
     }
 
@@ -185,7 +184,8 @@ public class AngleLockedFollower {
     }
 
     public class WheelSolver {
-        private final HashMap<Variable, Double> constraintVariable = new HashMap<>();
+        private final HashMap<Variable, Double> equalityConstraints = new HashMap<>();
+        private final HashMap<Variable, Double> lessThanEqConstraints = new HashMap<>();
         private final Variable optimisationVariable;
         private final boolean maximise;
 
@@ -199,13 +199,18 @@ public class AngleLockedFollower {
             optimisationVariable = null;
         }
 
-        public WheelSolver constrain(Variable variable, double value) {
-            constraintVariable.put(variable, value);
+        public WheelSolver constrainEq(Variable variable, double value) {
+            equalityConstraints.put(variable, value);
+            return this;
+        }
+
+        public WheelSolver constrainLeq(Variable variable, double value) {
+            lessThanEqConstraints.put(variable, value);
             return this;
         }
 
         public WheelMovements solve() {
-            synchronized (AngleLockedFollower.this) {
+            synchronized (ConstrainedMovementCalculator.this) {
                 validateAndConstrain();
 
                 Optimisation.Result result;
@@ -222,16 +227,18 @@ public class AngleLockedFollower {
                 if (!result.getState().isFeasible())
                     return null;
 
-                return getState(AngleLockedFollower.this);
+                return getState(ConstrainedMovementCalculator.this);
             }
         }
 
         private void validateAndConstrain() {
             clearConstraints();
 
-            constraintVariable.forEach(
+            equalityConstraints.forEach(
                     (variable, value) -> variable.lower(value).upper(value)
             );
+
+            lessThanEqConstraints.forEach(Variable::upper);
         }
     }
 }
