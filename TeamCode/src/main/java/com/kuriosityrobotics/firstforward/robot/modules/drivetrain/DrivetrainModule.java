@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -16,7 +17,7 @@ import java.util.ArrayList;
 
 class DrivetrainModule implements Module, Telemeter {
     //states
-    private double xMov, yMov, turnMov;
+    private AngleLockedFollower.WheelMovements wheelMovements;
 
     //motors
     private final DcMotor fLeft;
@@ -40,21 +41,7 @@ class DrivetrainModule implements Module, Telemeter {
 
     //updates motor power
     public void update() {
-        double fLPower = yMov + turnMov + xMov;
-        double fRPower = yMov - turnMov - xMov;
-        double bLPower = yMov + turnMov - xMov;
-        double bRPower = yMov - turnMov + xMov;
-
-        double scale = scaleDown(fLPower, fRPower, bLPower, bRPower);
-
-        fLPower *= scale;
-        fRPower *= scale;
-        bLPower *= scale;
-        bRPower *= scale;
-
-        setMotorPowers(fLPower, fRPower, bLPower, bRPower);
-
-        long currentTime = SystemClock.elapsedRealtime();
+        setMotorPowers(wheelMovements.fl(), wheelMovements.fr(), wheelMovements.bl(), wheelMovements.br());
     }
 
     @Override
@@ -71,14 +58,12 @@ class DrivetrainModule implements Module, Telemeter {
         return max;
     }
 
-    void setMovements(double xMov, double yMov, double turnMov) {
-        this.xMov = xMov;
-        this.yMov = yMov;
-        this.turnMov = turnMov;
+    void setMovements(AngleLockedFollower.WheelMovements wheelMovements) {
+        this.wheelMovements = wheelMovements;
     }
 
     public void setMovements(Pose movementPose) {
-        this.setMovements(movementPose.x, movementPose.y, movementPose.heading);
+        this.setMovements(AngleLockedFollower.WheelMovements.fromMovements(movementPose.x, movementPose.y, movementPose.heading));
     }
 
     private void setMotorPowers(double fLPower, double fRPower, double bLPower, double bRPower) {
@@ -110,9 +95,7 @@ class DrivetrainModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add("xMov: " + xMov);
-        data.add("yMov: " + yMov);
-        data.add("turnMov: " + turnMov);
+        data.add("movements:  " + wheelMovements);
 
         return data;
     }

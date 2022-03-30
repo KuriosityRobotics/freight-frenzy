@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
-import android.os.SystemClock;
-
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -14,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
-    final LocationProvider locationProvider;
+    private final LocationProvider locationProvider;
     private final DrivetrainModule drivetrainModule;
 
     //states
-    public volatile double xMov, yMov, turnMov;
+    private AngleLockedFollower.WheelMovements wheelMovements;
 
     //braking states
     private final Braking brake = new Braking(); // whether or not to actively brake
@@ -32,10 +30,13 @@ public class Drivetrain implements Module, Telemeter {
         drivetrainModule = new DrivetrainModule(hardwareMap);
     }
 
+
     public void setMovements(double xMov, double yMov, double turnMov) {
-        this.xMov = xMov;
-        this.yMov = yMov;
-        this.turnMov = turnMov;
+        wheelMovements = AngleLockedFollower.WheelMovements.fromMovements(xMov, yMov, turnMov);
+    }
+
+    public void setMovements(AngleLockedFollower.WheelMovements movements) {
+        wheelMovements = movements;
     }
 
     @Override
@@ -44,9 +45,9 @@ public class Drivetrain implements Module, Telemeter {
     }
 
     private boolean movementsZero() {
-        return doublesEqual(xMov, 0) &&
-                doublesEqual(yMov, 0) &&
-                doublesEqual(turnMov, 0);
+        return doublesEqual(getxMov(), 0) &&
+                doublesEqual(getyMov(), 0) &&
+                doublesEqual(getTurnMov(), 0);
     }
 
     // updates drivetrainModule and odometry
@@ -59,10 +60,10 @@ public class Drivetrain implements Module, Telemeter {
             } else {
                 if (brake.isBraking())
                     brake.stopBraking();
-                drivetrainModule.setMovements(xMov, yMov, turnMov);
+                drivetrainModule.setMovements(wheelMovements);
             }
 
-            stallDetector.update(locationProvider.getVelocity(), xMov, yMov, turnMov);
+            stallDetector.update(locationProvider.getVelocity(), getxMov(), getyMov(), getTurnMov());
             drivetrainModule.update();
         }
     }
@@ -85,7 +86,7 @@ public class Drivetrain implements Module, Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", getxMov(), getyMov(), getTurnMov()));
 
         data.add("--");
 
@@ -101,5 +102,29 @@ public class Drivetrain implements Module, Telemeter {
     @Override
     public int getShowIndex() {
         return 1;
+    }
+
+    public double getxMov() {
+        return wheelMovements.xMov();
+    }
+
+    public void setxMov(double xMov) {
+        setMovements(xMov, getyMov(), getTurnMov());
+    }
+
+    public double getyMov() {
+        return wheelMovements.yMov();
+    }
+
+    public void setyMov(double yMov) {
+        setMovements(getxMov(), yMov, getTurnMov());
+    }
+
+    public double getTurnMov() {
+        return wheelMovements.angularMov();
+    }
+
+    public void setTurnMov(double turnMov) {
+        this.setMovements(getxMov(), getyMov(), turnMov);
     }
 }

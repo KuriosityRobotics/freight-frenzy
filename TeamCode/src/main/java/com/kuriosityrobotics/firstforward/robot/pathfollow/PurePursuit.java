@@ -1,11 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
+import static com.kuriosityrobotics.firstforward.robot.modules.drivetrain.AngleLockedFollower.theAngleLockedFollower;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.AngleLockedFollower;
 import com.kuriosityrobotics.firstforward.robot.util.PID.IThresholdPID;
 import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.util.math.Line;
@@ -166,18 +168,16 @@ public class PurePursuit implements Telemeter {
 
             angPow = Range.clip(headingPID.calculateSpeed(error), -1, 1);
         }
-
-        double normPow = Math.abs(xPow) + Math.abs(yPow);
-        double leftOver = 1 - Math.abs(angPow);
-        double scale = (normPow != 0 && normPow > leftOver) ? (leftOver / normPow) : 1;
-        xPow *= scale;
-        yPow *= scale;
-
 //        if (targetAngleLock.getType() == AngleLock.AngleLockType.NO_LOCK) {
 //            angPow *= 0.6; // idk? it's less important??
 //        }
 
-        drivetrain.setMovements(xPow, yPow, angPow);
+        var movements = theAngleLockedFollower
+                .maximiser(theAngleLockedFollower.getyMovement())
+                .constrain(theAngleLockedFollower.getxMovement(), 0)
+                .constrain(theAngleLockedFollower.getangularMovement(), angPow * AngleLockedFollower.maxAngularVelocity)
+                .solve();
+        drivetrain.setMovements(movements);
 
         // save values for dashboard lemon
         vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
