@@ -201,6 +201,9 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
         slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
 
+        slide.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        slide2.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
         linkage.setPosition(LinkagePosition.RETRACT.position);
