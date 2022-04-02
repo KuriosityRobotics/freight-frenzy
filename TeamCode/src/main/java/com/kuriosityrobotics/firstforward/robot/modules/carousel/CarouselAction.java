@@ -15,13 +15,13 @@ class CarouselAction extends Action {
     public void tick() {
         super.tick();
 
-        carouselModule.setMaxSpeed(0.55 * Math.PI);
+        carouselModule.maxSpeed = 0.8 * Math.PI;
 
         if (this.msSinceStart() >= WAIT_TIME_MS) {
-            carouselModule.setSpin(false);
+            carouselModule.spin = false;
             this.completed = true;
         } else {
-            carouselModule.setSpin(true);
+            carouselModule.spin = true;
         }
     }
 }

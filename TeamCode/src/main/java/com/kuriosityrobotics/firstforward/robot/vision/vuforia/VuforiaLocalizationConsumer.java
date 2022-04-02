@@ -87,7 +87,7 @@ public class VuforiaLocalizationConsumer {
         this.locationProvider = locationProvider;
         this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
-        cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
+        cameraEncoder = hwMap.get(DcMotor.class, "otherLift");
 
         var resetAngle = calculateDesiredCameraAngle();
         setCameraAngle(resetAngle);
