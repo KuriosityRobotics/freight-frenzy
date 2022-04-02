@@ -7,6 +7,8 @@ import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeMo
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.ALLIANCE_HUBS;
 import static java.lang.Math.abs;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -191,17 +193,19 @@ public class OuttakeModule implements Module, Telemeter {
         slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setTargetPosition(0);
+//        slide2.setTargetPosition(0);
 
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
-        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
+        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
+//        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
 
         slide.setDirection(DcMotorSimple.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+//        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
@@ -213,8 +217,10 @@ public class OuttakeModule implements Module, Telemeter {
 
     public void resetSlides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+//        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -246,6 +252,7 @@ public class OuttakeModule implements Module, Telemeter {
                     clamp.setPosition(CLAMP_CLAMP);
 
                     slide.setTargetPosition(targetSlideLevel.position);
+//                    slide2.setTargetPosition(-targetSlideLevel.position);
 
                     break;
                 case EXTEND:
@@ -267,6 +274,7 @@ public class OuttakeModule implements Module, Telemeter {
                     linkage.setPosition(LinkagePosition.RETRACT.position);
 
                     slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+//                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
                     break;
             }
 
@@ -276,6 +284,7 @@ public class OuttakeModule implements Module, Telemeter {
         // if current position is higher than the target
         if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
             slide.setPower(0);
             slide2.setPower(0);
@@ -285,11 +294,15 @@ public class OuttakeModule implements Module, Telemeter {
             }
         } else {
             slide.setTargetPosition(targetSlideLevel.position);
+//            slide2.setTargetPosition(-targetSlideLevel.position);
 
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             slide.setPower(1);
-            slide2.setPower(1);
+//            slide2.setPower(1);
+            Log.v("slide", "power: " + slide.getCurrentPosition());
+            Log.v("slide", "power2: " + slide2.getCurrentPosition());
         }
 
         if (currentState == EXTEND) {
