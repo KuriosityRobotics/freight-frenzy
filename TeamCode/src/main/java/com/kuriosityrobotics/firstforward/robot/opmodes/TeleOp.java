@@ -11,6 +11,8 @@ import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import android.util.Log;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     Robot robot = null;
@@ -30,10 +32,10 @@ public class TeleOp extends LinearOpMode {
     public void runOpMode() {
         robot = new Robot(hardwareMap, telemetry, this, true);
 
-        Robot.setBlue(true);
-        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
-        AutoPaths.calibrateVuforia(robot);
-        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+        Robot.setBlue(false);
+//        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
+//        AutoPaths.calibrateVuforia(robot);
+//        robot.resetPose(new Pose(FULL_FIELD - 29.375, 64.5, Math.toRadians(90)));
 
         waitForStart();
 
@@ -220,6 +222,9 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCarouselStates() {
+//        if (gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0) {
+//            Log.v("carousel", "buttonpressed: " + true);
+//        }
         robot.getCarouselModule().setSpin(gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0);
     }
 }

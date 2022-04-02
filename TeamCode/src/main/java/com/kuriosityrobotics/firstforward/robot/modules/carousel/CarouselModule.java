@@ -21,7 +21,7 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE = 2 * PI;
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
 //    private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
-    private static final double MAX_SPEED_MS = 1300;
+    private static final double MAX_SPEED_MS = 700;
 
     //states
     public volatile boolean spin = false;
@@ -29,14 +29,14 @@ public class CarouselModule implements Module, Telemeter {
     public volatile double maxSpeed;
     public volatile double startPosition;
 
-    private Long spinStartTimeNanos = null;
+    private Long spinStartTimeMillis = null;
 
     //motors
     private final DcMotorEx carouselMotor;
 
     public CarouselModule(HardwareMap hardwareMap) {
         // original:  1.4 * pi
-        this.setMaxSpeed(1.2 * PI);
+        this.setMaxSpeed(PI);
 
         carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -55,31 +55,38 @@ public class CarouselModule implements Module, Telemeter {
         this.setClockwise(Robot.isBlue());
 
         if (isSpin()) {
-            if (spinStartTimeNanos == null) {
-                spinStartTimeNanos = SystemClock.elapsedRealtimeNanos();
+            if (spinStartTimeMillis == null) {
+                Log.v("carousel", "spin: " + true);
+                spinStartTimeMillis = SystemClock.elapsedRealtime();
                 startPosition = carouselMotor.getCurrentPosition();
             }
 
-            speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtimeNanos() - spinStartTimeNanos)) / MAX_SPEED_MS), 0, 1);
-
+            Log.v("carousel", "speed: " + speed);
+            Log.v("carousel", "startpos: " + startPosition);
+            Log.v("carousel", "currentpos: " + carouselMotor.getCurrentPosition());
             // 1035 ticks in 360 degrees
-            if ((startPosition - carouselMotor.getCurrentPosition()) > 520) {
+            if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 680) {
                 Log.v("carousel",  "max speed");
-                speed = maxSpeed;
-            } else Log.v("carousel", "no max speed");
+                carouselMotor.setPower(1);
+            } else {
+                Log.v("carousel", "no max speed");
+                speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
+                carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
+            }
 
-            carouselMotor.setVelocity(clockwise ? -speed : speed, AngleUnit.RADIANS);
             target = speed;
         } else {
-            spinStartTimeNanos = null;
+            spinStartTimeMillis = null;
             carouselMotor.setVelocity(0);
         }
     }
 
+    @Override
     public boolean isOn() {
         return true;
     }
 
+    @Override
     public String getName() {
         return "CarouselModule";
     }
@@ -99,6 +106,10 @@ public class CarouselModule implements Module, Telemeter {
 
     public void setSpin(boolean spin) {
         this.spin = spin;
+    }
+
+    public boolean isClockwise() {
+        return clockwise;
     }
 
     public void setClockwise(boolean clockwise) {
