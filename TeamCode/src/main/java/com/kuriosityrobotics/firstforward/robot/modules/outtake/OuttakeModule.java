@@ -36,13 +36,13 @@ public class OuttakeModule implements Module, Telemeter {
     private OuttakeState currentState;
 
     //time constants
-    private static final long EXTEND_TIME = 400;
-    private static final long DUMP_TIME = 300;
+    private static final long EXTEND_TIME = 350;
+    private static final long DUMP_TIME = 250;
     private static final long TURRET_TIME = 150; // if the turret isn't already straight
 
-    private static final double CLAMP_INTAKE = 0.85465,
-            CLAMP_CLAMP = 0.767,
-            CLAMP_RELEASE = 0.90492;
+    private static final double CLAMP_INTAKE = 0.7839,
+            CLAMP_CLAMP = 0.6969,
+            CLAMP_RELEASE = 0.8728;
 
     private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
 
@@ -65,14 +65,14 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        CAP(1400),
-        CAP_DROP(1200),
-        TOP_TOP(1200),
-        TOP(1000),
-        MID(427),
-        SHARED(200),
-        DOWN(2),
-        DOWN_NO_EXTEND(2);
+        CAP(-1400),
+        CAP_DROP(-1200),
+        TOP_TOP(-1200),
+        TOP(-1000),
+        MID(-427),
+        SHARED(-200),
+        DOWN(-2),
+        DOWN_NO_EXTEND(-2);
 
         private final int position;
 
@@ -191,13 +191,11 @@ public class OuttakeModule implements Module, Telemeter {
         slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setTargetPosition(0);
-        slide2.setTargetPosition(0);
 
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
         slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
@@ -215,10 +213,8 @@ public class OuttakeModule implements Module, Telemeter {
 
     public void resetSlides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -250,7 +246,6 @@ public class OuttakeModule implements Module, Telemeter {
                     clamp.setPosition(CLAMP_CLAMP);
 
                     slide.setTargetPosition(targetSlideLevel.position);
-                    slide2.setTargetPosition(-targetSlideLevel.position);
 
                     break;
                 case EXTEND:
@@ -272,7 +267,6 @@ public class OuttakeModule implements Module, Telemeter {
                     linkage.setPosition(LinkagePosition.RETRACT.position);
 
                     slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
                     break;
             }
 
@@ -282,7 +276,6 @@ public class OuttakeModule implements Module, Telemeter {
         // if current position is higher than the target
         if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
             slide.setPower(0);
             slide2.setPower(0);
@@ -292,10 +285,8 @@ public class OuttakeModule implements Module, Telemeter {
             }
         } else {
             slide.setTargetPosition(targetSlideLevel.position);
-            slide2.setTargetPosition(-targetSlideLevel.position);
 
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             slide.setPower(1);
             slide2.setPower(1);

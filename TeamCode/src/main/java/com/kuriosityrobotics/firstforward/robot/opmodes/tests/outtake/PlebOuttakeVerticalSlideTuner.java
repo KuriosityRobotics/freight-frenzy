@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
+@Disabled
 @TeleOp
 public class PlebOuttakeVerticalSlideTuner extends LinearOpMode {
     DcMotorEx slide;
