@@ -10,11 +10,11 @@ import static java.lang.Math.abs;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
-import com.kuriosityrobotics.firstforward.robot.util.ActuatorUtil;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -48,16 +48,14 @@ public class OuttakeModule implements Module, Telemeter {
 
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
-        STRAIGHT(0.492083),
-        // raised up to .502746
-        //raised down to .482746
-        RIGHT(0.78988),
-        LEFT(0.186781),
-        SHARED_RIGHT(0.55),
-        SHARED_LEFT(0.426),
-        SHARED_RIGHT_MORE_EXTREME_ANGLE(0.65),
-        SHARED_LEFT_MORE_EXTREME_ANGLE(0.326),
-        ALLIANCE_LOCK(0.5);
+        STRAIGHT(0.4792),
+        RIGHT(0.7802),
+        LEFT(0.1775),
+        SHARED_RIGHT(0.6121),
+        SHARED_LEFT(0.3653),
+        SHARED_RIGHT_MORE_EXTREME_ANGLE(0.6822),
+        SHARED_LEFT_MORE_EXTREME_ANGLE(0.2930),
+        ALLIANCE_LOCK(0.5000);
 
         private final double position;
 
@@ -67,14 +65,14 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum VerticalSlideLevel {
-        CAP(-1400),
-        CAP_DROP(-1200),
-        TOP_TOP(-1200),
-        TOP(-1000),
-        MID(-427),
-        SHARED(-200),
-        DOWN(-2),
-        DOWN_NO_EXTEND(-2);
+        CAP(1400),
+        CAP_DROP(1200),
+        TOP_TOP(1200),
+        TOP(1000),
+        MID(427),
+        SHARED(200),
+        DOWN(2),
+        DOWN_NO_EXTEND(2);
 
         private final int position;
 
@@ -192,17 +190,20 @@ public class OuttakeModule implements Module, Telemeter {
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
         slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
 
-        ActuatorUtil.setRunMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER, slide, slide2);
+        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        ActuatorUtil.setTarget(0, slide, slide2);
+        slide.setTargetPosition(0);
+        slide2.setTargetPosition(0);
 
-        ActuatorUtil.setRunMode(DcMotor.RunMode.RUN_TO_POSITION, slide, slide2);
+        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
         slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
 
-        slide.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        slide2.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        slide.setDirection(DcMotorSimple.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
@@ -213,8 +214,11 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public void resetSlides() {
-        ActuatorUtil.setRunMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER, slide, slide2);
-        ActuatorUtil.setRunMode(DcMotor.RunMode.RUN_USING_ENCODER, slide, slide2);
+        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -245,7 +249,8 @@ public class OuttakeModule implements Module, Telemeter {
                     linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                     clamp.setPosition(CLAMP_CLAMP);
 
-                    ActuatorUtil.setTarget(targetSlideLevel.position, slide, slide2);
+                    slide.setTargetPosition(targetSlideLevel.position);
+                    slide2.setTargetPosition(-targetSlideLevel.position);
 
                     break;
                 case EXTEND:
@@ -265,7 +270,9 @@ public class OuttakeModule implements Module, Telemeter {
                     clamp.setPosition(CLAMP_CLAMP);
                     pivot.setPosition(PivotPosition.IN.position);
                     linkage.setPosition(LinkagePosition.RETRACT.position);
-                    ActuatorUtil.setTarget(VerticalSlideLevel.DOWN.position, slide, slide2);
+
+                    slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
                     break;
             }
 
@@ -274,18 +281,24 @@ public class OuttakeModule implements Module, Telemeter {
 
         // if current position is higher than the target
         if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
-            ActuatorUtil.setRunMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER, slide, slide2);
-            ActuatorUtil.setMotorPower(0, slide, slide2);
+            slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+            slide.setPower(0);
+            slide2.setPower(0);
 
             if (timerComplete()) {
                 clamp.setPosition(CLAMP_INTAKE);
             }
         } else {
-            ActuatorUtil.setTarget(targetSlideLevel.position, slide, slide2);
-            ActuatorUtil.setRunMode(DcMotor.RunMode.RUN_TO_POSITION, slide, slide2);
+            slide.setTargetPosition(targetSlideLevel.position);
+            slide2.setTargetPosition(-targetSlideLevel.position);
 
-            // autocorrection or7
-            ActuatorUtil.setMotorPower(1, slide, slide2);
+            slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            slide.setPower(1);
+            slide2.setPower(1);
         }
 
         if (currentState == EXTEND) {
