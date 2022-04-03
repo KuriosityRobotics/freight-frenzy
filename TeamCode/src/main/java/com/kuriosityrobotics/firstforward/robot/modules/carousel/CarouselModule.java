@@ -36,7 +36,7 @@ public class CarouselModule implements Module, Telemeter {
 
     public CarouselModule(HardwareMap hardwareMap) {
         // original:  1.4 * pi
-        this.setMaxSpeed(PI);
+        this.setMaxSpeed(1.16 * PI);
 
         carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -65,13 +65,17 @@ public class CarouselModule implements Module, Telemeter {
             Log.v("carousel", "startpos: " + startPosition);
             Log.v("carousel", "currentpos: " + carouselMotor.getCurrentPosition());
             // 1035 ticks in 360 degrees
-            if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 680) {
+            if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 850) {
                 Log.v("carousel",  "max speed");
                 carouselMotor.setPower(1);
             } else {
                 Log.v("carousel", "no max speed");
                 speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
                 carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
+            }
+
+            if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1155) {
+                carouselMotor.setVelocity(0);
             }
 
             target = speed;
