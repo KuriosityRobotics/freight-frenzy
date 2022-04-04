@@ -21,7 +21,7 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE = 2 * PI;
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
 //    private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
-    private static final double MAX_SPEED_MS = 1300;
+    private static final double MAX_SPEED_MS = 600;
 
     //states
     public volatile boolean spin = false;
@@ -37,7 +37,7 @@ public class CarouselModule implements Module, Telemeter {
 
     public CarouselModule(HardwareMap hardwareMap) {
         // original:  1.4 * pi
-        this.setMaxSpeed(1.3 * PI);
+        this.setMaxSpeed(0.8 * PI);
 
         carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -52,7 +52,7 @@ public class CarouselModule implements Module, Telemeter {
     private double speed;
 
     public void update() {
-        Log.v("carousel", "currentpos: " + carouselMotor.getCurrentPosition());
+//        Log.v("carousel", "currentpos: " + carouselMotor.getCurrentPosition());
         this.setClockwise(Robot.isBlue());
 
         if (isSpin()) {
@@ -63,11 +63,11 @@ public class CarouselModule implements Module, Telemeter {
             }
 
             if (isSlow) {
-                speed = (1.2 * PI) * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / 1300), 0, 1);
+                speed = (0.55 * PI) * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / 1300), 0, 1);
                 carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
             } else {
                 // 1035 ticks in 360 degrees
-                if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1255) {
+                if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1300) {
                     carouselMotor.setVelocity(0);
                 } else if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1000) {
 //                Log.v("carousel",  "max speed");
