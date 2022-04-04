@@ -200,14 +200,16 @@ public class OuttakeModule implements Module, Telemeter {
 
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
 
-        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        slide.setTargetPosition(0);
-        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
+//        slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        slide.setTargetPosition(0);
+//        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
+//
+//        clamp.setPosition(CLAMP_INTAKE);
+//        pivot.setPosition(PivotPosition.IN.position);
+//        linkage.setPosition(LinkagePosition.RETRACT.position);
 
-        clamp.setPosition(CLAMP_INTAKE);
-        pivot.setPosition(PivotPosition.IN.position);
-        linkage.setPosition(LinkagePosition.RETRACT.position);
+        turret.setPosition(TurretPosition.STRAIGHT.position);
 
         this.targetState = COLLAPSE;
         this.currentState = COLLAPSE;
@@ -344,7 +346,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     @Override
     public boolean isOn() {
-        return true;
+        return false;
     }
 
     @Override
