@@ -22,6 +22,7 @@ class CarouselAction extends Action {
             this.completed = true;
         } else {
             carouselModule.setSpin(true);
+            carouselModule.isSlow = true;
         }
     }
 }

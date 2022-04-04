@@ -27,6 +27,7 @@ public class CarouselModule implements Module, Telemeter {
     public volatile boolean spin = false;
     public volatile boolean clockwise = false;
     public volatile double maxSpeed;
+    public volatile boolean isSlow = false;
     public volatile double startPosition;
 
     private Long spinStartTimeMillis = null;
@@ -61,22 +62,24 @@ public class CarouselModule implements Module, Telemeter {
                 startPosition = carouselMotor.getCurrentPosition();
             }
 
-//            Log.v("carousel", "speed: " + speed);
-//            Log.v("carousel", "startpos: " + startPosition);
-//            Log.v("carousel", "currentpos: " + carouselMotor.getCurrentPosition());
-            // 1035 ticks in 360 degrees
-            if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1255) {
-                carouselMotor.setVelocity(0);
-            } else if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1000) {
-//                Log.v("carousel",  "max speed");
-                carouselMotor.setPower(1);
-            } else {
-//                Log.v("carousel", "no max speed");
-                speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
+            if (isSlow) {
+                speed = (1.2 * PI) * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / 1300), 0, 1);
                 carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
-            }
+            } else {
+                // 1035 ticks in 360 degrees
+                if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1255) {
+                    carouselMotor.setVelocity(0);
+                } else if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1000) {
+//                Log.v("carousel",  "max speed");
+                    carouselMotor.setPower(1);
+                } else {
+//                Log.v("carousel", "no max speed");
+                    speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);
+                    carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
+                }
 
-            target = speed;
+                target = speed;
+            }
         } else {
             spinStartTimeMillis = null;
             carouselMotor.setVelocity(0);
