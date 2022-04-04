@@ -39,8 +39,8 @@ public class OuttakeModule implements Module, Telemeter {
 
     //time constants
     private static final long EXTEND_TIME = 350;
-    private static final long DUMP_TIME = 250;
-    private static final long TURRET_TIME = 150; // if the turret isn't already straight
+    private static final long DUMP_TIME = 300;
+    private static final long TURRET_TIME = 200; // if the turret isn't already straight
 
     private static final double CLAMP_INTAKE = 0.7839,
             CLAMP_CLAMP = 0.6969,
@@ -110,7 +110,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum OuttakeState {
-        PARTIAL_EXTEND(400),
+        PARTIAL_EXTEND(100),
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),
@@ -292,8 +292,8 @@ public class OuttakeModule implements Module, Telemeter {
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-            slide.setPower(0.25);
-            slide2.setPower(0.25);
+            slide.setPower(0.4);
+            slide2.setPower(0.4);
 
             if (timerComplete()) {
                 clamp.setPosition(CLAMP_INTAKE);
