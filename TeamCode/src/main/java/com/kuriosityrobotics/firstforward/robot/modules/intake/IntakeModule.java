@@ -29,7 +29,7 @@ public class IntakeModule implements Module, Telemeter {
     private static final double FAR_DISTANCE_THRESHOLD = 70;
 
     public static final long INTAKE_EXTEND_TIME = 750;
-    public static final long INTAKE_RETRACT_TIME = 1150;
+    public static final long INTAKE_RETRACT_TIME = 1000;
 
     private static final double HOLD_POWER = 0.8;
 
