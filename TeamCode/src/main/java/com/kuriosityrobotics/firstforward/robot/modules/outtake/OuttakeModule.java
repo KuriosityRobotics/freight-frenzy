@@ -129,7 +129,7 @@ public class OuttakeModule implements Module, Telemeter {
         long currentTime = System.currentTimeMillis();
         boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
         boolean turretTimerComplete = currentTime >= transitionTime + currentState.completionTime + TURRET_TIME;
-        boolean slidesAtTarget = abs(slide.getCurrentPosition() - slide.getTargetPosition()) < 50;
+        boolean slidesAtTarget = abs(slide2.getCurrentPosition() - slide2.getTargetPosition()) < 50;
 
         switch (currentState) {
             case RAISE:
@@ -193,19 +193,19 @@ public class OuttakeModule implements Module, Telemeter {
         slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setTargetPosition(0);
-//        slide2.setTargetPosition(0);
+        slide2.setTargetPosition(0);
 
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
         slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
-//        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
+        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
 
         slide.setDirection(DcMotorSimple.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-//        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
@@ -217,10 +217,10 @@ public class OuttakeModule implements Module, Telemeter {
 
     public void resetSlides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-//        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -252,7 +252,7 @@ public class OuttakeModule implements Module, Telemeter {
                     clamp.setPosition(CLAMP_CLAMP);
 
                     slide.setTargetPosition(targetSlideLevel.position);
-//                    slide2.setTargetPosition(-targetSlideLevel.position);
+                    slide2.setTargetPosition(targetSlideLevel.position);
 
                     break;
                 case EXTEND:
@@ -274,7 +274,7 @@ public class OuttakeModule implements Module, Telemeter {
                     linkage.setPosition(LinkagePosition.RETRACT.position);
 
                     slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-//                    slide2.setTargetPosition(-VerticalSlideLevel.DOWN.position);
+                    slide2.setTargetPosition(VerticalSlideLevel.DOWN.position);
                     break;
             }
 
@@ -282,27 +282,32 @@ public class OuttakeModule implements Module, Telemeter {
         }
 
         // if current position is higher than the target
-        if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
+        if (currentState == PARTIAL_EXTEND) {
             slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-//            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            slide2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
             slide.setPower(0);
             slide2.setPower(0);
+        } else if (currentState == COLLAPSE) {
+            slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            slide.setPower(0.25);
+            slide2.setPower(0.25);
 
             if (timerComplete()) {
                 clamp.setPosition(CLAMP_INTAKE);
             }
-        } else {
+        }
+        else {
             slide.setTargetPosition(targetSlideLevel.position);
-//            slide2.setTargetPosition(-targetSlideLevel.position);
+            slide2.setTargetPosition(targetSlideLevel.position);
 
             slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-//            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             slide.setPower(1);
-//            slide2.setPower(1);
-            Log.v("slide", "power: " + slide.getCurrentPosition());
-            Log.v("slide", "power2: " + slide2.getCurrentPosition());
+            slide2.setPower(1);
         }
 
         if (currentState == EXTEND) {
@@ -373,13 +378,13 @@ public class OuttakeModule implements Module, Telemeter {
         return new ArrayList<>() {{
             add("Target State: " + targetState);
             add("State:  " + currentState);
-//            add("last:  " + lastRan);
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
             add("Linkage: " + targetLinkage.name());
-//            add("pivot postiong: " + pivot.getPosition());
-//            add("--");
-//            add("current slide:  " + slide.getCurrentPosition());
+            add("Slide: " + slide.getCurrentPosition());
+            add("Slide 2: " + slide2.getCurrentPosition());
+            add("Slide target: " + slide.getTargetPosition());
+            add("Slide 2 target: " + slide2.getTargetPosition());
         }};
     }
 
