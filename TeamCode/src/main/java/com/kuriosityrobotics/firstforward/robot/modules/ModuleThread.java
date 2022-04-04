@@ -8,6 +8,7 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,7 +22,7 @@ public class ModuleThread implements Runnable, Telemeter {
     private boolean started = false;
 
     private long updateDuration = 0;
-    private Map<Module, Long> moduleUpdateTimes;
+    private Map<String, Long> moduleUpdateTimes;
 
     public ModuleThread(Robot robot, Module[] modules) {
         this.robot = robot;
@@ -47,18 +48,20 @@ public class ModuleThread implements Runnable, Telemeter {
                 started = true;
             }
 
-            Map<Module, Long> aTime = new HashMap<>(5);
+            Map<String, Long> aTime = new HashMap<>(5);
             for (Module module : modules) {
                 if (module.isOn()) {
                     long start = SystemClock.elapsedRealtime();
                     module.update();
-                    aTime.put(module, SystemClock.elapsedRealtime() - start);
+                    aTime.put(module.getName(), SystemClock.elapsedRealtime() - start);
                 }
             }
 
             robot.getTelemetryDump().update();
-            moduleUpdateTimes = aTime;
-            updateDuration = SystemClock.elapsedRealtime() - overallStart;
+            synchronized (this) {
+                moduleUpdateTimes = aTime;
+                updateDuration = SystemClock.elapsedRealtime() - overallStart;
+            }
         }
 
         for (Module module : modules) {
@@ -81,16 +84,16 @@ public class ModuleThread implements Runnable, Telemeter {
     }
 
     @Override
-    public ArrayList<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         synchronized (this) {
-            ArrayList<String> data = new ArrayList<>();
+            List<String> data = new ArrayList<>();
 
             data.add("Overall Update time: " + updateDuration);
-            long moduleUpdate = 0; // what is this
-            for (Map.Entry<Module, Long> entry : moduleUpdateTimes.entrySet()) { // so much cleaner compared to foreach
-                Module module = entry.getKey();
+            long moduleUpdate = 0;
+            for (Map.Entry<String, Long> entry : moduleUpdateTimes.entrySet()) { // so much cleaner compared to foreach
+                String name = entry.getKey();
                 Long time = entry.getValue();
-                data.add(module.getName() + "Update Time: " + time);
+                data.add(String.format("%s's update Time: %d", name, time));
                 moduleUpdate += time;
             }
 
