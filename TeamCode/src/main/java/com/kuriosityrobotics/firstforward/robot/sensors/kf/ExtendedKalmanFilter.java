@@ -53,11 +53,13 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     }
 
     public void reset(double[] initialState, double... initialVariance) {
-        history.clear();
-        mean = Primitive64Matrix.FACTORY.column(initialState);
-        covariance = diagonal(initialVariance);
+        synchronized (lock) {
+            history.clear();
+            mean = Primitive64Matrix.FACTORY.column(initialState);
+            covariance = diagonal(initialVariance);
 
-        history.add(new PostPredictionState(mean, covariance, null, false));
+            history.add(new PostPredictionState(mean, covariance, null, false));
+        }
     }
 
     public void reset(double... initialState) {
@@ -180,7 +182,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         synchronized (lock) {
             var iter = history.listIterator(history.size() - 1);
             PostPredictionState thing = null;
-            while (iter.hasPrevious() && !(thing = iter.previous()).isCorrection() && !thing.getDatum().isFullState())
+            while (iter.hasPrevious() && (thing = iter.previous()).getDatum() != null && !thing.isCorrection() && !thing.getDatum().isFullState())
                 ;
             if (thing == null || !thing.isCorrection() || !thing.getDatum().isFullState())
                 return -1;

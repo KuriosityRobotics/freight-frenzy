@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static java.text.MessageFormat.format;
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.concurrent.ForkJoinPool.commonPool;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
 
@@ -94,6 +95,7 @@ public class SensorThread implements Runnable, Telemeter {
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
         }
+        commonPool().shutdown();
         Log.v("SensorThread", "Exited due to opMode no longer being active.");
     }
 
@@ -117,6 +119,7 @@ public class SensorThread implements Runnable, Telemeter {
         return getOdometry().getRollingVelocity();
     }
 
+
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
@@ -124,8 +127,17 @@ public class SensorThread implements Runnable, Telemeter {
         data.add("Update time: " + updateTime);
         data.add("Robot Pose: " + getPose().toDegrees());
 
-        for (var sensor : sensors.entrySet())
-            data.add(format("{0} update time (last 1s avg):  {1} ({2} Hz)", sensor.getKey(), sensor.getValue().rollingAverageUpdateTime(), 1000. / sensor.getValue().rollingAverageUpdateTime()));
+        for (var sensor : sensors.entrySet()) {
+            var builder = new StringBuilder();
+            builder.append(sensor.getKey());
+            builder.append(" update time (last 1s avg):  ");
+            var avg = sensor.getValue().rollingAverageUpdateTime();
+            builder.append((int)avg);
+            builder.append(" ms (");
+            builder.append((int)(1000 / avg));
+            builder.append(" Hz)");
+            data.add(builder.toString());
+        }
 
 
         return data;

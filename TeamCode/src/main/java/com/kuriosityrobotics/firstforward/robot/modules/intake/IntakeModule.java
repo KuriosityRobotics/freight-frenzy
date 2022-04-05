@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
+import static java.lang.Math.abs;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -209,19 +211,8 @@ public class IntakeModule implements Module, Telemeter {
         return false;
     }
 
-    private double lastPos = 0;
-    private long lasttime = 0;
-
     private boolean intakeSpinning() {
-        double pos = intakeMotor.getCurrentPosition();
-        long time = SystemClock.elapsedRealtime();
-
-        double velo = (pos - lastPos) / (time - lasttime);
-
-        lastPos = pos;
-        lasttime = time;
-
-        return Math.abs(velo) > 1;
+        return abs(intakePower) > .5;
     }
 
     public boolean isOn() {

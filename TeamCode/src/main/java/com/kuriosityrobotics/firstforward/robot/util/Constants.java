@@ -51,7 +51,7 @@ public class Constants {
         public static final float SHARE_HUB_X = FULL_FIELD / 2.0f;
         public static final float SHARE_HUB_Y = TILE_MEAT / 2.0f;
 
-        public static final ArrayList<Point> HUBS = new ArrayList<>(Arrays.asList(
+        public static final ArrayList<Point> ALLIANCE_HUBS = new ArrayList<>(Arrays.asList(
                 new Point(RED_HUB_X, RED_HUB_Y),
                 new Point(BLUE_HUB_X, BLUE_HUB_Y)));
     }

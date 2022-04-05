@@ -12,7 +12,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -92,9 +91,9 @@ public class TelemetryDump implements PoseWatcher {
         if (alert != null)
             stringBuilder.append(alert).append("\n \n");
 
-        var a = telemetors.stream().sorted(Comparator.comparing(Telemeter::getShowIndex))
+        telemetors.stream().sorted(Comparator.comparing(Telemeter::getShowIndex))
                 .filter(Telemeter::isOn)
-                .map(telemeter ->
+                .forEach(telemeter ->
                         stringBuilder
                                 .append("---")
                                 .append(telemeter.getName())
@@ -102,7 +101,7 @@ public class TelemetryDump implements PoseWatcher {
                                 // please java SHUT THE GELL UP I DON'T WANT TO USE STRING.JOIN
                                 .append(telemeter.getTelemetryData().stream().collect(Collectors.joining("\n")))
                                 .append("\n\n")
-                ).collect(Collectors.toList()).toString();
+                );
 
         return stringBuilder.toString();
     }
