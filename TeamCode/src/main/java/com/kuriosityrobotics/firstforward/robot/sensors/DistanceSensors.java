@@ -16,24 +16,24 @@ import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.apache.commons.geometry.euclidean.twod.Lines;
-import org.apache.commons.geometry.euclidean.twod.Ray;
 import org.apache.commons.geometry.euclidean.twod.Segment;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.numbers.core.Precision;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.ojalgo.matrix.Primitive64Matrix;
 
-import kotlin.NotImplementedError;
+import java.util.ArrayList;
+import java.util.List;
 
-public class DistanceSensors implements Module {
+public class DistanceSensors implements Module, LocationProvider {
     public static final double SENSOR_X_DISPLACEMENT = 5.354;
     public static final double BACK_SENSORS_Y_DISPLACEMENT = 5.6345;
     public static final double FRONT_SENSORS_Y_DISPLACEMENT = 2.9505;
     static final Precision.DoubleEquivalence p = Precision.doubleEquivalenceOfEpsilon(.05);
     private final LocationProvider locationProvider;
     private final ExtendedKalmanFilter filter;
-
     private final DistanceSensor frontLeft, backLeft, frontRight, backRight;
+    private double x, y, heading;
 
     public DistanceSensors(HardwareMap hardwareMap, LocationProvider locationProvider, ExtendedKalmanFilter filter) {
         this.locationProvider = locationProvider;
@@ -45,35 +45,56 @@ public class DistanceSensors implements Module {
         this.backRight = hardwareMap.get(DistanceSensor.class, "backRight");
     }
 
-    private static Point c(Vector2D p) {
-        return new Point(p.getX(), p.getY());
-    }
-
     private static Vector2D c(Point p) {
         return Vector2D.of(p.x, p.y);
+    }
+
+    private void processPartialState(Double[] sensorData) {
+        heading = sensorData[2];
+
+        Primitive64Matrix H;
+        double dist;
+        if (sensorData[0] != null) {
+            dist = x = sensorData[0];
+            H = Primitive64Matrix.FACTORY.rows(new double[][]{
+                    {1, 0, 0}, // x
+                    {0, 0, 1} // heading
+            });
+        } else if (sensorData[1] != null) {
+            dist = y = sensorData[1];
+            H = Primitive64Matrix.FACTORY.rows(new double[][]{
+                    {0, 1, 0}, // y
+                    {0, 0, 1} // heading
+            });
+        } else
+            return;
+
+        filter.builder()
+                .mean(dist, heading)
+                .stateToOutput(H)
+                .variance(.5, toRadians(4))
+                .correct();
     }
 
     public void update() {
         {
             var bestWallLeft = SensorPair.LEFT.bestWall(locationProvider.getPose());
             if (bestWallLeft != null)
-                SensorPair.LEFT.correctOnFilter(
-                        filter,
+                processPartialState(SensorPair.LEFT.getPartialState(
                         frontLeft.getDistance(DistanceUnit.INCH),
                         backLeft.getDistance(DistanceUnit.INCH),
                         bestWallLeft
-                );
+                ));
         }
 
         {
             var bestWallRight = SensorPair.RIGHT.bestWall(locationProvider.getPose());
             if (bestWallRight != null)
-                SensorPair.RIGHT.correctOnFilter(
-                        filter,
+                processPartialState(SensorPair.RIGHT.getPartialState(
                         frontRight.getDistance(DistanceUnit.INCH),
                         backRight.getDistance(DistanceUnit.INCH),
                         bestWallRight
-                );
+                ));
         }
     }
 
@@ -85,6 +106,28 @@ public class DistanceSensors implements Module {
     @Override
     public String getName() {
         return "DistanceSensors";
+    }
+
+    @Override
+    public Pose getPose() {
+        return new Pose(x, y, heading);
+    }
+
+    @Override
+    public Pose getVelocity() {
+        throw new UnsupportedOperationException("DistanceSensors cannot provide robot velocity.");
+    }
+
+    @Override
+    public List<String> getTelemetryData() {
+        return new ArrayList<>() {{
+            add("Robot pose:  " + getPose());
+        }};
+    }
+
+    @Override
+    public int maxFrequency() {
+        return 10;
     }
 
     public enum SensorPair {
@@ -119,7 +162,7 @@ public class DistanceSensors implements Module {
             return d + dOffset;
         }
 
-        public void correctOnFilter(ExtendedKalmanFilter filter, double frontSensor, double backSensor, Wall wall) {
+        public Double[] getPartialState(double frontSensor, double backSensor, Wall wall) {
             var wallHeading = getWallHeading(frontSensor, backSensor);
             var wallDistance = getWallDistance(frontSensor, backSensor);
 
@@ -157,24 +200,14 @@ public class DistanceSensors implements Module {
                     }
                     break;
             }
-            Primitive64Matrix H;
-            if (wall == Wall.FRONT || wall == Wall.BACK) {
-                H = Primitive64Matrix.FACTORY.rows(new double[][] {
-                        {0, 1, 0}, // y
-                        {0, 0, 1} // heading
-                });
-            } else {
-                H = Primitive64Matrix.FACTORY.rows(new double[][] {
-                        {1, 0, 0}, // x
-                        {0, 0, 1} // heading
-                });
-            }
 
-            filter.builder()
-                    .mean(wallDistance, heading)
-                    .stateToOutput(H)
-                    .variance(.5, toRadians(4))
-                    .correct();
+            Double[] pose;
+            if (wall == Wall.FRONT || wall == Wall.BACK)
+                pose = new Double[]{null, wallDistance, heading};
+            else
+                pose = new Double[]{wallDistance, null, heading};
+
+            return pose;
         }
 
         public Wall bestWall(Pose robotPose) {
@@ -189,13 +222,13 @@ public class DistanceSensors implements Module {
             var sensor2Line = Lines.fromPointAndAngle(sensor2, sensorHeading, p);
             var sensor2Segment = sensor2Line.segment(sensor2, sensor2.add(sensor2Line.getDirection().multiply(10)));
 
-            if (sensor1Segment.intersection(Wall.LEFT.segment) != null && sensor2Segment.intersection(Wall.LEFT.segment) != null)
+            if (sensor1Segment.intersection(Wall.LEFT.getSegment()) != null && sensor2Segment.intersection(Wall.LEFT.getSegment()) != null)
                 return Wall.LEFT;
-            else if (sensor1Segment.intersection(Wall.RIGHT.segment) != null && sensor2Segment.intersection(Wall.RIGHT.segment) != null)
+            else if (sensor1Segment.intersection(Wall.RIGHT.getSegment()) != null && sensor2Segment.intersection(Wall.RIGHT.getSegment()) != null)
                 return Wall.RIGHT;
-            else if (sensor1Segment.intersection(Wall.FRONT.segment) != null && sensor2Segment.intersection(Wall.FRONT.segment) != null)
+            else if (sensor1Segment.intersection(Wall.FRONT.getSegment()) != null && sensor2Segment.intersection(Wall.FRONT.getSegment()) != null)
                 return Wall.FRONT;
-            else if (sensor1Segment.intersection(Wall.BACK.segment) != null && sensor2Segment.intersection(Wall.BACK.segment) != null)
+            else if (sensor1Segment.intersection(Wall.BACK.getSegment()) != null && sensor2Segment.intersection(Wall.BACK.getSegment()) != null)
                 return Wall.BACK;
             else
                 return null;
@@ -208,10 +241,14 @@ public class DistanceSensors implements Module {
         FRONT(Lines.segmentFromPoints(Vector2D.of(0, FULL_FIELD), Vector2D.of(FULL_FIELD, FULL_FIELD), p)),
         BACK(Lines.segmentFromPoints(Vector2D.of(0, 0), Vector2D.of(FULL_FIELD, 0), p));
 
-        public final Segment segment;
+        private final Segment segment;
 
         Wall(Segment segment) {
             this.segment = segment;
+        }
+
+        public Segment getSegment() {
+            return segment;
         }
     }
 }
