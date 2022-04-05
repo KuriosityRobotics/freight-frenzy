@@ -33,7 +33,7 @@ public class CarouselModule implements Module, Telemeter {
 
     public CarouselModule(HardwareMap hardwareMap) {
         // original:  1.4 * pi
-        this.setMaxSpeed(0.85 * PI);
+        this.setMaxSpeed(1.2 * PI);
 
         carouselMotor = (DcMotorEx) hardwareMap.dcMotor.get("carousel");
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

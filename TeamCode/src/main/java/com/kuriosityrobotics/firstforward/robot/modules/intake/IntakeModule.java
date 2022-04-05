@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
 import static java.lang.Math.abs;
-import static java.lang.Math.toRadians;
 
 import android.os.SystemClock;
 
@@ -16,7 +15,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.ArrayList;
 import java.util.Locale;

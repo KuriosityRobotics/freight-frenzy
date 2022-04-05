@@ -152,7 +152,6 @@ public class Robot implements LocationProvider {
         }
     }
 
-
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
     }
@@ -191,7 +190,7 @@ public class Robot implements LocationProvider {
         path.reset();
 
         telemetryDump.registerTelemeter(path);
-        while (isOpModeActive() && path.update(this, drivetrain)) ;
+        while (isOpModeActive() && path.update(this, drivetrain));
         telemetryDump.removeTelemeter(path);
     }
 
