@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
+import static java.lang.Math.pow;
 import static java.lang.Math.toRadians;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -24,6 +25,8 @@ public class DistanceSensors implements Module, LocationProvider {
     public static final double SENSOR_X_DISPLACEMENT = 5.354;
     public static final double BACK_SENSORS_Y_DISPLACEMENT = 5.6345;
     public static final double FRONT_SENSORS_Y_DISPLACEMENT = 2.9505;
+    private static final double DISTANCE_SENSOR_MARGIN_OF_ERROR = .01;
+
     static final Precision.DoubleEquivalence p = Precision.doubleEquivalenceOfEpsilon(.05);
 
     private final LocationProvider locationProvider;
@@ -65,7 +68,7 @@ public class DistanceSensors implements Module, LocationProvider {
         filter.builder()
                 .mean(dist, heading)
                 .stateToOutput(H)
-                .variance(.5, toRadians(4))
+                .variance(pow(dist * DISTANCE_SENSOR_MARGIN_OF_ERROR, 2), toRadians(4))
                 .correct();
     }
 
