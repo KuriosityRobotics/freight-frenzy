@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static java.lang.Math.pow;
+import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -65,10 +66,15 @@ public class DistanceSensors implements Module, LocationProvider {
         } else
             return;
 
+        var sensorVariance = 2 * pow(dist * DISTANCE_SENSOR_MARGIN_OF_ERROR, 2); // this is ok because dist is a linear combination of the two sensors
+        var angleVariance = toRadians(6.674 * 6.674) * sensorVariance; // 6.674 is derivative of getWallHeading(k) at point x=0.  then apply error propagation law to approximated linear function
         filter.builder()
                 .mean(dist, heading)
                 .stateToOutput(H)
-                .variance(pow(dist * DISTANCE_SENSOR_MARGIN_OF_ERROR, 2), toRadians(4))
+                .variance(
+                        sensorVariance,
+                        angleVariance
+                )
                 .correct();
     }
 
