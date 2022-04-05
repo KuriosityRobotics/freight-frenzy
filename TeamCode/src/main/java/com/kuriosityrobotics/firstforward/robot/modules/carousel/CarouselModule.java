@@ -22,6 +22,7 @@ public class CarouselModule implements Module, Telemeter {
     private static final double CAROUSEL_WHEEL_CIRCUMFERENCE = 15 * PI;
 //    private static final double REVS_PER_CAROUSEL_REV = CAROUSEL_WHEEL_CIRCUMFERENCE / CAROUSEL_SPINNER_WHEEL_CIRCUMFERENCE;
     private static final double MAX_SPEED_MS = 600;
+    private static final double TICKS_PER_REVOLUTION = 1035;
 
     //states
     public volatile boolean spin = false;
@@ -57,7 +58,7 @@ public class CarouselModule implements Module, Telemeter {
 
         if (isSpin()) {
             if (spinStartTimeMillis == null) {
-                Log.v("carousel", "spin: " + true);
+//                Log.v("carousel", "spin: " + true);
                 spinStartTimeMillis = SystemClock.elapsedRealtime();
                 startPosition = carouselMotor.getCurrentPosition();
             }
@@ -66,10 +67,11 @@ public class CarouselModule implements Module, Telemeter {
                 speed = (0.55 * PI) * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / 1300), 0, 1);
                 carouselMotor.setVelocity(isClockwise() ? -speed : speed, AngleUnit.RADIANS);
             } else {
-                // 1035 ticks in 360 degrees
-                if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1300) {
+                double posRadians = ticksToRadians(Math.abs(startPosition - carouselMotor.getCurrentPosition()));
+
+                if (posRadians > (2.51 * PI)) {
                     carouselMotor.setVelocity(0);
-                } else if (Math.abs(startPosition - carouselMotor.getCurrentPosition()) > 1000) {
+                } else if (posRadians > (1.93 * PI)) {
 //                Log.v("carousel",  "max speed");
                     carouselMotor.setPower(1);
                 } else {
@@ -120,6 +122,8 @@ public class CarouselModule implements Module, Telemeter {
     public void setClockwise(boolean clockwise) {
         this.clockwise = clockwise;
     }
+
+    public double ticksToRadians (double ticks) {return ticks * 2 * PI / 1035;}
 
     public double getMaxSpeed() {
         return maxSpeed;
