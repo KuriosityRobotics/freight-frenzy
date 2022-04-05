@@ -2,10 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 
 import static com.kuriosityrobotics.firstforward.robot.Robot.assertThat;
 
-import static java.text.MessageFormat.format;
-
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
@@ -23,7 +20,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private final Object lock = new Object();
     private final LinkedList<PostPredictionState> history = new LinkedList<>();
 
-    private Primitive64Matrix mean, covariance;
+    Primitive64Matrix mean;
+    private Primitive64Matrix covariance;
 
     /**
      * @param initialState starting state
@@ -50,6 +48,10 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             data[i][i] = diagonal[i];
         }
         return Primitive64Matrix.FACTORY.rows(data);
+    }
+
+    public KalmanDatumBuilder builder() {
+        return new KalmanDatumBuilder();
     }
 
     public void reset(double[] initialState, double... initialVariance) {
@@ -267,10 +269,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return Telemeter.super.getDashboardData();
     }
 
-    public KalmanDatumBuilder datumBuilder() {
-        return this.new KalmanDatumBuilder();
-    }
-
     static class PostPredictionState {
         private final KalmanDatum datum;
         private final boolean correction;
@@ -367,6 +365,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             if (!covariance.isSymmetric())
                 throw new IllegalArgumentException("Covariance matrix must be symmetrical.");
 
+            if (stateToOutput.getColDim() != mean.getRowDim())
+                throw new IllegalArgumentException("State to output matrix does not fit datum.");
             if (stateToOutput.getColDim() != ExtendedKalmanFilter.this.mean.getRowDim())
                 throw new IllegalArgumentException("State to output matrix does not fit filter.");
 
@@ -375,7 +375,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
         public void predict() {
             var datum = build();
-            if (!(datum.isFullState() && mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
+            if (!(datum.isFullState() && this.mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
                 throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
 
             ExtendedKalmanFilter.this.predict(datum);

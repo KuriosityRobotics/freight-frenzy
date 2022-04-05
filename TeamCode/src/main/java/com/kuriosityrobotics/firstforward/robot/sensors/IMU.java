@@ -1,7 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static java.lang.Math.PI;
 import static java.lang.Math.abs;
 import static java.lang.Math.toDegrees;
 import static java.lang.Math.toRadians;
@@ -11,6 +10,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.hardware.bosch.BNO055IMU;
@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class IMU implements Telemeter {
+public class IMU implements Module {
     public static final String CALIBRATION_FILE = "imu_calibration.json";
     private static final File SETTINGS_FILE = AppUtil.getInstance().getSettingsFile(CALIBRATION_FILE);
     private static final double BIAS_PER_REVOLUTION = toRadians(-1);
@@ -110,7 +110,7 @@ public class IMU implements Telemeter {
 //            }
             lastTheta = angle;
 
-            filter.datumBuilder()
+            filter.builder()
                     .time(lastUpdateTime)
                     .mean(angle + (totalRevolutions * BIAS_PER_REVOLUTION))
                     .variance(toRadians(2))
@@ -149,5 +149,10 @@ public class IMU implements Telemeter {
     @Override
     public boolean isOn() {
         return true;
+    }
+
+    @Override
+    public int maxFrequency() {
+        return 10;
     }
 }

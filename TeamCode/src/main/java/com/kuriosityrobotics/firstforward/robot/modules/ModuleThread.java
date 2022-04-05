@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-import static java.text.MessageFormat.format;
-
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -10,7 +8,6 @@ import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchProcess;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.Executor;
 
 /**
  * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
@@ -26,13 +23,11 @@ public class ModuleThread implements Runnable, Telemeter {
         this.robot = robot;
         this.modules = new HashMap<>(modules.length);
         for (Module module : modules)
-            if (module.maxFrequency() == 0)
-                this.modules.put(module, AsynchProcess.blocking(module::update));
-            else
-                this.modules.put(module, AsynchProcess.blocking(module::update, module.maxFrequency()));
+            this.modules.put(module, AsynchProcess.blocking(module));
 
 
         robot.getTelemetryDump().registerTelemeter(this);
+        this.modules.keySet().forEach(robot.getTelemetryDump()::registerTelemeter);
     }
 
     /**

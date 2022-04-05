@@ -1,6 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
-public interface Module {
+import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+
+public interface Module extends Telemeter {
     void update();
 
     default void onStart() {}
