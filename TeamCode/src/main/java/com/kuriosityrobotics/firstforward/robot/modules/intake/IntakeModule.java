@@ -1,5 +1,8 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
+import static java.lang.Math.abs;
+import static java.lang.Math.toRadians;
+
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -13,6 +16,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -209,19 +213,8 @@ public class IntakeModule implements Module, Telemeter {
         return false;
     }
 
-    private double lastPos = 0;
-    private long lasttime = 0;
-
     private boolean intakeSpinning() {
-        double pos = intakeMotor.getCurrentPosition();
-        long time = SystemClock.elapsedRealtime();
-
-        double velo = (pos - lastPos) / (time - lasttime);
-
-        lastPos = pos;
-        lasttime = time;
-
-        return Math.abs(velo) > 1;
+        return abs(intakePower) > .5;
     }
 
     public boolean isOn() {
