@@ -11,6 +11,8 @@ import com.kuriosityrobotics.firstforward.robot.util.Button;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import android.util.Log;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class TeleOp extends LinearOpMode {
     Robot robot = null;
@@ -220,6 +222,6 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCarouselStates() {
-        robot.getCarouselModule().setSpin(gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0);
+        robot.getCarouselModule().setSpin(gamepad2.right_stick_x > 0.5 || gamepad2.right_stick_x < -0.5);
     }
 }
