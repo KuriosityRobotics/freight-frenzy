@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.modules;
 
+import static java.util.concurrent.ForkJoinPool.commonPool;
+
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -55,7 +57,7 @@ public class ModuleThread implements Runnable, Telemeter {
                 module.onClose();
             }
         }
-
+        commonPool().shutdown();
         Log.v("ModuleThread", "Exited due to opMode no longer being active.");
     }
 
