@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
+import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.ojalgo.matrix.Primitive64Matrix;
 
 import java.util.Collection;
@@ -96,5 +97,12 @@ public class MathUtil {
                 {-sin(theta), cos(theta), 0},
                 {0, 0, 1}
         });
+    }
+
+    public static Vector2D rotate(Vector2D vector, double angle) {
+        return Vector2D.of(
+                cos(angle) * vector.getX() + sin(angle) * vector.getY(),
+                -sin(angle) * vector.getX() + cos(angle) * vector.getY()
+        );
     }
 }

@@ -9,6 +9,7 @@ import android.os.SystemClock;
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,7 +17,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 
-public class Odometry extends RollingVelocityCalculator implements Telemeter, LocationProvider {
+public class Odometry extends RollingVelocityCalculator implements Module, LocationProvider {
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
@@ -90,7 +91,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         var now = SystemClock.elapsedRealtime();
         calculatePosition();
-        kalmanFilter.datumBuilder()
+        kalmanFilter.builder()
                 .time(now)
                 .mean(dx, dy, dHeading)
                 .outputToState(rotate(kalmanFilter.outputVector()[2]))
@@ -99,7 +100,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
         calculateInstantaneousVelAccelDeccel();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
-
     }
 
     private void calculatePosition() {

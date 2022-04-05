@@ -73,7 +73,7 @@ public class VuforiaKalmanListener extends VuforiaTrackableDefaultListener imple
 
         if (isValidDetection(lastDetection)) {
             vuforiaLocalizationConsumer.lastAcceptedTime = lastDetection.getDetectedTime();
-            filter.datumBuilder()
+            filter.builder()
                     .mean(pose.x, pose.y, pose.heading)
                     .variance(.04, .04, toRadians(3 * 3))
                     .correct();
