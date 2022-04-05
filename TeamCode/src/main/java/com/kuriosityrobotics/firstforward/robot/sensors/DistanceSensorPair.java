@@ -1,11 +1,13 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.INCH_PER_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
 
+import com.kuriosityrobotics.firstforward.robot.util.Constants;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
@@ -102,10 +104,16 @@ public enum DistanceSensorPair {
         var sensorHeading = this == RIGHT ? PI - robotPose.heading : -robotPose.heading;
 
         var sensor1Line = Lines.fromPointAndAngle(sensor1, sensorHeading, DistanceSensors.p);
-        var sensor1Segment = sensor1Line.segment(sensor1, sensor1.add(sensor1Line.getDirection().multiply(10)));
+        var sensor1Segment = sensor1Line.segment(
+                sensor1.add(sensor1Line.getDirection().multiply(40 * INCH_PER_MM)),
+                sensor1.add(sensor1Line.getDirection().multiply(300 * INCH_PER_MM))
+        );
 
         var sensor2Line = Lines.fromPointAndAngle(sensor2, sensorHeading, DistanceSensors.p);
-        var sensor2Segment = sensor2Line.segment(sensor2, sensor2.add(sensor2Line.getDirection().multiply(10)));
+        var sensor2Segment = sensor2Line.segment(
+                sensor2.add(sensor2Line.getDirection().multiply(40 * INCH_PER_MM)),
+                sensor2.add(sensor2Line.getDirection().multiply(300 * INCH_PER_MM))
+        );
 
         if (sensor1Segment.intersection(DistanceSensors.Wall.LEFT.getSegment()) != null && sensor2Segment.intersection(DistanceSensors.Wall.LEFT.getSegment()) != null)
             return DistanceSensors.Wall.LEFT;

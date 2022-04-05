@@ -22,6 +22,7 @@ public class Constants {
 
     public static final class Units {
         public static final float MM_PER_INCH = 25.4f;
+        public static final float INCH_PER_MM = 1 / MM_PER_INCH;
     }
 
     public static class Field {
