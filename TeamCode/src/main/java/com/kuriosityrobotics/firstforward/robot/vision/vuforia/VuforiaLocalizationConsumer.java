@@ -65,7 +65,6 @@ public class VuforiaLocalizationConsumer {
     private final Robot robot;
     private final Timer cameraResetTimer;
     private final ExtendedKalmanFilter kalmanFilter;
-    private boolean doneCalibrating = false;
     private VuforiaTrackables freightFrenzyTargets;
     private long lastUpdateTime = 0;
     private double cameraAngleOffset = 0;
@@ -76,6 +75,9 @@ public class VuforiaLocalizationConsumer {
     Pose lastVuforiaPosition;
     long lastAcceptedTime;
     long lastDetectedTime;
+
+    private boolean manualRotate = false;
+    private double manualCamHeading = 0;
 
     public VuforiaLocalizationConsumer(
             Robot robot,
@@ -193,12 +195,11 @@ public class VuforiaLocalizationConsumer {
      * @return target camera heading in radians
      */
     private double calculateDesiredCameraAngle() {
-        if (robot.started() || robot.isTeleOp()) {
+        if (manualRotate) {
+            return manualCamHeading;
+        } else {
             return angleToBestVuforiaTarget();
-        } else if (!Robot.isCarousel() && !isDoneCalibrating())
-            return 0;
-        else
-            return PI;
+        }
     }
 
     private double angleToBestVuforiaTarget() {
@@ -289,12 +290,13 @@ public class VuforiaLocalizationConsumer {
         cameraEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    public boolean isDoneCalibrating() {
-        return doneCalibrating;
+    public void setManualCamHeading(double manualCamHeading) {
+        this.manualCamHeading = manualCamHeading;
+        this.manualRotate = true;
     }
 
-    public void setDoneCalibrating(boolean doneCalibrating) {
-        this.doneCalibrating = doneCalibrating;
+    public void disableManualCam() {
+        this.manualRotate = false;
     }
 
     public double getCameraAngleVelocity() {
