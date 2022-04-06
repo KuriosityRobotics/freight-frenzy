@@ -11,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
+import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
@@ -36,6 +37,10 @@ public class AutoPaths {
     }
 
     public static OuttakeModule.VerticalSlideLevel awaitBarcodeDetection(Robot robot) {
+        VuforiaLocalizationConsumer vufConsumer = robot.getVisionThread().getVuforiaLocalizationConsumer();
+
+        vufConsumer.setManualCamHeading(Math.PI);
+
         TeamMarkerDetector.TeamMarkerLocation location;
         robot.getVisionThread().getTeamMarkerDetector().activate();
         do {
@@ -43,17 +48,31 @@ public class AutoPaths {
                 return null;
 
             location = robot.getVisionThread().getTeamMarkerDetector().getLocation();
+
+            Log.v("AUTO", "barcoding");
         } while ((location == null || location == TeamMarkerDetector.TeamMarkerLocation.UNKNOWN));
 
         robot.getVisionThread().getTeamMarkerDetector().deactivate();
 
+        vufConsumer.disableManualCam();
+
         return location.slideLevel();
     }
 
+    /**
+     * THIS METHOD MANUALLY SETS THE CAMERA POSITION TO MATH.PI AND RETURNS. THIS MAY CAUSE THE
+     * CAMERA TO STOP TRACKING IF NOBODY UNSETS THAT LATER!
+     *
+     * @param robot
+     */
     public static void calibrateVuforia(Robot robot) {
         while (robot.running() && !robot.getVisionThread().isStarted()) {
             // wait for vuforia to start
         }
+
+        VuforiaLocalizationConsumer vufConsumer = robot.getVisionThread().getVuforiaLocalizationConsumer();
+
+        vufConsumer.setManualCamHeading(0);
 
         Pose expectedRobotPosition = new Pose(29.375, 64.5, Math.toRadians(90));
         if (Robot.isBlue()) {
@@ -65,7 +84,7 @@ public class AutoPaths {
             if (!robot.running())
                 return;
 
-            gottenPosition = robot.getVisionThread().getVuforiaLocalizationConsumer().getLastVuforiaPosition();
+            gottenPosition = vufConsumer.getLastVuforiaPosition();
         } while (gottenPosition == null);
 
         Log.v("VUF", "gotten: " + gottenPosition);
@@ -74,8 +93,9 @@ public class AutoPaths {
 
         Log.v("VUF", "offsetby: " + offsetBy);
 
-        robot.getVisionThread().getVuforiaLocalizationConsumer().changeAllianceWallOffsetBy(offsetBy);
-        robot.getVisionThread().getVuforiaLocalizationConsumer().setDoneCalibrating(true);
+        vufConsumer.changeAllianceWallOffsetBy(offsetBy);
+
+        vufConsumer.setManualCamHeading(Math.PI);
     }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {
