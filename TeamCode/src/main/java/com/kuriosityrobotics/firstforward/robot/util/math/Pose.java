@@ -37,10 +37,6 @@ public class Pose extends Point {
         return new Pose(FULL_FIELD - x, y, angleWrap(-heading));
     }
 
-    public double norm() {
-        return hypot(x, y);
-    }
-
     public static Pose relativeMirror(double x, double y, double heading) {
         return new Pose(-x, y, angleWrap(-heading));
     }

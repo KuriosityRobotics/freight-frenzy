@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
 import static java.lang.Math.sin;
 
 import androidx.annotation.NonNull;
@@ -111,6 +112,10 @@ public class Point {
 
     public Point rotate(double angle) {
         return new Point(x * cos(angle) + y * sin(angle), -x * sin(angle) + y * cos(angle));
+    }
+
+    public double norm() {
+        return hypot(x, y);
     }
 }
 

@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile.ROBOT_MAX_ACCEL;
-import static com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile.ROBOT_MAX_DECCEL;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
 import static java.lang.Math.pow;
 
@@ -37,10 +35,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
     private double xVel = 0;
     private double yVel = 0;
     private double angleVel = 0;
-    // old vel for acceleration calculations
-    private double oldxVel = 0;
-    private double oldyVel = 0;
-    private double oldangleVel = 0;
     // change in position of the robot
     private double dx = 0;
     private double dy = 0;
@@ -55,8 +49,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
     private double oldY = 0;
     private double oldHeading = 0;
     private double lastUpdateTime = 0;
-    private double thetaLR = 0;
-    private double thetaFB = 0;
 
     public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter, IMU imu) {
         this.worldX = pose.x;
@@ -76,28 +68,18 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         FileDump.addField("yVel", this);
     }
 
-    private double accelerationSigmoid(double dq, double accel) {
-        if (accel > 0)
-            return dq * (imu.isOffGround() /*|| accel <= 2 * ROBOT_MAX_ACCEL*/ ? 2 : .8);
-        else
-            return dq * (imu.isOffGround() /*|| -accel <= 2 * ROBOT_MAX_DECCEL*/ ? .8 : 2);
-
-    }
-
     public void update() {
         var now = SystemClock.elapsedRealtime();
-        var dt  = (now - lastUpdateTime) / 1000.;
+        var dt = (now - lastUpdateTime) / 1000.;
         if (lastUpdateTime == 0)
             dt = 1. / maxFrequency();
 
         calculatePosition();
 
-        var accel = imu.getAcceleration();
-        var headingDeviation = accelerationSigmoid(dHeading, Math.hypot(accel.x, accel.y));
-
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
 
+        var accel = imu.getAcceleration();
         kalmanFilter.builder()
                 .time(now)
                 .mean(dx, dy, dHeading)
@@ -105,7 +87,7 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
                 .variance(
                         pow(dt * accel.x * .3, 2),
                         pow(dt * accel.y * .3, 2),
-                        pow(headingDeviation, 2)
+                        pow(dHeading * (imu.isOffGround() ? 2 : .8), 2)
                 )
                 .predict();
     }
@@ -143,10 +125,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         oldY = worldY;
         oldHeading = worldHeadingRad;
 
-        oldxVel = xVel;
-        oldyVel = yVel;
-        oldangleVel = angleVel;
-
         lastUpdateTime = currentUpdateTime;
     }
 
@@ -164,9 +142,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         // find robot relative deltas
         double dThetaLR = (dLeftPodInches - dRightPodInches) / (2 * P);
         double dThetaFB = (dMecanumFrontPodInches - dMecanumBackPodInches) / (2 * Q);
-
-        thetaLR += dThetaLR;
-        thetaFB += dThetaFB;
 
         double X = Math.abs(dLeftPodInches + dRightPodInches);
         double Y = Math.abs(dMecanumFrontPodInches + dMecanumBackPodInches);
@@ -282,10 +257,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
 
     public Pose getInstantaneousVelocity() {
         return new Pose(xVel, yVel, angleVel);
-    }
-
-    public double getVelMag() {
-        return Math.hypot(xVel, yVel);
     }
 
     @Override

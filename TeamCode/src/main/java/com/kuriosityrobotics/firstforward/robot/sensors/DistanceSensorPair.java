@@ -6,9 +6,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
-import static java.lang.Math.sqrt;
 
-import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
@@ -114,19 +112,19 @@ public enum DistanceSensorPair {
         var sensor2Line = Lines.fromPointAndAngle(sensor2, sensorHeading, DistanceSensorLocaliser.p);
         var sensor2Segment = sensor2Line.rayFrom(sensor2);
 
-        if (wallInRangeOfRays(covariance, robotPose.heading, Wall.LEFT, sensor1Segment, sensor2Segment))
+        if (wallInRangeOfRays(covariance, Wall.LEFT, sensor1Segment, sensor2Segment))
             return Wall.LEFT;
-        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.RIGHT, sensor1Segment, sensor2Segment))
+        else if (wallInRangeOfRays(covariance, Wall.RIGHT, sensor1Segment, sensor2Segment))
             return Wall.RIGHT;
-        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.FRONT, sensor1Segment, sensor2Segment))
+        else if (wallInRangeOfRays(covariance, Wall.FRONT, sensor1Segment, sensor2Segment))
             return Wall.FRONT;
-        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.BACK, sensor1Segment, sensor2Segment))
+        else if (wallInRangeOfRays(covariance, Wall.BACK, sensor1Segment, sensor2Segment))
             return Wall.BACK;
         else
             return null;
     }
 
-    private boolean wallInRangeOfRays(Pose variance, double heading, Wall wall, Ray... rays) {
+    private boolean wallInRangeOfRays(Pose variance, Wall wall, Ray... rays) {
         for (var sensorRay : rays) {
             var wallIntersection = sensorRay.intersection(wall.getSegment());
             if (wallIntersection == null)
