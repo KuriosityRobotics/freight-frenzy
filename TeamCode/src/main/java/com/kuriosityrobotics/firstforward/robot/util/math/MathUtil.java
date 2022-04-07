@@ -4,12 +4,18 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
+import org.apache.commons.numbers.core.Precision;
 import org.ojalgo.matrix.Primitive64Matrix;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
 
 public class MathUtil {
-    private static final double EPSILON = 0.00001;
+    private static final double EPSILON = 0.001;
+    private static final Precision.DoubleEquivalence PRECISION = Precision.doubleEquivalenceOfEpsilon(EPSILON);
 
     public static int toNum(boolean value) {
         return value ? 1 : 0;
@@ -23,6 +29,11 @@ public class MathUtil {
      */
     public static double angleWrap(double angle) {
         return angleWrap(angle, 0);
+    }
+
+    public static boolean inRange(double min, double max, double value) {
+        return PRECISION.gte(value, min)
+                && PRECISION.lte(value, max);
     }
 
     /**
@@ -82,6 +93,13 @@ public class MathUtil {
     public static double mean(Collection<Double> t) {
         return mean(t, 0, t.size());
     }
+
+    public static double median(Collection<Map.Entry<Long, Double>> t) {
+        var newCollection = new ArrayList<>(t);
+        Collections.sort(newCollection, Comparator.comparingDouble(Map.Entry::getValue));
+        return newCollection.get(newCollection.size() / 2).getValue();
+    }
+
 
     public static double sd(Collection<Double> t) {
         return Math.sqrt(
