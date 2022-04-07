@@ -1,24 +1,30 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.INCH_PER_MM;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.inRange;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
 import static java.lang.Math.PI;
 import static java.lang.Math.atan2;
 import static java.lang.Math.cos;
+import static java.lang.Math.sqrt;
 
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import org.apache.commons.geometry.euclidean.twod.Lines;
+import org.apache.commons.geometry.euclidean.twod.Ray;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 
 public enum DistanceSensorPair {
     RIGHT(
-            Vector2D.of(-DistanceSensors.SENSOR_X_DISPLACEMENT, -DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT),
-            Vector2D.of(-DistanceSensors.SENSOR_X_DISPLACEMENT, DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT)),
-    LEFT(Vector2D.of(DistanceSensors.SENSOR_X_DISPLACEMENT, -DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT),
-            Vector2D.of(DistanceSensors.SENSOR_X_DISPLACEMENT, DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT));
+            Vector2D.of(DistanceSensorLocaliser.SENSOR_X_DISPLACEMENT_RIGHT, -DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT),
+            Vector2D.of(DistanceSensorLocaliser.SENSOR_X_DISPLACEMENT_RIGHT, DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT)),
+    LEFT(Vector2D.of(-DistanceSensorLocaliser.SENSOR_X_DISPLACEMENT_LEFT, -DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT),
+            Vector2D.of(-DistanceSensorLocaliser.SENSOR_X_DISPLACEMENT_LEFT, DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT));
+
+    private static final double MIN_SENSOR_DISTANCE = 1;
+    private static final double MAX_SENSOR_DISTANCE = 7.75;
 
     private static Vector2D c(Point p) {
         return Vector2D.of(p.x, p.y);
@@ -32,23 +38,23 @@ public enum DistanceSensorPair {
     }
 
     public static double getWallHeading(double frontSensor, double backSensor) {
-        return atan2(frontSensor - backSensor, DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT);
+        return atan2(frontSensor - backSensor, DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT);
     }
 
     public static double getWallDistance(double frontSensor, double backSensor) {
         double wallHeading = getWallHeading(frontSensor, backSensor);
         double d1 = frontSensor * cos(wallHeading);
         double d2 = backSensor * cos(wallHeading);
-        double A = DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT / (DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT);
-        double B = DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT / (DistanceSensors.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensors.BACK_SENSORS_Y_DISPLACEMENT);
+        double A = DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT / (DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT);
+        double B = DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT / (DistanceSensorLocaliser.FRONT_SENSORS_Y_DISPLACEMENT + DistanceSensorLocaliser.BACK_SENSORS_Y_DISPLACEMENT);
 
         double d = A * d1 + B * d2;
-        double dOffset = DistanceSensors.SENSOR_X_DISPLACEMENT / cos(wallHeading);
+        double dOffset = DistanceSensorLocaliser.SENSOR_X_DISPLACEMENT_RIGHT / cos(wallHeading);
 
         return d + dOffset;
     }
 
-    public Double[] getPartialState(double frontSensor, double backSensor, DistanceSensors.Wall wall) {
+    public Double[] getPartialState(double frontSensor, double backSensor, Wall wall) {
         var wallHeading = getWallHeading(frontSensor, backSensor);
         var wallDistance = getWallDistance(frontSensor, backSensor);
 
@@ -57,7 +63,7 @@ public enum DistanceSensorPair {
         switch (wall) {
             case FRONT:
                 wallDistance = FULL_FIELD - wallDistance;
-                if (this == LEFT) {
+                if (this == RIGHT) {
                     heading = PI / 2 + wallHeading;
                 } else {
                     heading = -PI / 2 - wallHeading;
@@ -65,14 +71,14 @@ public enum DistanceSensorPair {
                 break;
             case RIGHT:
                 wallDistance = FULL_FIELD - wallDistance;
-                if (this == LEFT) {
-                    heading = PI + wallHeading;
-                } else {
+                if (this == RIGHT) {
                     heading = -wallHeading;
+                } else {
+                    heading = PI + wallHeading;
                 }
                 break;
             case BACK:
-                if (this == LEFT) {
+                if (this == RIGHT) {
                     heading = -PI / 2 + wallHeading;
                 } else {
                     heading = PI / 2 - wallHeading;
@@ -88,7 +94,7 @@ public enum DistanceSensorPair {
         }
 
         Double[] pose;
-        if (wall == DistanceSensors.Wall.FRONT || wall == DistanceSensors.Wall.BACK)
+        if (wall == Wall.FRONT || wall == Wall.BACK)
             pose = new Double[]{null, wallDistance, heading};
         else
             pose = new Double[]{wallDistance, null, heading};
@@ -96,33 +102,41 @@ public enum DistanceSensorPair {
         return pose;
     }
 
-    public DistanceSensors.Wall bestWall(Pose robotPose) {
+    public Wall bestWall(Pose covariance, Pose robotPose) {
         var sensor1 = c(robotPose).add(rotate(offset1, robotPose.heading));
         var sensor2 = c(robotPose).add(rotate(offset2, robotPose.heading));
 
-        var sensorHeading = this == RIGHT ? PI - robotPose.heading : -robotPose.heading;
+        var sensorHeading = PI/2 + (this == RIGHT ? -(robotPose.heading + PI/2) : -(robotPose.heading - PI/2));
 
-        var sensor1Line = Lines.fromPointAndAngle(sensor1, sensorHeading, DistanceSensors.p);
-        var sensor1Segment = sensor1Line.segment(
-                sensor1.add(sensor1Line.getDirection().multiply(40 * INCH_PER_MM)),
-                sensor1.add(sensor1Line.getDirection().multiply(300 * INCH_PER_MM))
-        );
+        var sensor1Line = Lines.fromPointAndAngle(sensor1, sensorHeading, DistanceSensorLocaliser.p);
+        var sensor1Segment = sensor1Line.rayFrom(sensor1);
 
-        var sensor2Line = Lines.fromPointAndAngle(sensor2, sensorHeading, DistanceSensors.p);
-        var sensor2Segment = sensor2Line.segment(
-                sensor2.add(sensor2Line.getDirection().multiply(40 * INCH_PER_MM)),
-                sensor2.add(sensor2Line.getDirection().multiply(300 * INCH_PER_MM))
-        );
+        var sensor2Line = Lines.fromPointAndAngle(sensor2, sensorHeading, DistanceSensorLocaliser.p);
+        var sensor2Segment = sensor2Line.rayFrom(sensor2);
 
-        if (sensor1Segment.intersection(DistanceSensors.Wall.LEFT.getSegment()) != null && sensor2Segment.intersection(DistanceSensors.Wall.LEFT.getSegment()) != null)
-            return DistanceSensors.Wall.LEFT;
-        else if (sensor1Segment.intersection(DistanceSensors.Wall.RIGHT.getSegment()) != null && sensor2Segment.intersection(DistanceSensors.Wall.RIGHT.getSegment()) != null)
-            return DistanceSensors.Wall.RIGHT;
-        else if (sensor1Segment.intersection(DistanceSensors.Wall.FRONT.getSegment()) != null && sensor2Segment.intersection(DistanceSensors.Wall.FRONT.getSegment()) != null)
-            return DistanceSensors.Wall.FRONT;
-        else if (sensor1Segment.intersection(DistanceSensors.Wall.BACK.getSegment()) != null && sensor2Segment.intersection(DistanceSensors.Wall.BACK.getSegment()) != null)
-            return DistanceSensors.Wall.BACK;
+        if (wallInRangeOfRays(covariance, robotPose.heading, Wall.LEFT, sensor1Segment, sensor2Segment))
+            return Wall.LEFT;
+        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.RIGHT, sensor1Segment, sensor2Segment))
+            return Wall.RIGHT;
+        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.FRONT, sensor1Segment, sensor2Segment))
+            return Wall.FRONT;
+        else if (wallInRangeOfRays(covariance, robotPose.heading, Wall.BACK, sensor1Segment, sensor2Segment))
+            return Wall.BACK;
         else
             return null;
+    }
+
+    private boolean wallInRangeOfRays(Pose variance, double heading, Wall wall, Ray... rays) {
+        for (var sensorRay : rays) {
+            var wallIntersection = sensorRay.intersection(wall.getSegment());
+            if (wallIntersection == null)
+                return false;
+
+            var wallDistance = sensorRay.getStartPoint().distance(wallIntersection);
+            if (!inRange(MIN_SENSOR_DISTANCE - variance.norm(), MAX_SENSOR_DISTANCE + variance.norm(), wallDistance))
+                return false;
+        }
+
+        return true;
     }
 }

@@ -3,6 +3,7 @@ package com.kuriosityrobotics.firstforward.robot.util.wrappers;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.mean;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
+import android.annotation.SuppressLint;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -11,14 +12,13 @@ import com.kuriosityrobotics.firstforward.robot.util.Timer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 public class AsynchProcess implements Telemeter {
     private final HashMap<Long, Double> updateTimes = new HashMap<>();
-    private final HashSet<AsynchProcess> chained = new HashSet<>();
+    private final ArrayList<AsynchProcess> chained = new ArrayList<>();
     private final Module module;
     private final Executor executor;
 
@@ -118,18 +118,12 @@ public class AsynchProcess implements Telemeter {
         return mean(updateTimes.values());
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public String toString() {
-        var result = new StringBuilder();
-
-        result.append("update time:  ");
         double updateTime = rollingAverageUpdateTime();
-        result.append(updateTime);
-        result.append(" ms (");
-        result.append(1000. / updateTime);
-        result.append(" Hz)");
 
-        return result.toString();
+        return String.format("update time:  %.1f ms (%.1f Hz)", updateTime, 1000. / updateTime);
     }
 
     @Override

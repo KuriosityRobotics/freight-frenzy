@@ -259,6 +259,15 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return null;
     }
 
+    public double[] getVariance() {
+        var diag = new double[covariance.getRowDim()];
+
+        for(int i = 0; i < covariance.getRowDim(); i++)
+            diag[i] = covariance.get(i, i);
+
+        return diag;
+    }
+
     @Override
     public boolean isOn() {
         return false;
@@ -364,9 +373,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
             if (!covariance.isSymmetric())
                 throw new IllegalArgumentException("Covariance matrix must be symmetrical.");
-
-            if (stateToOutput.getColDim() != mean.getRowDim())
-                throw new IllegalArgumentException("State to output matrix does not fit datum.");
+            
             if (stateToOutput.getColDim() != ExtendedKalmanFilter.this.mean.getRowDim())
                 throw new IllegalArgumentException("State to output matrix does not fit filter.");
 
