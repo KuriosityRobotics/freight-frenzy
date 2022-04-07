@@ -140,8 +140,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             }
 
             history.forEach(state -> {
-//                if (!state.getMean().equals(smoothedMeans.get(state)))
-//                    Log.d("EKF/smooth", format("before:  {0},  after:  {1}", state.getMean(), smoothedMeans.get(state)));
                 state.setMean(smoothedMeans.get(state));
                 state.setCovariance(smoothedVariances.get(state));
             });

@@ -1,8 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.mean;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.median;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
 import static java.lang.Math.abs;
 import static java.lang.Math.toDegrees;
@@ -20,7 +18,6 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ReadWriteFile;
 
-import org.apache.commons.collections4.queue.CircularFifoQueue;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -41,7 +38,6 @@ import java.util.concurrent.TimeoutException;
 public class IMU implements Module {
     public static final String CALIBRATION_FILE = "imu_calibration.json";
     private static final File SETTINGS_FILE = AppUtil.getInstance().getSettingsFile(CALIBRATION_FILE);
-    private static final double BIAS_PER_REVOLUTION = toRadians(-1);
 
     private final BNO055IMU imu;
     private final ExtendedKalmanFilter filter;
