@@ -32,19 +32,20 @@ public class DistanceSensorLocaliser implements Module, LocationProvider {
 
     private final LocationProvider locationProvider;
     private final ExtendedKalmanFilter filter;
-    private final SharpIRDistance frontLeft, backLeft/*, frontRight, backRight*/;
+    private final SharpIRDistance frontLeft, backLeft, frontRight, backRight;
 
     private double x, y, heading;
 
     public DistanceSensorLocaliser(LocationProvider locationProvider, ExtendedKalmanFilter filter,
-                                   SharpIRDistance frontLeft, SharpIRDistance backLeft) {
+                                   SharpIRDistance frontLeft, SharpIRDistance backLeft,
+                                   SharpIRDistance frontRight, SharpIRDistance backRight) {
         this.locationProvider = locationProvider;
         this.filter = filter;
 
         this.frontLeft = frontLeft;
         this.backLeft = backLeft;
-//        this.frontRight = hardwareMap.get(DistanceSensor.class, "frontRight");
-//        this.backRight = hardwareMap.get(DistanceSensor.class, "backRight");
+        this.frontRight = frontRight;
+        this.backRight = backRight;
     }
 
     private void processPartialState(Double[] sensorData) {
@@ -92,15 +93,15 @@ public class DistanceSensorLocaliser implements Module, LocationProvider {
                 ));
         }
 
-       /* {
-            var bestWallRight = DistanceSensorPair.RIGHT.bestWall(locationProvider.getPose());
+        {
+            var bestWallRight = DistanceSensorPair.RIGHT.bestWall(Pose.of(filter.getVariance()), locationProvider.getPose());
             if (bestWallRight != null)
                 processPartialState(DistanceSensorPair.RIGHT.getPartialState(
-                        frontRight.getDistance(DistanceUnit.INCH),
-                        backRight.getDistance(DistanceUnit.INCH),
+                        frontRight.getDistance(),
+                        backRight.getDistance(),
                         bestWallRight
                 ));
-        }*/
+        }
     }
 
     @Override
