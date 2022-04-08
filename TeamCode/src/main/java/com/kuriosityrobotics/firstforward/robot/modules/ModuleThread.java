@@ -11,10 +11,6 @@ import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchProcess;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * ModuleExecutor creates a new thread where modules will be executed and data will be retrieved
- * from the hubs.
- */
 public class ModuleThread implements Runnable, Telemeter {
     private final Robot robot;
     private final HashMap<Module, AsynchProcess> modules;
