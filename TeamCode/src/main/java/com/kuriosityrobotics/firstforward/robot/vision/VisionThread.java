@@ -31,7 +31,7 @@ public class VisionThread implements Runnable, Telemeter {
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
         this.cargoDetectorConsumer = new CargoDetectorConsumer(robot);
-        this.teamMarkerDetector = new TeamMarkerDetector(robot);
+        this.teamMarkerDetector = new TeamMarkerDetector();
 
         if (camera.isAttached()) {
             this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot.getSensorThread().getKalmanFilter(), robot, robot.getHardwareMap());
@@ -75,6 +75,7 @@ public class VisionThread implements Runnable, Telemeter {
                     getTeamMarkerDetector()
 //                    cargoDetectorConsumer
             );
+            getTeamMarkerDetector().activate();
 
 //            cargoDetectionThread = new Thread(cargoDetectorConsumer);
 //            cargoDetectionThread.start();
@@ -90,7 +91,6 @@ public class VisionThread implements Runnable, Telemeter {
                 if (robot.isTeleOp()) {
                     teamMarkerDetector.deactivate();
                 }
-
                 long currentTime = SystemClock.elapsedRealtime();
                 updateTime = currentTime - lastLoopTime;
                 lastLoopTime = currentTime;
