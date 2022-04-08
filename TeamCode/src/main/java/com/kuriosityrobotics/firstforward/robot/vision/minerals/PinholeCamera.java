@@ -5,9 +5,22 @@ import org.apache.commons.geometry.euclidean.threed.Vector3D;
 import org.apache.commons.geometry.euclidean.threed.rotation.QuaternionRotation;
 import org.apache.commons.geometry.euclidean.twod.AffineTransformMatrix2D;
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import static java.lang.Math.*;
 import static org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D.*;
+
+import com.kuriosityrobotics.firstforward.robot.util.math.Point;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PinholeCamera {
 
@@ -48,14 +61,169 @@ public class PinholeCamera {
                 SENSOR_DIAGONAL);
     }
 
-    /**
-     * Find z' given the frame coordinates and constrained world coordinate.
-     *
-     * @param worldToFrame
-     * @param x
-     * @param y
-     * @return
-     */
+    public ArrayList<Point> getCubePixelCoords(Mat original){
+        ArrayList<Point> cubePixel = new ArrayList<>();
+        Mat img = original.clone();
+
+        Mat canny = new Mat();
+
+        cubeCanny(img, canny);
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        double points;
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            Rect bound = Imgproc.boundingRect(contour);
+            points = (bound.width + 1) * (bound.height + 1);
+            //System.out.println("size: " + points);
+
+            if (points < (FRAME_WIDTH * FRAME_HEIGHT)/200 || points > (FRAME_WIDTH * FRAME_HEIGHT)/10 || /*contourArea(contour)/bound.area() < 0.3 ||*/
+                    (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 100 || bound.height < FRAME_HEIGHT/40 || bound.height > FRAME_HEIGHT/1.5 || bound.width < FRAME_WIDTH/40 || bound.width > FRAME_WIDTH/1.5){
+                //System.out.println("deleted bound");
+                continue;
+            }
+
+            //scale down bound by 3
+            org.opencv.core.Point topLeft = new org.opencv.core.Point(bound.x + bound.width/2. - bound.width/6., bound.y + bound.height/2. - bound.height/6.);
+            Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
+            Scalar mean = Core.mean(original.submat(smallBound));
+            //System.out.println(mean);
+            if (isCubeScalar(mean)){
+                cubePixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height/2.));
+            }
+        }
+
+        //HighGui.imshow("img", img);
+        //HighGui.imshow("canny", canny);
+        //HighGui.imshow("cubes", drawing);
+        return cubePixel;
+    }
+
+    public ArrayList<Point> getBallPixelCoords(Mat original){
+        ArrayList<com.kuriosityrobotics.firstforward.robot.util.math.Point> ballPixel = new ArrayList<>();
+        Mat img = original.clone();
+
+        Mat canny = new Mat();
+
+        ballCanny(img, canny);
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Mat drawing = Mat.zeros(canny.size(), CvType.CV_8UC3);
+
+        double points;
+        for (int i = 0; i < contours.size(); i++) {
+            MatOfPoint contour = contours.get(i);
+            Rect bound = Imgproc.boundingRect(contour);
+            points = (bound.width + 1) * (bound.height + 1);
+            //System.out.println("size: " + points);
+
+            if (points < (img.width() * img.height())/300. || points > (img.width() * img.height())/10. || /*contourArea(contour)/bound.area() < 0.3 ||*/
+                    (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 1.5 || bound.height < img.height()/40 || bound.height > img.height()/1.5 || bound.width < img.width()/40 || bound.width > img.width()/1.5){
+                //System.out.println("deleted bound");
+                continue;
+            }
+
+            //scale down bound by 3
+            org.opencv.core.Point topLeft = new org.opencv.core.Point(bound.x + bound.width/2. - bound.width/6., bound.y + bound.height/2. - bound.height/2.5);
+            Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
+            //Imgproc.rectangle(drawing, smallBound, new Scalar(0, 0, 255));
+
+            Scalar mean = Core.mean(original.submat(smallBound));
+            //System.out.println(mean);
+            if (isBallScalar(mean)){
+                ballPixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height/2.));
+            }
+        }
+
+        //HighGui.imshow("canny", canny);
+        //HighGui.imshow("balls", drawing);
+        return ballPixel;
+    }
+
+    public static void cubeCanny(Mat original, Mat canny){
+        Mat img = original.clone();
+
+        //cropColors(img);
+        filterCubeColors(img);
+        //HighGui.imshow("before canny", img);
+
+        Imgproc.morphologyEx(img, img, Imgproc.MORPH_OPEN, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5)));
+        Imgproc.morphologyEx(img, img, Imgproc.MORPH_CLOSE, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(5, 5)));
+        Imgproc.blur(img, img, new Size(3, 3));
+
+        Imgproc.Canny(img, canny, 50, 100);
+    }
+    public static void ballCanny(Mat original, Mat canny){
+        Mat img = original.clone();
+        //Imgproc.morphologyEx(img, img, MORPH_CLOSE, Imgproc.getStructuringElement(MORPH_ELLIPSE, new Size(7, 7)));
+        //Imgproc.morphologyEx(img, img, MORPH_OPEN, Imgproc.getStructuringElement(MORPH_ELLIPSE, new Size(5, 5)));
+        //Imgproc.blur(img, img, new Size(3, 3));
+        Imgproc.morphologyEx(img, img, Imgproc.MORPH_OPEN, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(9, 9)));
+
+        filterBallColors(img);
+        Imgproc.GaussianBlur(img, img, new Size(5,5),0,0);
+        //HighGui.imshow("before canny", img);
+
+        Imgproc.Canny(img, canny, 60, 180);
+    }
+    public static void filterCubeColors(Mat img){
+        double blue, red, green;
+
+        for (int row = 0; row < img.rows(); row++){
+            for (int col = 0; col < img.cols(); col++){
+                blue = img.get(row, col)[2];
+                green = img.get(row, col)[1];
+                red = img.get(row, col)[0];
+
+                if (blue < 0.6 * green && green < 1.1 * red && green > 0.25 * red && red > 20 && green > 20){
+                    img.put(row, col, blue, green ,red);
+                }else{
+                    img.put(row, col,50, 50, 50);
+                }
+            }
+        }
+    }
+    public static void filterBallColors(Mat img){
+        double blue, red, green;
+
+        for (int row = 0; row < img.rows(); row++){
+            for (int col = 0; col < img.cols(); col++){
+                blue = img.get(row, col)[2];
+                green = img.get(row, col)[1];
+                red = img.get(row, col)[0];
+
+                if (blue > 100 && green > 100 && red > 100 && isBallScalar(new Scalar(blue, green, red))){
+                    img.put(row, col, blue, green, red);
+                }else{
+                    img.put(row, col, 0, 0, 0);
+                }
+            }
+        }
+    }
+    public static boolean isCubeScalar(Scalar s){
+        double red = s.val[0];
+        double green = s.val[1];
+        double blue = s.val[2];
+
+        //return blue < 0.55 * green && green < 1.1 * red && green > 0.35 * red;
+        return red > 25 && green > 25 && green > 0.3 * red && green < 1.5 * red && blue < 0.5 * red;
+    }
+
+    public static boolean isBallScalar(Scalar s){
+        double red = s.val[0];
+        double green = s.val[1];
+        double blue = s.val[2];;
+
+        double avg = (red + green + blue)/3;
+        double deviation = Math.abs(red - avg)/avg + Math.abs(green - avg)/avg + Math.abs(blue - avg)/avg;
+
+        return deviation < 0.3 && red > 160 && green > 160 && blue > 167;
+    }
     private static double getZPrimeConstrainedColumn(AffineTransformMatrix3D worldToFrame, int column, double constraint, double x, double y) {
         var frameToWorld = worldToFrame.inverse().toArray();
         int start = column * 4;

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.FreightDetectorConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
@@ -17,8 +17,8 @@ import java.util.ArrayList;
 public class VisionThread implements Runnable, Telemeter {
     private final TeamMarkerDetector teamMarkerDetector;
 
-    private final CargoDetectorConsumer cargoDetectorConsumer;
-    private Thread cargoDetectionThread;
+    private final FreightDetectorConsumer cargoDetectorConsumer;
+    private Thread freightDetectionThread;
 
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
@@ -30,7 +30,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-        this.cargoDetectorConsumer = new CargoDetectorConsumer(robot);
+        this.cargoDetectorConsumer = new FreightDetectorConsumer(robot);
         this.teamMarkerDetector = new TeamMarkerDetector(robot);
 
         if (camera.isAttached()) {
@@ -103,8 +103,8 @@ public class VisionThread implements Runnable, Telemeter {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (cargoDetectionThread != null)
-                cargoDetectionThread.interrupt();
+            if (freightDetectionThread != null)
+                freightDetectionThread.interrupt();
 
             if (managedCamera != null) {
                 managedCamera.close();
