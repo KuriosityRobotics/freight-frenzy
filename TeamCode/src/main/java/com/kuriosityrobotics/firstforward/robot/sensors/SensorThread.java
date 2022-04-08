@@ -55,11 +55,15 @@ public class SensorThread implements Runnable, Telemeter {
 
         var frontLeft = new SharpIRDistance(robot.getHardwareMap(), "frontLeft");
         var backLeft = new SharpIRDistance(robot.getHardwareMap(), "backLeft");
+        var frontRight = new SharpIRDistance(robot.getHardwareMap(), "frontRight");
+        var backRight = new SharpIRDistance(robot.getHardwareMap(), "backRight");
         this.distanceSensorLocaliser = new DistanceSensorLocaliser(
                 robot,
                 theKalmanFilter,
                 frontLeft,
-                backLeft
+                backLeft,
+                frontRight,
+                backRight
         );
 
         sensors = new HashSet<>();
@@ -69,6 +73,8 @@ public class SensorThread implements Runnable, Telemeter {
                 .chain(odometry)
                 .chain(frontLeft)
                 .chain(backLeft)
+                .chain(frontRight)
+                .chain(backRight)
                 .chain(distanceSensorLocaliser));
 
         sensors.forEach(robot.getTelemetryDump()::registerTelemeter);
