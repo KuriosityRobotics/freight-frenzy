@@ -15,10 +15,10 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 public class RedCarousel extends LinearOpMode {
     public static final Pose START = new Pose(9.75, (23.5 * 5) - 0.5 - (11.5 / 2), Math.toRadians(-90));
 
-    public static final Pose WOBBLE = new Pose(34.5, 106, Math.toRadians(-30));
+    public static final Pose WOBBLE = new Pose(36, 110, Math.toRadians(-30));
 
-    public static final Point PRE_CAROUSEL = new Point(17, 118);
-    public static final Pose CAROUSEL = new Pose(17, 132, Math.toRadians(-75));
+    public static final Point PRE_CAROUSEL = new Point(32, 118);
+    public static final Pose CAROUSEL = new Pose(12.5, 127, Math.toRadians(-45));
 
     public static final Pose PARK = new Pose(35, 5 * 23.5 + 12, Math.toRadians(-90));
 
@@ -33,7 +33,7 @@ public class RedCarousel extends LinearOpMode {
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(START, new VelocityLock(10, false), robot.getOuttakeModule().extendOuttakeAction(detected)),
+                new WayPoint(START, new VelocityLock(10, false), robot.getOuttakeModule().extendOuttakeAction(detected, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                 new WayPoint(WOBBLE, 0, robot.getOuttakeModule().dumpOuttakeAction())
         }, true, 4);
@@ -46,6 +46,7 @@ public class RedCarousel extends LinearOpMode {
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
+                new WayPoint(CAROUSEL.between(PARK)),
                 new WayPoint(PARK, new VelocityLock(0))
         }, true, 4);
 
