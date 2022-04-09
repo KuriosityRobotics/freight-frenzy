@@ -61,12 +61,12 @@ public class PinholeCamera {
                 SENSOR_DIAGONAL);
     }
 
-    public ArrayList<Point> getCubePixelCoords(Mat original){
-        ArrayList<Point> cubePixel = new ArrayList<>();
+    public ArrayList<Vector2D> getCubePixelCoords(Mat original){
+        ArrayList<Vector2D> cubePixel = new ArrayList<>();
         Mat img = original.clone();
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
 
         Mat canny = new Mat();
-
         cubeCanny(img, canny);
 
         List<MatOfPoint> contours = new ArrayList<>();
@@ -78,11 +78,9 @@ public class PinholeCamera {
             MatOfPoint contour = contours.get(i);
             Rect bound = Imgproc.boundingRect(contour);
             points = (bound.width + 1) * (bound.height + 1);
-            //System.out.println("size: " + points);
 
             if (points < (FRAME_WIDTH * FRAME_HEIGHT)/200 || points > (FRAME_WIDTH * FRAME_HEIGHT)/10 || /*contourArea(contour)/bound.area() < 0.3 ||*/
                     (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 100 || bound.height < FRAME_HEIGHT/40 || bound.height > FRAME_HEIGHT/1.5 || bound.width < FRAME_WIDTH/40 || bound.width > FRAME_WIDTH/1.5){
-                //System.out.println("deleted bound");
                 continue;
             }
 
@@ -90,58 +88,46 @@ public class PinholeCamera {
             org.opencv.core.Point topLeft = new org.opencv.core.Point(bound.x + bound.width/2. - bound.width/6., bound.y + bound.height/2. - bound.height/6.);
             Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
             Scalar mean = Core.mean(original.submat(smallBound));
-            //System.out.println(mean);
             if (isCubeScalar(mean)){
-                cubePixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height/2.));
+                cubePixel.add(Vector2D.of(bound.x + bound.width/2., bound.y + bound.height));
             }
         }
 
-        //HighGui.imshow("img", img);
-        //HighGui.imshow("canny", canny);
-        //HighGui.imshow("cubes", drawing);
         return cubePixel;
     }
 
-    public ArrayList<Point> getBallPixelCoords(Mat original){
-        ArrayList<com.kuriosityrobotics.firstforward.robot.util.math.Point> ballPixel = new ArrayList<>();
+    public ArrayList<Vector2D> getBallPixelCoords(Mat original){
+        ArrayList<Vector2D> ballPixel = new ArrayList<>();
         Mat img = original.clone();
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
 
         Mat canny = new Mat();
-
         ballCanny(img, canny);
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         Imgproc.findContours(canny, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
-        Mat drawing = Mat.zeros(canny.size(), CvType.CV_8UC3);
 
         double points;
         for (int i = 0; i < contours.size(); i++) {
             MatOfPoint contour = contours.get(i);
             Rect bound = Imgproc.boundingRect(contour);
             points = (bound.width + 1) * (bound.height + 1);
-            //System.out.println("size: " + points);
 
             if (points < (img.width() * img.height())/300. || points > (img.width() * img.height())/10. || /*contourArea(contour)/bound.area() < 0.3 ||*/
                     (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 1.5 || bound.height < img.height()/40 || bound.height > img.height()/1.5 || bound.width < img.width()/40 || bound.width > img.width()/1.5){
-                //System.out.println("deleted bound");
                 continue;
             }
 
             //scale down bound by 3
             org.opencv.core.Point topLeft = new org.opencv.core.Point(bound.x + bound.width/2. - bound.width/6., bound.y + bound.height/2. - bound.height/2.5);
             Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
-            //Imgproc.rectangle(drawing, smallBound, new Scalar(0, 0, 255));
-
             Scalar mean = Core.mean(original.submat(smallBound));
-            //System.out.println(mean);
             if (isBallScalar(mean)){
-                ballPixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height/2.));
+                ballPixel.add(Vector2D.of(bound.x + bound.width/2., bound.y + bound.height/2.));
             }
         }
 
-        //HighGui.imshow("canny", canny);
-        //HighGui.imshow("balls", drawing);
         return ballPixel;
     }
 
@@ -270,8 +256,23 @@ public class PinholeCamera {
         return cameraMatrix(robotPosition, cameraAngle, globalHeading).inverse().apply(Vector3D.of(xPrime, yPrime, zPrime));
     }
 
+    public Vector3D getLocationOnField(Vector3D robotPosition, double cameraAngle, double globalHeading, double u, double v, double freightHeight) {
+        var normalisedCoordinates = Vector2D.of(u, v).transform(normaliseFrameCoordinates());
+        double x = normalisedCoordinates.getX(), y = normalisedCoordinates.getY();
+
+        double zPrime = getZPrimeConstrainedY(cameraMatrix(robotPosition, cameraAngle, globalHeading), freightHeight, x, y);
+        double xPrime = x * zPrime, yPrime = y * zPrime;
+
+        return cameraMatrix(robotPosition, cameraAngle, globalHeading).inverse().apply(Vector3D.of(xPrime, yPrime, zPrime));
+    }
+
+
     public Vector3D getLocationOnField(Vector3D robotPosition, double cameraAngle, double globalHeading, Vector2D locationOnFrame) {
         return getLocationOnField(robotPosition, cameraAngle, globalHeading, locationOnFrame.getX(), locationOnFrame.getY());
+    }
+
+    public Vector3D getLocationOnField(Vector3D robotPosition, double cameraAngle, double globalHeading, Vector2D locationOnFrame, double freightHeight) {
+        return getLocationOnField(robotPosition, cameraAngle, globalHeading, locationOnFrame.getX(), locationOnFrame.getY(), freightHeight);
     }
 
     public Vector2D getLocationOnFrame(Vector3D robotPosition, double cameraAngle, double globalHeading, Vector3D position) {

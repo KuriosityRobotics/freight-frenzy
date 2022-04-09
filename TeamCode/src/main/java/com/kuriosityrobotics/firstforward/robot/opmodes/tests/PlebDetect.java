@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
-@Disabled
+//@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp
 public class PlebDetect extends LinearOpMode {
     @Override

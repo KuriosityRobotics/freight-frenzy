@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class VisionThread implements Runnable, Telemeter {
     private final TeamMarkerDetector teamMarkerDetector;
 
-    private final FreightDetectorConsumer cargoDetectorConsumer;
+    private final FreightDetectorConsumer freightDetectorConsumer;
     private Thread freightDetectionThread;
 
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
@@ -30,7 +30,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-        this.cargoDetectorConsumer = new FreightDetectorConsumer(robot);
+        this.freightDetectorConsumer = new FreightDetectorConsumer(robot);
         this.teamMarkerDetector = new TeamMarkerDetector(robot);
 
         if (camera.isAttached()) {
@@ -72,15 +72,15 @@ public class VisionThread implements Runnable, Telemeter {
                     robot.isUseCamera(),
                     getVuforiaLocalizationConsumer(),
                     robot, openCVDumper,
-                    getTeamMarkerDetector()
-//                    cargoDetectorConsumer
+                    getTeamMarkerDetector(),
+                    getFreightDetectorConsumer()
             );
 
-//            cargoDetectionThread = new Thread(cargoDetectorConsumer);
-//            cargoDetectionThread.start();
+            freightDetectionThread = new Thread(freightDetectorConsumer);
+            freightDetectionThread.start();
 
             robot.getTelemetryDump().registerTelemeter(this);
-            robot.getTelemetryDump().registerTelemeter(cargoDetectorConsumer);
+            robot.getTelemetryDump().registerTelemeter(freightDetectorConsumer);
 
             Log.v("VisionThread", "Done initing camera");
 
@@ -124,6 +124,8 @@ public class VisionThread implements Runnable, Telemeter {
     public TeamMarkerDetector getTeamMarkerDetector() {
         return teamMarkerDetector;
     }
+
+    public FreightDetectorConsumer getFreightDetectorConsumer() { return freightDetectorConsumer; }
 
     @Override
     protected void finalize() {
