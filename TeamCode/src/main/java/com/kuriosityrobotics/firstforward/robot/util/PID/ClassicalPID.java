@@ -10,8 +10,7 @@ public class ClassicalPID {
     private double lastError;
     private double errorSum;
     private double errorChange;
-
-    private long lastUpdateTime;
+    private double lastUpdateTime;
 
     /**
      * Constructs a ClassicalPIDController
