@@ -110,6 +110,7 @@ public final class ManagedCamera {
     private final class CameraConsumerProcessor extends OpenCvPipeline {
         @Override
         public Mat processFrame(Mat input) {
+            //Log.v("managed", "managed process frame");
             if (input.empty())
                 return input;
 

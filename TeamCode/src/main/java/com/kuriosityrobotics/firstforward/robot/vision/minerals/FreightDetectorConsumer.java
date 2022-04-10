@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 
+import android.util.Log;
 import android.util.Pair;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
@@ -20,6 +21,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,25 +39,30 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
     }
 
     public void processFrame(double cameraAngle, Mat img) {
+
         var startTime = System.currentTimeMillis();
         lastFrameTime = System.currentTimeMillis() - startTime;
 
         Vector3D robotVec = Vector3D.of(locationProvider.getPose().getX(), 0, locationProvider.getPose().getY());
         ArrayList<Point> newFreightPositions = new ArrayList<>();
 
+        Log.v("freight", "start process");
         ArrayList<Vector2D> cubePixel = pinholeCamera.getCubePixelCoords(img);
-        ArrayList<Vector2D> ballPixel = pinholeCamera.getBallPixelCoords(img);
+        ArrayList<Vector2D> ballPixel = new ArrayList<>();//pinholeCamera.getBallPixelCoords(img);
+        Log.v("freight", "end process");
 
         for (Vector2D cube : cubePixel){
-            Vector3D cubePos = pinholeCamera.getLocationOnField(robotVec, cameraAngle, locationProvider.getPose().getHeading(), cube, 0);
-            newFreightPositions.add(new Point(cubePos.getX(), cubePos.getZ()));
+            Point cubePos = pinholeCamera.findFreightPos(cube, cameraAngle, locationProvider.getPose().getHeading(), PinholeCamera.FreightType.CUBE);
+            newFreightPositions.add(cubePos);
         }
         for (Vector2D ball : ballPixel){
-            Vector3D ballPos = pinholeCamera.getLocationOnField(robotVec, cameraAngle, locationProvider.getPose().getHeading(), ball, 1.375);
-            newFreightPositions.add(new Point(ballPos.getX(), ballPos.getZ()));
+            //Vector3D ballPos = pinholeCamera.getLocationOnField(robotVec, cameraAngle, locationProvider.getPose().getHeading(), ball, 1.375);
+            //newFreightPositions.add(new Point(ballPos.getX(), ballPos.getZ()));
         }
 
         currentFreightPositions = newFreightPositions;
+        Log.v("freight", newFreightPositions.toString());
+        Log.v("freight", "processed frame");
     }
 
     public ArrayList<Point> getFreightPositions() {
@@ -74,10 +81,14 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
 
     @Override
     public List<String> getTelemetryData() {
-        return new ArrayList<>() {{
-            add("FPS:  " + 1 / (lastFrameTime / 1000.));
-            add(currentFreightPositions.toString());
-        }};
+        ArrayList<String> telemetry = new ArrayList<>();
+
+        telemetry.add("FPS:  " + 1 / (lastFrameTime / 1000.));
+        for (int i = 0; i < currentFreightPositions.size(); i++){
+            telemetry.add(currentFreightPositions.get(i).toString());
+        }
+
+        return telemetry;
     }
 
     @Override

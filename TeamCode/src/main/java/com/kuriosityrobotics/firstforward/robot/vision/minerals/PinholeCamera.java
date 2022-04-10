@@ -17,6 +17,8 @@ import org.opencv.imgproc.Imgproc;
 import static java.lang.Math.*;
 import static org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D.*;
 
+import android.util.Log;
+
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 
 import java.util.ArrayList;
@@ -36,6 +38,10 @@ public class PinholeCamera {
 
     private static final double FRAME_HEIGHT = 448;
     private static final double O_Y = 221.506;
+
+    public static final double INCHES_PER_PIXEL = 0.236220472  / Math.hypot(FRAME_WIDTH, FRAME_HEIGHT);
+    public static final double FOCAL_LENGTH_INCHES = FOCAL_LENGTH_X * INCHES_PER_PIXEL;
+
     // in pixels
     private double focalLength, originX, originY, width, height;
     // in units (diagonal;  used with hypot(width, height) to convert between pixels and coords)
@@ -61,13 +67,20 @@ public class PinholeCamera {
                 SENSOR_DIAGONAL);
     }
 
+    public enum FreightType{
+        CUBE,
+        BALL,
+    }
+
     public ArrayList<Vector2D> getCubePixelCoords(Mat original){
+        Log.v("pinhole", "START cube coords");
         ArrayList<Vector2D> cubePixel = new ArrayList<>();
         Mat img = original.clone();
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
 
         Mat canny = new Mat();
         cubeCanny(img, canny);
+        Log.v("pinhole", "CANNY cube coords");
 
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
@@ -92,6 +105,7 @@ public class PinholeCamera {
                 cubePixel.add(Vector2D.of(bound.x + bound.width/2., bound.y + bound.height));
             }
         }
+        Log.v("pinhole", "FILTER cube coords");
 
         return cubePixel;
     }
@@ -160,8 +174,8 @@ public class PinholeCamera {
     public static void filterCubeColors(Mat img){
         double blue, red, green;
 
-        for (int row = 0; row < img.rows(); row++){
-            for (int col = 0; col < img.cols(); col++){
+        for (int row = 0; row < img.rows(); row += 4){
+            for (int col = 0; col < img.cols(); col += 4){
                 blue = img.get(row, col)[2];
                 green = img.get(row, col)[1];
                 red = img.get(row, col)[0];
@@ -203,13 +217,43 @@ public class PinholeCamera {
     public static boolean isBallScalar(Scalar s){
         double red = s.val[0];
         double green = s.val[1];
-        double blue = s.val[2];;
-
+        double blue = s.val[2];
+        //Core.meanStdDev();
         double avg = (red + green + blue)/3;
         double deviation = Math.abs(red - avg)/avg + Math.abs(green - avg)/avg + Math.abs(blue - avg)/avg;
 
         return deviation < 0.3 && red > 160 && green > 160 && blue > 167;
     }
+
+    public Point findFreightPos(Vector2D pixelCoords, double cameraHeading, double robotHeading, FreightType freightType){
+        double[] camPos = new double[]{0, 0, 16.404}; //TODO actually write this
+        //input: u, v pixel
+        //output: x, y, z 3d coords
+        Point filmCoords = new Point(INCHES_PER_PIXEL * (pixelCoords.getX() - O_X), -INCHES_PER_PIXEL * (pixelCoords.getY() - O_Y));
+        //System.out.println(1000 * filmCoords[0] + " ");
+        //System.out.println(1000 * filmCoords[1] + " ");
+
+        //in terms of actual xy plane
+        double finalYaw = -(cameraHeading + robotHeading + Math.atan2(filmCoords.getX(), FOCAL_LENGTH_INCHES)) + Math.PI/2;
+        double finalPitch = Math.toRadians(-30) + Math.atan2(filmCoords.getY(), FOCAL_LENGTH_INCHES);
+
+        if (finalPitch >= 0){
+            return new Point(9999, 9999);
+        }
+        //System.out.println(Math.toDegrees(finalPitch));
+        double t;
+        if (freightType == FreightType.CUBE){
+            t = (0 - camPos[2]) / Math.sin(finalPitch);
+        }else{
+            t = (1.375 - camPos[2]) / Math.sin(finalPitch);
+        }
+        //System.out.println(t);
+        double finalX = camPos[0] + t * Math.cos(finalYaw) * Math.cos(finalPitch);
+        double finalY = camPos[1] + t * Math.sin(finalYaw) * Math.cos(finalPitch);
+        //TODO
+        return new Point(finalX, finalY);
+    }
+
     private static double getZPrimeConstrainedColumn(AffineTransformMatrix3D worldToFrame, int column, double constraint, double x, double y) {
         var frameToWorld = worldToFrame.inverse().toArray();
         int start = column * 4;

@@ -87,7 +87,7 @@ public class Robot implements LocationProvider {
                 intakeModule,
                 outtakeModule,
                 carouselModule,
-                ledModule
+//              ledModule
         };
 
         // threads
