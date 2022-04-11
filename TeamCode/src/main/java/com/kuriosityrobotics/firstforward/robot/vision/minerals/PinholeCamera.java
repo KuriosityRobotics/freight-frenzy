@@ -16,10 +16,13 @@ import org.opencv.imgproc.Imgproc;
 
 import static java.lang.Math.*;
 import static org.apache.commons.geometry.euclidean.threed.AffineTransformMatrix3D.*;
+import static org.opencv.imgproc.Imgproc.COLOR_BGR2HLS;
+import static org.opencv.imgproc.Imgproc.COLOR_HLS2BGR;
 
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
+import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,14 +36,13 @@ public class PinholeCamera {
             , QuaternionRotation.fromAxisAngle(Vector3D.of(1, 0, 0), PI / 6));
     private static final double SENSOR_DIAGONAL = 6 * 0.0393700787;
     private static final double FRAME_WIDTH = 800;
-    private static final double FOCAL_LENGTH_X = 578.272;
-    private static final double O_X = 402.145;
-
     private static final double FRAME_HEIGHT = 448;
-    private static final double O_Y = 221.506;
 
-    public static final double INCHES_PER_PIXEL = 0.236220472  / Math.hypot(FRAME_WIDTH, FRAME_HEIGHT);
-    public static final double FOCAL_LENGTH_INCHES = FOCAL_LENGTH_X * INCHES_PER_PIXEL;
+    private static final double O_X = 402.145;
+    private static final double O_Y = 221.506;
+    public static final double INCHES_PER_PIXEL = SENSOR_DIAGONAL  / Math.hypot(FRAME_WIDTH, FRAME_HEIGHT);
+
+    public static final double FOCAL_LENGTH = 578.272 * INCHES_PER_PIXEL;
 
     // in pixels
     private double focalLength, originX, originY, width, height;
@@ -59,7 +61,7 @@ public class PinholeCamera {
 
     public static PinholeCamera create() {
         return new PinholeCamera(
-                FOCAL_LENGTH_X,
+                FOCAL_LENGTH,
                 O_X,
                 O_Y,
                 FRAME_WIDTH,
@@ -172,21 +174,15 @@ public class PinholeCamera {
         Imgproc.Canny(img, canny, 60, 180);
     }
     public static void filterCubeColors(Mat img){
-        double blue, red, green;
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HLS);
 
-        for (int row = 0; row < img.rows(); row += 4){
-            for (int col = 0; col < img.cols(); col += 4){
-                blue = img.get(row, col)[2];
-                green = img.get(row, col)[1];
-                red = img.get(row, col)[0];
+        Mat mask = new Mat();
+        Core.inRange(img, new Scalar(14, 0, 0), new Scalar(30, 255, 255), mask);
 
-                if (blue < 0.6 * green && green < 1.1 * red && green > 0.25 * red && red > 20 && green > 20){
-                    img.put(row, col, blue, green ,red);
-                }else{
-                    img.put(row, col,50, 50, 50);
-                }
-            }
-        }
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_HLS2RGB);
+        Mat result = new Mat();
+        img.copyTo(result, mask);
+        result.copyTo(img);
     }
     public static void filterBallColors(Mat img){
         double blue, red, green;
@@ -225,17 +221,19 @@ public class PinholeCamera {
         return deviation < 0.3 && red > 160 && green > 160 && blue > 167;
     }
 
-    public Point findFreightPos(Vector2D pixelCoords, double cameraHeading, double robotHeading, FreightType freightType){
-        double[] camPos = new double[]{0, 0, 16.404}; //TODO actually write this
-        //input: u, v pixel
-        //output: x, y, z 3d coords
+    public Point findFreightPos(Vector2D pixelCoords, double cameraHeading, Pose robotPose, FreightType freightType){
         Point filmCoords = new Point(INCHES_PER_PIXEL * (pixelCoords.getX() - O_X), -INCHES_PER_PIXEL * (pixelCoords.getY() - O_Y));
-        //System.out.println(1000 * filmCoords[0] + " ");
-        //System.out.println(1000 * filmCoords[1] + " ");
+        double adjustedBaseHeading = -robotPose.getHeading() + Math.PI/2;
+        double[] camBase = new double[]{robotPose.getX() + 4.821 * Math.cos(adjustedBaseHeading) + 0.318 * Math.sin(adjustedBaseHeading),
+                                        robotPose.getY() + 4.821 * Math.sin(adjustedBaseHeading) - 0.318 * Math.cos(adjustedBaseHeading),
+                                        16.404};
+
+        double adjustedPosHeading = -(cameraHeading + robotPose.getHeading()) + Math.PI/2;
+        double[] camPos = new double[]{camBase[0] + 3.365 * Math.cos(adjustedPosHeading), camBase[1] + 3.365 * Math.sin(adjustedPosHeading), 16.404};
 
         //in terms of actual xy plane
-        double finalYaw = -(cameraHeading + robotHeading + Math.atan2(filmCoords.getX(), FOCAL_LENGTH_INCHES)) + Math.PI/2;
-        double finalPitch = Math.toRadians(-30) + Math.atan2(filmCoords.getY(), FOCAL_LENGTH_INCHES);
+        double finalYaw = -(cameraHeading + robotPose.getHeading() + Math.atan2(filmCoords.getX(), FOCAL_LENGTH)) + Math.PI/2;
+        double finalPitch = Math.toRadians(-30) + Math.atan2(filmCoords.getY(), FOCAL_LENGTH);
 
         if (finalPitch >= 0){
             return new Point(9999, 9999);

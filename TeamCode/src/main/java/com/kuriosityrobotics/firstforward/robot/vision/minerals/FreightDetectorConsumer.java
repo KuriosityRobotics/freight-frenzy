@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
 
+import android.os.SystemClock;
 import android.util.Log;
 import android.util.Pair;
 
@@ -39,11 +40,6 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
     }
 
     public void processFrame(double cameraAngle, Mat img) {
-
-        var startTime = System.currentTimeMillis();
-        lastFrameTime = System.currentTimeMillis() - startTime;
-
-        Vector3D robotVec = Vector3D.of(locationProvider.getPose().getX(), 0, locationProvider.getPose().getY());
         ArrayList<Point> newFreightPositions = new ArrayList<>();
 
         Log.v("freight", "start process");
@@ -52,7 +48,7 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
         Log.v("freight", "end process");
 
         for (Vector2D cube : cubePixel){
-            Point cubePos = pinholeCamera.findFreightPos(cube, cameraAngle, locationProvider.getPose().getHeading(), PinholeCamera.FreightType.CUBE);
+            Point cubePos = pinholeCamera.findFreightPos(cube, cameraAngle, locationProvider.getPose(), PinholeCamera.FreightType.CUBE);
             newFreightPositions.add(cubePos);
         }
         for (Vector2D ball : ballPixel){
@@ -63,6 +59,7 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
         currentFreightPositions = newFreightPositions;
         Log.v("freight", newFreightPositions.toString());
         Log.v("freight", "processed frame");
+        lastFrameTime = System.currentTimeMillis();
     }
 
     public ArrayList<Point> getFreightPositions() {
@@ -83,7 +80,7 @@ public class FreightDetectorConsumer implements Runnable, OpenCvConsumer, Teleme
     public List<String> getTelemetryData() {
         ArrayList<String> telemetry = new ArrayList<>();
 
-        telemetry.add("FPS:  " + 1 / (lastFrameTime / 1000.));
+        telemetry.add("FPS:  " + 1 / ((System.currentTimeMillis() - lastFrameTime) / 1000.));
         for (int i = 0; i < currentFreightPositions.size(); i++){
             telemetry.add(currentFreightPositions.get(i).toString());
         }
