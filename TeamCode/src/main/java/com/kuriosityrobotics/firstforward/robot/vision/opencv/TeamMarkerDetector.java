@@ -31,9 +31,9 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
     private final PinholeCamera pinholeCamera;
 
-    public TeamMarkerDetector(LocationProvider locationProvider) {
+    public TeamMarkerDetector(LocationProvider locationProvider, PinholeCamera camera) {
         this.locationProvider = locationProvider;
-        this.pinholeCamera = PinholeCamera.create();
+        this.pinholeCamera = camera;
     }
 
     public TeamMarkerLocation getLocation() {

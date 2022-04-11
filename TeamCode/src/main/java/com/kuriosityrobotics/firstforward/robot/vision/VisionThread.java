@@ -6,6 +6,7 @@ import android.util.Log;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.FreightDetectorConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.kuriosityrobotics.firstforward.robot.vision.vuforia.VuforiaLocalizationConsumer;
@@ -16,28 +17,28 @@ import java.util.ArrayList;
 
 public class VisionThread implements Runnable, Telemeter {
     private final TeamMarkerDetector teamMarkerDetector;
-
     private final FreightDetectorConsumer freightDetectorConsumer;
-    private Thread freightDetectionThread;
 
     private final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
     private ManagedCamera managedCamera;
     private long updateTime = 0;
     private long lastLoopTime = 0;
+    private PinholeCamera pinholeCamera;
 
     private boolean started = false;
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-        this.freightDetectorConsumer = new FreightDetectorConsumer(robot);
-        this.teamMarkerDetector = new TeamMarkerDetector(robot);
+        this.freightDetectorConsumer = new FreightDetectorConsumer(robot, pinholeCamera);
+        this.teamMarkerDetector = new TeamMarkerDetector(robot, pinholeCamera);
 
         if (camera.isAttached()) {
             this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot.getSensorThread().getKalmanFilter(), robot, robot.getHardwareMap());
         } else {
             this.vuforiaLocalizationConsumer = null;
         }
+        pinholeCamera = PinholeCamera.create();
     }
 
     @Override
@@ -70,14 +71,11 @@ public class VisionThread implements Runnable, Telemeter {
             this.managedCamera = new
                     ManagedCamera(
                     robot.isUseCamera(),
-                    getVuforiaLocalizationConsumer(),
+                    vuforiaLocalizationConsumer,
                     robot, openCVDumper,
-                    getTeamMarkerDetector(),
-                    getFreightDetectorConsumer()
+                    teamMarkerDetector,
+                    freightDetectorConsumer
             );
-
-            freightDetectionThread = new Thread(freightDetectorConsumer);
-            freightDetectionThread.start();
 
             robot.getTelemetryDump().registerTelemeter(this);
             robot.getTelemetryDump().registerTelemeter(freightDetectorConsumer);
@@ -103,9 +101,6 @@ public class VisionThread implements Runnable, Telemeter {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (freightDetectionThread != null)
-                freightDetectionThread.interrupt();
-
             if (managedCamera != null) {
                 managedCamera.close();
                 managedCamera = null;
