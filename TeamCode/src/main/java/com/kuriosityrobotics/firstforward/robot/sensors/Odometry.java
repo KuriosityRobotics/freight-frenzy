@@ -54,6 +54,11 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
     private double oldY = 0;
     private double oldHeading = 0;
 
+    //max vel, accel, deccel
+    private double maxVel = 0;
+    private double maxAccel = 0;
+    private double minAccel = 0; //deccel
+
     private double lastUpdateTime = 0;
 
     // Constants
@@ -92,7 +97,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
                 .variance(pow(.8 * dx, 2), pow(.8 * dy, 2), pow(.8 * dHeading, 2))
                 .predict();
 
-        calculateInstantaneousVelocity();
+        calculateInstantaneousVelAccelDeccel();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
 
     }
@@ -117,7 +122,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         lastMecanumFrontPosition = newMecanumFrontPosition;
     }
 
-    private void calculateInstantaneousVelocity() {
+    private void calculateInstantaneousVelAccelDeccel() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
         double dTime = (currentUpdateTime - lastUpdateTime) / 1000;
 
@@ -129,6 +134,14 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         oldX = worldX;
         oldY = worldY;
         oldHeading = worldHeadingRad;
+
+        maxVel = Math.max(maxVel, getVelMag());
+        double accel = (getVelMag() - Math.hypot(oldxVel, oldyVel)) / (dTime);
+        if (accel > 0){
+            maxAccel = Math.max(accel, maxAccel);
+        }else{
+            minAccel = Math.min(accel, minAccel);
+        }
 
         oldxVel = xVel;
         oldyVel = yVel;
@@ -246,6 +259,10 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         data.add("worldX: " + worldX);
         data.add("worldY: " + worldY);
         data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
+
+        data.add("max vel: " + maxVel);
+        data.add("max accel: " + maxAccel);
+        data.add("max deccel: " + -minAccel);
 
         return data;
     }
