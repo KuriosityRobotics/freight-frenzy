@@ -83,14 +83,16 @@ public class Robot implements LocationProvider {
         LEDModule ledModule = new LEDModule(this);
         telemetryDump.registerTelemeter(ledModule);
 
-        // threads
-        moduleThread = new ModuleThread(this,
+        Module[] modules = new Module[]{
                 drivetrain,
                 intakeModule,
                 outtakeModule,
                 carouselModule,
-                ledModule
-        );
+        //        ledModule
+        };
+
+        // threads
+        moduleThread = new ModuleThread(this, modules);
 
         this.useCamera = useCamera;
         visionThread = new VisionThread(this, camera);

@@ -4,6 +4,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate
 import static java.lang.Math.pow;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
@@ -54,9 +55,9 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
     private double oldHeading = 0;
 
     //max vel, accel, deccel
-    private double maxVel = 0;
-    private double maxAccel = 0;
-    private double minAccel = 0; //deccel
+    private double vel;
+    private double accel;
+    private double deccel;
 
     private double lastUpdateTime = 0;
 
@@ -74,8 +75,12 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
 
         resetEncoders();
 
-        FileDump.addField("xVel", this);
-        FileDump.addField("yVel", this);
+        //FileDump.addField("xVel", this);
+        //FileDump.addField("yVel", this);
+
+        //FileDump.addField("vel", this);
+        FileDump.addField("accel", this);
+        //FileDump.addField("deccel", this);
     }
 
     public void update() {
@@ -132,23 +137,34 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
 
-        oldX = worldX;
-        oldY = worldY;
-        oldHeading = worldHeadingRad;
-
-        maxVel = Math.max(maxVel, getVelMag());
-        double accel = (getVelMag() - Math.hypot(oldxVel, oldyVel)) / (dTime);
-        if (accel > 0){
-            maxAccel = Math.max(accel, maxAccel);
+        vel = getVelMag();
+        double dVelT = (vel - Math.hypot(oldxVel, oldyVel)) / (dTime);
+        if (dVelT > 0){
+            accel = dVelT;
+            deccel = 0;
         }else{
-            minAccel = Math.min(accel, minAccel);
+            accel = 0;
+            deccel = -dVelT;
         }
 
-        oldxVel = xVel;
-        oldyVel = yVel;
-        oldangleVel = angleVel;
+        if (dTime > .02){
+            Log.v("odo","vel: " + vel);
+            if (accel != 0){
+                Log.v("odo","accel: " + accel);
+            }
+            if (deccel != 0){
+                Log.v("odo","deccel: " + deccel);
+            }
+            oldX = worldX;
+            oldY = worldY;
+            oldHeading = worldHeadingRad;
 
-        lastUpdateTime = currentUpdateTime;
+            oldxVel = xVel;
+            oldyVel = yVel;
+            oldangleVel = angleVel;
+
+            lastUpdateTime = currentUpdateTime;
+        }
     }
 
     private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumBackPod, double dMecanumFrontPod) {
@@ -252,9 +268,9 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         ArrayList<String> data = new ArrayList<>();
         data.add(getPose().toString("odometry pose"));
 
-        data.add("max vel: " + maxVel);
-        data.add("max accel: " + maxAccel);
-        data.add("max deccel: " + -minAccel);
+        data.add("vel: " + vel);
+        data.add("accel: " + accel);
+        data.add("deccel: " + deccel);
 
         return data;
     }
