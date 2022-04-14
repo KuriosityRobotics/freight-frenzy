@@ -87,7 +87,7 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         var now = SystemClock.elapsedRealtime();
         var dt = (now - lastUpdateTime) / 1000.;
         if (lastUpdateTime == 0)
-            dt = 1. / maxFrequency();
+            dt = 8 / 1000.;
 
         calculatePosition();
 
@@ -106,6 +106,7 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
 
         calculateInstantaneousVelAccelDeccel();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
+        lastUpdateTime = now;
     }
 
     private void calculatePosition() {
@@ -163,7 +164,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
             oldyVel = yVel;
             oldangleVel = angleVel;
 
-            lastUpdateTime = currentUpdateTime;
         }
     }
 

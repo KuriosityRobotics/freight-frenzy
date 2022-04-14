@@ -88,7 +88,7 @@ public class Pose extends Point {
     }
 
     public String toString(String label) {
-        return String.format(Locale.US, "%-10s x: %,6.2f y: %,6.2f θ: %,3.0f", label, x, y, toDegrees(heading))
+        return String.format(Locale.US, "%-10s x: %,6.2f y: %,6.2f θ: %,3.0f", label, x, y, toDegrees(angleWrap(heading)))
                 .replace(" ", "\u00a0");
     }
 

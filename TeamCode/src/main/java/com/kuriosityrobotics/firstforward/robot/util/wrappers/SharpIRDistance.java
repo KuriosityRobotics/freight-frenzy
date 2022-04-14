@@ -7,6 +7,7 @@ import static java.lang.Math.exp;
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
+import com.kuriosityrobotics.firstforward.robot.util.Timer;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -62,6 +63,11 @@ public class SharpIRDistance implements Module {
     }
 
     public double getDistance() {
+        var timer = Timer.alarmIn(100);
+        while(measurements.isEmpty())
+            if (timer.tick())
+                return -1;
+
         return voltageToIn(median(measurements));
     }
 }

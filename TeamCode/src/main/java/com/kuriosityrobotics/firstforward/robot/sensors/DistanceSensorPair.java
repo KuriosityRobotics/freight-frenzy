@@ -53,6 +53,9 @@ public enum DistanceSensorPair {
     }
 
     public Double[] getPartialState(double frontSensor, double backSensor, Wall wall) {
+        if (frontSensor < 0 || backSensor < 0)
+            return null;
+
         var wallHeading = getWallHeading(frontSensor, backSensor);
         var wallDistance = getWallDistance(frontSensor, backSensor);
 
