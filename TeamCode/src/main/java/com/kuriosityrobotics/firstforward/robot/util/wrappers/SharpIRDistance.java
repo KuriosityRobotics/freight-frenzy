@@ -2,6 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.util.wrappers;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Units.MM_PER_INCH;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.median;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.truncate;
 import static java.lang.Math.exp;
 
 import android.os.SystemClock;
@@ -55,10 +56,13 @@ public class SharpIRDistance implements Module {
     @Override
     public List<String> getTelemetryData() {
         return new ArrayList<>() {{
-            add(String.format("Distance:  %04.2f in", getDistance()));
+//            add(String.format("Distance:  %04.2f in", getDistance()));
+            add("Distance: " + truncate(getDistance(), 2) + " in");
             var latestMeasurement = measurements.peekLast();
-            if (latestMeasurement != null)
-                add(String.format("Voltage:  %04.2f V", latestMeasurement.getValue()));
+            if (latestMeasurement != null) {
+//                add(String.format("Voltage:  %04.2f V", latestMeasurement.getValue()));
+                add("Voltage: " + truncate(latestMeasurement.getValue(), 2) + " V");
+            }
         }};
     }
 

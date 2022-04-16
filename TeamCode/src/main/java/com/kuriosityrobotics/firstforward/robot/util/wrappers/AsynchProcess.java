@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.util.wrappers;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.mean;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.truncate;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
 import android.annotation.SuppressLint;
@@ -24,6 +25,8 @@ public class AsynchProcess implements Telemeter {
 
     private Timer timer;
     private CompletableFuture<Void> future;
+
+    private double lastUpdate = 0;
 
     private AsynchProcess(Module module, Executor executor) {
         this.module = module;
@@ -91,6 +94,8 @@ public class AsynchProcess implements Telemeter {
         var now = SystemClock.elapsedRealtime();
         updateTimes.put(now, updateTime);
         updateTimes.entrySet().removeIf(entry -> entry.getKey() < now - 1000);
+
+        lastUpdate = updateTime;
     }
 
     private long getMillisPerCycle() {
@@ -121,9 +126,11 @@ public class AsynchProcess implements Telemeter {
     @SuppressLint("DefaultLocale")
     @Override
     public String toString() {
-        double updateTime = rollingAverageUpdateTime();
+//        double updateTime = rollingAverageUpdateTime();
+        double updateTime = lastUpdate;
 
-        return String.format("update time:  %.1f ms (%.1f Hz)", updateTime, 1000. / updateTime);
+        return "Update time: " + truncate(updateTime, 1) + " ms (" + truncate(1000./updateTime, 1) + ").";
+//        return String.format("update time:  %.1f ms (%.1f Hz)", updateTime, 1000. / updateTime);
     }
 
     @Override

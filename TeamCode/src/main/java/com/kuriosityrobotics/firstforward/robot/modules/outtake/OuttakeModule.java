@@ -371,10 +371,10 @@ public class OuttakeModule implements Module, Telemeter {
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
             add("Linkage: " + targetLinkage.name());
-            add("Slide: " + slide.getCurrentPosition());
-            add("Slide 2: " + slide2.getCurrentPosition());
-            add("Slide target: " + slide.getTargetPosition());
-            add("Slide 2 target: " + slide2.getTargetPosition());
+//            add("Slide: " + slide.getCurrentPosition());
+//            add("Slide 2: " + slide2.getCurrentPosition());
+//            add("Slide target: " + slide.getTargetPosition());
+//            add("Slide 2 target: " + slide2.getTargetPosition());
         }};
     }
 

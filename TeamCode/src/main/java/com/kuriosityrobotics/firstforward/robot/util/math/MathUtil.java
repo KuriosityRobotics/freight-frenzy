@@ -123,4 +123,9 @@ public class MathUtil {
                 -sin(angle) * vector.getX() + cos(angle) * vector.getY()
         );
     }
+
+    public static double truncate(double x, double numDecimals) {
+        double pow = Math.pow(10 ,numDecimals);
+        return Math.floor(x * pow) / pow;
+    }
 }

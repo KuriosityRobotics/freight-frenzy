@@ -85,7 +85,8 @@ public class Drivetrain implements Module, Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+//        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+        data.add("xMov: " + xMov + " yMov: " + yMov + " turnMov: " + turnMov);
 
         data.add("--");
 

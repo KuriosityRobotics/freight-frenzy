@@ -2,16 +2,14 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.truncate;
 import static java.lang.Math.cos;
-import static java.lang.Math.hypot;
 import static java.lang.Math.sin;
 import static java.lang.Math.toDegrees;
 
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
-
-import java.util.Locale;
 
 // Kuro coordinate system pose :tm:
 public class Pose extends Point {
@@ -29,6 +27,7 @@ public class Pose extends Point {
 
         return new Pose(values[0], values[1], values[2]);
     }
+
     public Pose fieldMirror() {
         return fieldMirror(this.x, this.y, this.heading);
     }
@@ -88,7 +87,9 @@ public class Pose extends Point {
     }
 
     public String toString(String label) {
-        return String.format(Locale.US, "%-10s x: %,6.2f y: %,6.2f θ: %,3.0f", label, x, y, toDegrees(angleWrap(heading)))
+//        return String.format(Locale.US, "%-10s x: %,6.2f y: %,6.2f θ: %,3.0f", label, x, y, toDegrees(angleWrap(heading)))
+//                .replace(" ", "\u00a0");
+        return (label + " x: " + truncate(x, 2) + " y: " + truncate(y, 2) + " θ: " + toDegrees(angleWrap(heading)))
                 .replace(" ", "\u00a0");
     }
 

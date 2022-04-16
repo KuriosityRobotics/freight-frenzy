@@ -99,7 +99,7 @@ public class TelemetryDump implements PoseWatcher {
                                 .append(telemeter.getName())
                                 .append("---\n")
                                 // please java SHUT THE GELL UP I DON'T WANT TO USE STRING.JOIN
-                                .append(telemeter.getTelemetryData().stream().collect(Collectors.joining("\n")))
+                                .append(String.join("\n", telemeter.getTelemetryData()))
                                 .append("\n\n")
                 );
 
