@@ -147,6 +147,11 @@ public class SensorThread implements Runnable, Telemeter {
     }
 
     @Override
+    public int getShowIndex() {
+        return 5;
+    }
+
+    @Override
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> data = new HashMap<>();
 

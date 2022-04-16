@@ -23,7 +23,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class Robot implements LocationProvider {
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG = true;
     private static boolean blue = false;
     private static boolean carousel = false;
 
@@ -181,7 +181,8 @@ public class Robot implements LocationProvider {
 
     @Override
     public Pose getVelocity() {
-        return sensorThread.getVelocity();
+        // TODO instantaneous or rolling?
+        return sensorThread.getOdometry().getInstantaneousVelocity();
     }
 
     public void resetPose(Pose pose) {

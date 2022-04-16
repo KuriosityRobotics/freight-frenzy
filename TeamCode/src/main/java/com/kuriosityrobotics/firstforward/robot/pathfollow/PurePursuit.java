@@ -142,7 +142,7 @@ public class PurePursuit implements Telemeter {
         double currXVelo = veloMag * Math.sin(alpha);
         double currYVelo = veloMag * Math.cos(alpha);
 
-        Log.v("PP", "currx: " + currXVelo + "curry: " + currYVelo);
+        Log.v("PP", "currx: " + currXVelo + " curry: " + currYVelo);
 
         Log.v("PP", "targangle: " + targetAngleLock);
 

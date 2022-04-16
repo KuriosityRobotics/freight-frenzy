@@ -36,7 +36,9 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        error /= (NanoClock.now() - lastUpdateTime); // feature is back, now in nanos
+        long currentTime = NanoClock.now();
+
+        error /= (currentTime - lastUpdateTime); // feature is back, now in nanos
 
         errorSum += error;
 
@@ -59,7 +61,7 @@ public class ClassicalPID {
         lastError = error;
         errorChange = d;
 
-        lastUpdateTime = NanoClock.now();
+        lastUpdateTime = currentTime;
 
         return p + i + d;
     }

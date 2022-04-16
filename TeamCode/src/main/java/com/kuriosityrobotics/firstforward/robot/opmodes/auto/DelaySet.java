@@ -1,8 +1,10 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+@Disabled
 @Autonomous
 public class DelaySet extends LinearOpMode {
     @Override
