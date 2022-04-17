@@ -2,9 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
-import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
-
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.pathfollow.Action;
 
@@ -21,7 +18,7 @@ class DumpOuttakeAction extends Action {
 
         outtakeModule.targetState = DUMP;
 
-        if (outtakeModule.atState(DUMP)) {
+        if (outtakeModule.executingState(DUMP)) {
             completed = true;
             outtakeModule.targetState = COLLAPSE;
         }

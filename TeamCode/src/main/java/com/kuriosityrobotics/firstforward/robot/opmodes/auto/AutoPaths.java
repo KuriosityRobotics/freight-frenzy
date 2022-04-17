@@ -56,6 +56,9 @@ public class AutoPaths {
 
         vufConsumer.disableManualCam();
 
+        // wait for cam turret to turn back
+        robot.sleep(300);
+
         return location.slideLevel();
     }
 

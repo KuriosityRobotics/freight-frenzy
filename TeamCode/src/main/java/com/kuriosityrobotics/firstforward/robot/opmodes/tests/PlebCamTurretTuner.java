@@ -5,8 +5,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
+//@Disabled
 @TeleOp
-@Disabled
 public class PlebCamTurretTuner extends LinearOpMode {
     Servo pivot;
 
@@ -14,7 +14,7 @@ public class PlebCamTurretTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        pivot = hardwareMap.get(Servo.class, "outtakeTurret");
+        pivot = hardwareMap.get(Servo.class, "webcamPivot");
 
         waitForStart();
 

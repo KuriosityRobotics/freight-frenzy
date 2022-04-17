@@ -126,7 +126,6 @@ public final class ManagedCamera {
                 CoroutineScope.launch(scope ->
                 {
                     if (vuforiaConsumer != null) {
-
                         vuforiaCoro.runAsync(scope, vuforiaConsumer);
                     }
                     openCvConsumers.forEach(consumer -> openCvCoro.runAsync(scope, consumer));

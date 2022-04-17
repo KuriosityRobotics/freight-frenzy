@@ -155,6 +155,10 @@ public class Robot implements LocationProvider {
         }
     }
 
+    public void sleep(long ms) {
+        linearOpMode.sleep(ms);
+    }
+
     public boolean isOpModeActive() {
         return linearOpMode.opModeIsActive();
     }

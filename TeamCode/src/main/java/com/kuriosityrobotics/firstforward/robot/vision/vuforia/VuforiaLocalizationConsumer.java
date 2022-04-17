@@ -19,6 +19,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.toRadians;
 
 import android.os.SystemClock;
+import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
@@ -76,7 +77,7 @@ public class VuforiaLocalizationConsumer {
     long lastAcceptedTime;
     long lastDetectedTime;
 
-    private boolean manualRotate = false;
+    private volatile boolean manualRotate = false;
     private double manualCamHeading = 0;
 
     public VuforiaLocalizationConsumer(
@@ -246,6 +247,7 @@ public class VuforiaLocalizationConsumer {
     }
 
     private void setCameraAngle(double angle) {
+        Log.v("vuf", "angle: " + angle);
         rotator.setPosition(angleToCameraPos(angle));
     }
 
@@ -296,6 +298,7 @@ public class VuforiaLocalizationConsumer {
     }
 
     public void disableManualCam() {
+        Log.v("vuf", "manual disabled! AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         this.manualRotate = false;
     }
 

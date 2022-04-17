@@ -341,6 +341,10 @@ public class OuttakeModule implements Module, Telemeter {
         return atState(targetState);
     }
 
+    public boolean executingState(OuttakeState state) {
+        return this.currentState == state;
+    }
+
     public boolean atState(OuttakeState state) {
         return currentState == state && phaseComplete();
     }
