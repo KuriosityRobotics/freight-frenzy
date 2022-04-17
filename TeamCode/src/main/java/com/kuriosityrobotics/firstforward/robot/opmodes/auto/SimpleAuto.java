@@ -5,8 +5,10 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+@Disabled
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous
 public class SimpleAuto extends LinearOpMode {
     private static final Pose START = Pose.fieldMirror(9.75, 64.5, Math.toRadians(90));

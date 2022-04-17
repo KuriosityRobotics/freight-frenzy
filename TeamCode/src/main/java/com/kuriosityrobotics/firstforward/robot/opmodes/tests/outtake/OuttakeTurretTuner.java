@@ -14,8 +14,7 @@ public class OuttakeTurretTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-//        servo = hardwareMap.servo.get("extenderRight");
-        servo = hardwareMap.servo.get("webcamPivot");
+        servo = hardwareMap.servo.get("outtakeTurret");
 
         waitForStart();
 
