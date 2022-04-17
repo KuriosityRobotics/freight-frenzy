@@ -201,11 +201,11 @@ public class IntakeModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format(Locale.US, "Intake position:  %s", targetIntakePosition));
+        data.add("Intake position: " + targetIntakePosition);
         data.add("At pos? " + atTargetPosition());
 
         data.add("--");
-        data.add(String.format(Locale.US, "Mineral is in intake: %b", hasMineral));
+        data.add("Mineral is in intake: " + hasMineral);
 
         return data;
     }

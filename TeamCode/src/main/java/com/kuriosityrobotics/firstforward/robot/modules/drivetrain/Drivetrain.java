@@ -2,8 +2,6 @@ package com.kuriosityrobotics.firstforward.robot.modules.drivetrain;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
-import android.os.SystemClock;
-
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.modules.Module;
@@ -85,7 +83,8 @@ public class Drivetrain implements Module, Telemeter {
     public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
-        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+//        data.add(String.format("xMov: %s, yMov: %s, turnMov: %s", xMov, yMov, turnMov));
+        data.add("xMov: " + xMov + " yMov: " + yMov + " turnMov: " + turnMov);
 
         data.add("--");
 

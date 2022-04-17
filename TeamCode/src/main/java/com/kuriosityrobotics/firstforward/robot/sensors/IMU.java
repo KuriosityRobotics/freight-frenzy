@@ -110,12 +110,12 @@ public class IMU implements Telemeter {
 //            }
             lastTheta = angle;
 
-            filter.datumBuilder()
-                    .time(lastUpdateTime)
-                    .mean(angle + (totalRevolutions * BIAS_PER_REVOLUTION))
-                    .variance(toRadians(2))
-                    .stateToOutput(Primitive64Matrix.FACTORY.row(0, 0, 1))
-                    .correct();
+//            filter.datumBuilder()
+//                    .time(lastUpdateTime)
+//                    .mean(angle + (totalRevolutions * BIAS_PER_REVOLUTION))
+//                    .variance(toRadians(2))
+//                    .stateToOutput(Primitive64Matrix.FACTORY.row(0, 0, 1))
+//                    .correct();
         }
 
 //        Log.d("IMU", String.valueOf(toDegrees(lastTheta)));
