@@ -4,6 +4,7 @@ import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.ManagedCamera;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.FreightDetectorConsumer;
+import com.kuriosityrobotics.firstforward.robot.vision.minerals.FreightDetectorHelper;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -15,7 +16,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 public class PlebDetect extends LinearOpMode {
     @Override
     public void runOpMode() {
-        var detector = new FreightDetectorConsumer(LocationProvider.of(Pose.ZERO, Pose.ZERO), PinholeCamera.create());
+        var detector = new FreightDetectorConsumer(LocationProvider.of(Pose.ZERO, Pose.ZERO), PinholeCamera.create(), false);
         var managedCamera = new ManagedCamera(hardwareMap.get(WebcamName.class, "Webcam 1"), LocationProvider.of(Pose.ZERO, Pose.ZERO), detector);
 
         waitForStart();

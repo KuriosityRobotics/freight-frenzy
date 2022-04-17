@@ -17,44 +17,52 @@ import java.util.List;
 
 public class FreightDetectorConsumer implements OpenCvConsumer, Telemeter {
     private List<Point> currentFreightPositions;
+    private Point bestFreightPosition;
+
     private final LocationProvider locationProvider;
     private final FreightDetectorHelper helper;
+    private final boolean isBlue;
     private volatile double lastFrameTime = -1;
 
-    public FreightDetectorConsumer(LocationProvider locationProvider, PinholeCamera camera) {
+    public FreightDetectorConsumer(LocationProvider locationProvider, PinholeCamera pinholeCamera, boolean isBlue) {
         this.locationProvider = locationProvider;
-        this.helper = new FreightDetectorHelper(camera);
+        this.helper = new FreightDetectorHelper(pinholeCamera);
         this.currentFreightPositions = new ArrayList<>();
+        this.isBlue = isBlue;
     }
 
     public void processFrame(double cameraAngle, Mat img) {
         List<Point> newFreightPositions = new ArrayList<>();
 
-        Log.v("freight", "start process");
+        //Log.v("freight", "start process");
 
         // balls are bad for our auto
-        List<Vector2D> cubePixel = helper.getCargoPixels(img);
-//        List<Vector2D> ballPixel = helper.getBallPixelCoords(img);
+        List<Point> cubePixel = helper.getCubePixels(img);
+        List<Point> ballPixel = helper.getBallPixel(img);
 
-        Log.v("freight", "end process");
+        //Log.v("freight", "end process");
 
-        for (Vector2D cube : cubePixel){
-            Point cubePos = helper.findFreightPos(cube, cameraAngle, locationProvider.getPose(), FreightDetectorHelper.FreightType.CUBE);
-            newFreightPositions.add(cubePos);
+        for (Point cube : cubePixel){
+            newFreightPositions.add(cube);
         }
-//        for (Vector2D ball : ballPixel){
-//            Point ballPos = helper.findFreightPos(ball, cameraAngle, locationProvider.getPose(), FreightDetectorHelper.FreightType.CUBE);
-//            newFreightPositions.add(ballPos);
-//        }
+        for (Point ball : ballPixel){
+            newFreightPositions.add(ball);
+        }
 
         currentFreightPositions = newFreightPositions;
-        Log.v("freight", newFreightPositions.toString());
-        Log.v("freight", "processed frame");
+        bestFreightPosition = helper.getBestFreight(currentFreightPositions, isBlue);
+
+        //Log.v("freight", newFreightPositions.toString());
+        //Log.v("freight", "processed frame");
         lastFrameTime = SystemClock.elapsedRealtime();
     }
 
     public List<Point> getFreightPositions() {
         return currentFreightPositions;
+    }
+
+    public Point getBestFreightPosition(){
+        return bestFreightPosition;
     }
 
     @Override

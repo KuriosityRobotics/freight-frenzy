@@ -1,5 +1,9 @@
 package com.kuriosityrobotics.firstforward.robot.vision.minerals;
 
+import static org.opencv.imgproc.Imgproc.MORPH_CLOSE;
+import static org.opencv.imgproc.Imgproc.MORPH_OPEN;
+import static org.opencv.imgproc.Imgproc.MORPH_RECT;
+
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
@@ -23,16 +27,20 @@ import java.util.List;
  */
 
 public class FreightDetectorHelper {
-    public FreightDetectorHelper(PinholeCamera camera) { }
+    private PinholeCamera camera;
+
+    public FreightDetectorHelper(PinholeCamera pinholeCamera) {
+        camera = pinholeCamera;
+    }
 
     public enum FreightType{
         CUBE,
         BALL,
     }
 
-    public ArrayList<Vector2D> getCargoPixels(Mat original) {
+    public ArrayList<Point> getCubePixels(Mat original) {
         Log.v("pinhole", "START cube coords");
-        ArrayList<Vector2D> cubePixel = new ArrayList<>();
+        ArrayList<Point> cubePixel = new ArrayList<>();
         Mat img = original.clone();
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
 
@@ -50,8 +58,8 @@ public class FreightDetectorHelper {
             Rect bound = Imgproc.boundingRect(contour);
             points = (bound.width + 1) * (bound.height + 1);
 
-            if (points < (PinholeCamera.FRAME_WIDTH * PinholeCamera.FRAME_HEIGHT)/200 || points > (PinholeCamera.FRAME_WIDTH * PinholeCamera.FRAME_HEIGHT)/10 || /*contourArea(contour)/bound.area() < 0.3 ||*/
-                    (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 100 || bound.height < PinholeCamera.FRAME_HEIGHT/40 || bound.height > PinholeCamera.FRAME_HEIGHT/1.5 || bound.width < PinholeCamera.FRAME_WIDTH/40 || bound.width > PinholeCamera.FRAME_WIDTH/1.5){
+            if (points < (PinholeCamera.FRAME_WIDTH * PinholeCamera.FRAME_HEIGHT)/400 || points > (PinholeCamera.FRAME_WIDTH * PinholeCamera.FRAME_HEIGHT)/10 || /*contourArea(contour)/bound.area() < 0.3 ||*/
+                    (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 5 || bound.height < PinholeCamera.FRAME_HEIGHT/40 || bound.height > PinholeCamera.FRAME_HEIGHT/1.5 || bound.width < PinholeCamera.FRAME_WIDTH/40 || bound.width > PinholeCamera.FRAME_WIDTH/1.5){
                 continue;
             }
 
@@ -60,7 +68,7 @@ public class FreightDetectorHelper {
             Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
             Scalar mean = Core.mean(original.submat(smallBound));
             if (isCubeScalar(mean)){
-                cubePixel.add(Vector2D.of(bound.x + bound.width/2., bound.y + bound.height));
+                cubePixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height));
             }
         }
         Log.v("pinhole", "FILTER cube coords");
@@ -68,8 +76,8 @@ public class FreightDetectorHelper {
         return cubePixel;
     }
 
-    public ArrayList<Vector2D> getBallPixelCoords(Mat original) {
-        ArrayList<Vector2D> ballPixel = new ArrayList<>();
+    public ArrayList<Point> getBallPixel(Mat original) {
+        ArrayList<Point> ballPixel = new ArrayList<>();
         Mat img = original.clone();
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGBA2RGB);
 
@@ -86,7 +94,7 @@ public class FreightDetectorHelper {
             Rect bound = Imgproc.boundingRect(contour);
             points = (bound.width + 1) * (bound.height + 1);
 
-            if (points < (img.width() * img.height())/300. || points > (img.width() * img.height())/10. || /*contourArea(contour)/bound.area() < 0.3 ||*/
+            if (points < (img.width() * img.height())/300. || points > (img.width() * img.height())/5. || /*contourArea(contour)/bound.area() < 0.3 ||*/
                     (double) Math.max(bound.width, bound.height)/Math.min(bound.width, bound.height) > 1.5 || bound.height < img.height()/40 || bound.height > img.height()/1.5 || bound.width < img.width()/40 || bound.width > img.width()/1.5){
                 continue;
             }
@@ -96,7 +104,7 @@ public class FreightDetectorHelper {
             Rect smallBound = new Rect(topLeft, new Size(bound.width/3., bound.height/3.));
             Scalar mean = Core.mean(original.submat(smallBound));
             if (isBallScalar(mean)){
-                ballPixel.add(Vector2D.of(bound.x + bound.width/2., bound.y + bound.height/2.));
+                ballPixel.add(new Point(bound.x + bound.width/2., bound.y + bound.height));
             }
         }
 
@@ -119,14 +127,10 @@ public class FreightDetectorHelper {
 
     public static void ballContourDetection(Mat original, Mat canny) {
         Mat img = original.clone();
-        //Imgproc.morphologyEx(img, img, MORPH_CLOSE, Imgproc.getStructuringElement(MORPH_ELLIPSE, new Size(7, 7)));
-        //Imgproc.morphologyEx(img, img, MORPH_OPEN, Imgproc.getStructuringElement(MORPH_ELLIPSE, new Size(5, 5)));
-        //Imgproc.blur(img, img, new Size(3, 3));
-        Imgproc.morphologyEx(img, img, Imgproc.MORPH_OPEN, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(9, 9)));
+        Imgproc.morphologyEx(img, img, Imgproc.MORPH_OPEN, Imgproc.getStructuringElement(MORPH_RECT, new Size(9, 9)));
 
-        filterBallColors(img);
+        //filterBallColors(img);
         Imgproc.GaussianBlur(img, img, new Size(5,5),0,0);
-        //HighGui.imshow("before canny", img);
 
         Imgproc.Canny(img, canny, 60, 180);
     }
@@ -135,7 +139,7 @@ public class FreightDetectorHelper {
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HLS);
 
         Mat mask = new Mat();
-        Core.inRange(img, new Scalar(14, 0, 0), new Scalar(30, 255, 255), mask);
+        Core.inRange(img, new Scalar(12, 0, 0), new Scalar(30, 255, 255), mask);
 
         Imgproc.cvtColor(img, img, Imgproc.COLOR_HLS2RGB);
         Mat result = new Mat();
@@ -179,6 +183,31 @@ public class FreightDetectorHelper {
         double deviation = Math.abs(red - avg)/avg + Math.abs(green - avg)/avg + Math.abs(blue - avg)/avg;
 
         return deviation < 0.3 && red > 160 && green > 160 && blue > 167;
+    }
+
+    public Point getBestFreight(List<Point> freight, boolean isBlue){
+        ArrayList<Point> withinAngle = new ArrayList<>();
+        for (Point p : freight){
+            if (!isBlue &&
+                    Math.atan2(p.x - camera.O_X, camera.FOCAL_LENGTH/camera.INCHES_PER_PIXEL) > Math.toRadians(-30) &&
+                    Math.atan2(p.x - camera.O_X, camera.FOCAL_LENGTH/camera.INCHES_PER_PIXEL) < Math.toRadians(10)){
+                withinAngle.add(p);
+            }else if (Math.atan2(p.x - camera.O_X, camera.FOCAL_LENGTH/camera.INCHES_PER_PIXEL) > Math.toRadians(-10) &&
+                      Math.atan2(p.x - camera.O_X, camera.FOCAL_LENGTH/camera.INCHES_PER_PIXEL) < Math.toRadians(30)){
+                withinAngle.add(p);
+            }
+        }
+
+        Point lowest = new Point(0, 0);
+        double lowX = 0;
+        for (Point p : withinAngle){
+            if (p.y > lowX){
+                lowX = p.y;
+                lowest = p;
+            }
+        }
+
+        return lowest;
     }
 
     public Point findFreightPos(Vector2D pixelCoords, double cameraHeading, Pose robotPose, FreightType freightType) {

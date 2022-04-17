@@ -30,7 +30,7 @@ public class VisionThread implements Runnable, Telemeter {
 
     public VisionThread(Robot robot, WebcamName camera) {
         this.robot = robot;
-        this.freightDetectorConsumer = new FreightDetectorConsumer(robot, pinholeCamera);
+        this.freightDetectorConsumer = new FreightDetectorConsumer(robot, pinholeCamera, robot.isBlue());
         this.teamMarkerDetector = new TeamMarkerDetector(robot, pinholeCamera);
 
         if (camera.isAttached()) {
