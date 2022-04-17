@@ -27,7 +27,7 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
     public static final double INTAKE_LEFT_IDLE_POS = INTAKE_LEFT_RETRACTED_POS + (INTAKE_RIGHT_RETRACTED_POS - INTAKE_RIGHT_IDLE_POS);
 
-    private static final double CLOSE_DISTANCE_THRESHOLD = 42;
+    private static final double CLOSE_DISTANCE_THRESHOLD = 38; //original value = 38
     private static final double FAR_DISTANCE_THRESHOLD = 70;
 
     public static final long INTAKE_EXTEND_TIME = 750;
@@ -57,7 +57,7 @@ public class IntakeModule implements Module, Telemeter {
     private boolean hasMineral;
 
     public volatile boolean newMineral = false;
-    CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(15);
+    private final CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(4);
 
     public enum IntakePosition {
         EXTENDED,
@@ -183,36 +183,14 @@ public class IntakeModule implements Module, Telemeter {
     private boolean mineralInIntake() {
         spinning = intakeSpinning();
 
-        double reading = distanceSensor.getSensorReading();
+        double reading = distanceSensor.getSensorReading(); //value from 0 to 5 volts
         distanceReadings.add(reading);
+        return intakeSpinning() && distanceReadings.stream().allMatch(n -> n < CLOSE_DISTANCE_THRESHOLD);
 
-        // needs to be tuned
-        if (reading < CLOSE_DISTANCE_THRESHOLD) {
-            // if last 4 are all positives it's a go
-            Object[] queueArray = distanceReadings.toArray();
-            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 5, 0); i--) {
-                if (((double) queueArray[i]) > CLOSE_DISTANCE_THRESHOLD) {
-                    return false;
-                }
-            }
-            return spinning;
-        } else if (reading < FAR_DISTANCE_THRESHOLD) {
-            // if last 10 are all positives it's a go
-            Object[] queueArray = distanceReadings.toArray();
-            int start = Math.max(queueArray.length - 1, 0);
-            int limit = Math.max(queueArray.length - 10, 0);
-            for (int i = start; i > limit; i--) {
-                if (((double) queueArray[i]) > FAR_DISTANCE_THRESHOLD) {
-                    return false;
-                }
-            }
-            return spinning;
-        }
-        return false;
     }
 
     private boolean intakeSpinning() {
-        return abs(intakePower) > .5;
+        return abs(intakeMotor.getPower()) > 0.5;
     }
 
     public boolean isOn() {
