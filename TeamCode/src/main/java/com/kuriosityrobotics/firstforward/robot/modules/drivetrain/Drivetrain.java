@@ -15,6 +15,7 @@ import java.util.List;
 
 public class Drivetrain implements Module, Telemeter {
     final LocationProvider locationProvider;
+
     private final DrivetrainModule drivetrainModule;
 
     //states
@@ -102,5 +103,9 @@ public class Drivetrain implements Module, Telemeter {
     @Override
     public int getShowIndex() {
         return 1;
+    }
+
+    public DrivetrainModule getDrivetrainModule() {
+        return drivetrainModule;
     }
 }

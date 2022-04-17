@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 class DrivetrainModule implements Module, Telemeter {
@@ -38,6 +39,8 @@ class DrivetrainModule implements Module, Telemeter {
 //        robot.telemetryDump.registerTelemeter(this);
     }
 
+    private double lastFL, lastFR, lastBL, lastBR;
+
     //updates motor power
     public void update() {
         double fLPower = yMov + turnMov + xMov;
@@ -51,6 +54,11 @@ class DrivetrainModule implements Module, Telemeter {
         fRPower *= scale;
         bLPower *= scale;
         bRPower *= scale;
+
+        lastFL = fLPower;
+        lastFR = fRPower;
+        lastBL = bLPower;
+        lastBR = bRPower;
 
         setMotorPowers(fLPower, fRPower, bLPower, bRPower);
 
@@ -113,6 +121,18 @@ class DrivetrainModule implements Module, Telemeter {
         data.add("xMov: " + xMov);
         data.add("yMov: " + yMov);
         data.add("turnMov: " + turnMov);
+
+        return data;
+    }
+
+    @Override
+    public HashMap<String, Object> getDashboardData() {
+        HashMap<String, Object> data = new HashMap<>();
+
+        data.put("Last FL", lastFL);
+        data.put("Last FR", lastFR);
+        data.put("Last BL", lastBL);
+        data.put("Last BR", lastBR);
 
         return data;
     }

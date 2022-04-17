@@ -9,7 +9,6 @@ public class ClassicalPID {
 
     private double lastError;
     private double errorSum;
-    private double errorChange;
     private double lastUpdateTime;
 
     /**
@@ -36,11 +35,9 @@ public class ClassicalPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        long currentTime = NanoClock.now();
+        double currentTime = NanoClock.now();
 
-        error /= (currentTime - lastUpdateTime); // feature is back, now in nanos
-
-        errorSum += error;
+        double dTime = (currentTime - lastUpdateTime);
 
         double p = error * P_FACTOR;
         double i = 0;
@@ -48,19 +45,17 @@ public class ClassicalPID {
 
         if (!reset) {
             //update d to correct for overshoot
-            d = D_FACTOR * (error - lastError);
+            d = D_FACTOR * ((error - lastError) / dTime);
         } else {
             reset = false;
-            errorSum = error;
-            d = 0;
+            errorSum = 0;
         }
 
         //update i accordingly
+        errorSum += error / dTime;
         i = errorSum * I_FACTOR;
 
         lastError = error;
-        errorChange = d;
-
         lastUpdateTime = currentTime;
 
         return p + i + d;
@@ -74,6 +69,4 @@ public class ClassicalPID {
         reset = true;
         errorSum = 0;
     }
-
-    public double getD() { return errorChange; }
 }

@@ -13,10 +13,8 @@ public class FeedForwardPID {
     }
 
     public double calculateSpeed(double target, double error) {
-        error /= (NanoClock.now() - lastUpdateTime);
         double scale = classicalPID.calculateSpeed(error);
 
-        lastUpdateTime = NanoClock.now();
         return (target * f) + (scale);
     }
 

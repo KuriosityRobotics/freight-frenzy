@@ -11,9 +11,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 public class TelemetryDump implements PoseWatcher {
     private final Telemetry telemetry;
@@ -50,9 +50,13 @@ public class TelemetryDump implements PoseWatcher {
             TelemetryPacket packet = new TelemetryPacket();
             Canvas canvas = packet.fieldOverlay();
             for (Telemeter telemeter : telemeters) {
-                if (telemeter.getDashboardData() != null) {
-                    packet.putAll(telemeter.getDashboardData());
+                HashMap<String, Object> data = telemeter.getDashboardData();
+                if (data != null) {
+                    packet.putAll(data);
                 }
+//                if (telemeter.getDashboardData() != null) {
+//                    packet.putAll(telemeter.getDashboardData());
+//                }
             }
 
             Pose dashboardPose = pose.toFTCSystem();

@@ -10,8 +10,7 @@ public class IThresholdPID {
 
     private double lastError;
     private double errorSum;
-    private double errorChange;
-    private long lastUpdatedTime;
+    private double lastUpdatedTime;
 
     /**
      * Constructs a ClassicalPIDController
@@ -39,12 +38,9 @@ public class IThresholdPID {
      * @return Updated speed
      */
     public double calculateSpeed(double error) {
-        error /= (NanoClock.now() - lastUpdatedTime);
-        if (Math.abs(error) < startIThreshold && Math.abs(error) > ignoreIThreshold) {
-            errorSum += error;
-        } else {
-            errorSum = 0;
-        }
+        double currentTime = NanoClock.now();
+
+        double dTime = (currentTime - lastUpdatedTime);
 
         double p = error * P_FACTOR;
         double i = 0;
@@ -52,20 +48,22 @@ public class IThresholdPID {
 
         if (!reset) {
             //update d to correct for overshoot
-            d = D_FACTOR * (error - lastError);
+            d = D_FACTOR * ((error - lastError) / dTime);
         } else {
             reset = false;
-            errorSum = error;
-            d = 0;
+            errorSum = 0;
         }
 
         //update i accordingly
+        if (Math.abs(error) < startIThreshold && Math.abs(error) > ignoreIThreshold) {
+            errorSum += error;
+        } else {
+            errorSum = 0;
+        }
         i = errorSum * I_FACTOR;
 
         lastError = error;
-        errorChange = d;
-
-        lastUpdatedTime = NanoClock.now();
+        lastUpdatedTime = currentTime;
 
         return p + i + d;
     }
@@ -78,6 +76,4 @@ public class IThresholdPID {
         reset = true;
         errorSum = 0;
     }
-
-    public double getD() { return errorChange; }
 }

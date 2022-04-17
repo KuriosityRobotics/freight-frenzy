@@ -71,6 +71,7 @@ public class Robot implements LocationProvider {
         // modules
         drivetrain = new Drivetrain(sensorThread.getOdometry(), hardwareMap);
         telemetryDump.registerTelemeter(drivetrain);
+        telemetryDump.registerTelemeter(drivetrain.getDrivetrainModule());
 
         outtakeModule = new OuttakeModule(this, hardwareMap);
         telemetryDump.registerTelemeter(outtakeModule);
@@ -182,7 +183,7 @@ public class Robot implements LocationProvider {
     @Override
     public Pose getVelocity() {
         // TODO instantaneous or rolling?
-        return sensorThread.getOdometry().getInstantaneousVelocity();
+        return sensorThread.getOdometry().getRollingVelocity();
     }
 
     public void resetPose(Pose pose) {

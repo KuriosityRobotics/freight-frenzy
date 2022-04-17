@@ -4,6 +4,7 @@ import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleW
 
 import android.util.Log;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -19,10 +20,11 @@ import java.util.Collections;
 import java.util.ListIterator;
 import java.util.Map;
 
+@Config
 public class MotionProfile {
-    public static final double ROBOT_MAX_VEL = 65;
-    public static final double ROBOT_MAX_ACCEL = 85;
-    public static final double ROBOT_MAX_DECCEL = 85;
+    public static double ROBOT_MAX_VEL = 65;
+    public static double ROBOT_MAX_ACCEL = 55;
+    public static double ROBOT_MAX_DECCEL = 35;
 
     private final double maxVel, maxAccel, maxDeccel;
 
@@ -44,7 +46,7 @@ public class MotionProfile {
         this.angleLockProfile = generateAngleLockProfile(inputPath);
         this.velocityProfile = generateVelocityProfile(inputPath);
 
-        Log.v("MP", "apht: " + Arrays.toString(inputPath));
+//        Log.v("MP", "path: " + Arrays.toString(inputPath));
         Log.v("MP", "velocityprof: " + velocityProfile);
     }
 

@@ -38,9 +38,9 @@ public class OuttakeModule implements Module, Telemeter {
     private static final long DUMP_TIME = 300;
     private static final long TURRET_TIME = 200; // if the turret isn't already straight
 
-    private static final double CLAMP_INTAKE = 0.7839,
-            CLAMP_CLAMP = 0.6969,
-            CLAMP_RELEASE = 0.8728;
+    private static final double CLAMP_INTAKE = 0.8319,
+            CLAMP_CLAMP = 0.74,
+            CLAMP_RELEASE = 0.8943;
 
     private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
 
@@ -58,7 +58,7 @@ public class OuttakeModule implements Module, Telemeter {
         private final double position;
 
         TurretPosition(double position) {
-            this.position = position;
+            this.position = position - (0.4792 - 0.4520);
         }
     }
 

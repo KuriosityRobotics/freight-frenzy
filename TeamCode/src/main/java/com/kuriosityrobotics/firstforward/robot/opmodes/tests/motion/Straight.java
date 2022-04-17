@@ -1,6 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.tests.motion;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
+import com.kuriosityrobotics.firstforward.robot.pathfollow.AngleLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.PurePursuit;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
@@ -20,8 +21,8 @@ public class Straight extends LinearOpMode {
                 new WayPoint(0, 20),
                 new WayPoint(0, 40),
 //                new WayPoint(-30, 60, 0)
-                new WayPoint(0, 50, new VelocityLock(0))
-        }, 10);
+                new WayPoint(0, 50, new AngleLock(0), new VelocityLock(0))
+        }, 4);
 
         waitForStart();
 

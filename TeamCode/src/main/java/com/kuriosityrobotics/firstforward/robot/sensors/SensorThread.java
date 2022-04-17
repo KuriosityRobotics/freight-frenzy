@@ -24,7 +24,6 @@ import de.esoco.coroutine.Coroutine;
 
 public class SensorThread implements Runnable, Telemeter {
 
-    private static final Coroutine<LynxModule, Void> bulkDataCoroutine = first(consume(LynxModule::getBulkData));
     /**
      * This is a singleton.  Pose position and history is persisted through this.
      * Remember to register it as a telemeter each time a new Robot is created.
@@ -69,13 +68,21 @@ public class SensorThread implements Runnable, Telemeter {
         sensors = new HashSet<>();
         sensors.add(AsynchProcess.parallel(imu));
         sensors.add(AsynchProcess.parallel("EH", robot.getExpansionHub()::getBulkData, 60));
-        sensors.add(AsynchProcess.parallel("CH", robot.getControlHub()::getBulkData)
-                .chain(odometry)
-                .chain(frontLeft)
-                .chain(backLeft)
-                .chain(frontRight)
-                .chain(backRight)
-                .chain(distanceSensorLocaliser));
+        sensors.add(AsynchProcess.parallel("CH", () -> {
+            robot.getControlHub().getBulkData();
+            odometry.update();
+            frontLeft.update();
+            backLeft.update();
+            frontRight.update();
+            backRight.update();
+        }));
+//        sensors.add(AsynchProcess.parallel("CH", robot.getControlHub()::getBulkData)
+//                .chain(odometry)
+//                .chain(frontLeft)
+//                .chain(backLeft)
+//                .chain(frontRight)
+//                .chain(backRight)
+//                .chain(distanceSensorLocaliser));
 
         sensors.forEach(robot.getTelemetryDump()::registerTelemeter);
     }
@@ -102,10 +109,10 @@ public class SensorThread implements Runnable, Telemeter {
 
             long currentTime = SystemClock.elapsedRealtime();
 
-            if (currentTime - lastPoseSendTime >= 250) {
-                robot.getTelemetryDump().sendPose(getPose());
-                lastPoseSendTime = currentTime;
-            }
+//            if (currentTime - lastPoseSendTime >= 50) {
+            robot.getTelemetryDump().sendPose(getPose());
+            lastPoseSendTime = currentTime;
+//            }
 
             updateTime = currentTime - lastLoopTime;
             lastLoopTime = currentTime;
@@ -148,7 +155,7 @@ public class SensorThread implements Runnable, Telemeter {
 
     @Override
     public int getShowIndex() {
-        return 5;
+        return 0;
     }
 
     @Override

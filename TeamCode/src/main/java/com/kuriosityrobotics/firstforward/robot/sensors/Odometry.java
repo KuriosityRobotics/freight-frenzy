@@ -104,7 +104,7 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
                 )
                 .predict();
 
-        calculateInstantaneousVelAccelDeccel();
+        calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
         lastUpdateTime = now;
     }
@@ -129,7 +129,7 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         lastMecanumFrontPosition = newMecanumFrontPosition;
     }
 
-    private void calculateInstantaneousVelAccelDeccel() {
+    private void calculateInstantaneousVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
         double dTime = (currentUpdateTime - lastUpdateTime) / 1000.;
 
@@ -138,33 +138,17 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
 
-        vel = getVelMag();
-        double dVelT = (vel - Math.hypot(oldxVel, oldyVel)) / (dTime);
-        if (dVelT > 0){
-            accel = dVelT;
-            deccel = 0;
-        }else{
-            accel = 0;
-            deccel = -dVelT;
-        }
+        Log.v("odo", "xvel: " + xVel + " yvel: " + yVel + " anglevel: " + angleVel);
 
-        if (dTime > .02){
-            Log.v("odo","vel: " + vel);
-            if (accel != 0){
-                Log.v("odo","accel: " + accel);
-            }
-            if (deccel != 0){
-                Log.v("odo","deccel: " + deccel);
-            }
-            oldX = worldX;
-            oldY = worldY;
-            oldHeading = worldHeadingRad;
+        oldX = worldX;
+        oldY = worldY;
+        oldHeading = worldHeadingRad;
 
-            oldxVel = xVel;
-            oldyVel = yVel;
-            oldangleVel = angleVel;
+        oldxVel = xVel;
+        oldyVel = yVel;
+        oldangleVel = angleVel;
 
-        }
+        lastUpdateTime = currentUpdateTime;
     }
 
     private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumBackPod, double dMecanumFrontPod) {
@@ -267,10 +251,8 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
         data.add(getPose().toString("odometry pose"));
-
-        data.add("vel: " + vel);
-        data.add("accel: " + accel);
-        data.add("deccel: " + deccel);
+        data.add(getInstantaneousVelocity().toString("insta velo"));
+        data.add(getRollingVelocity().toString("rolling velo"));
 
         return data;
     }

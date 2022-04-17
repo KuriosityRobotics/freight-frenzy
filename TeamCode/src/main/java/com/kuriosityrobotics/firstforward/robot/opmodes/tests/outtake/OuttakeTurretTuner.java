@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class OuttakeTurretTuner extends LinearOpMode {
     Servo servo;
 
-    double servoPos = 0.5;
+    double servoPos = 0.4792;
 
     @Override
     public void runOpMode() {
