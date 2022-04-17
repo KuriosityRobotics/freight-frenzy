@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class RollingVelocityCalculator {
-    private static final double VELOCITY_WINDOW_S = 0.100;
+    private static final double VELOCITY_WINDOW_S = 0.150;
 
     private final ConcurrentLinkedQueue<PoseInstant> history = new ConcurrentLinkedQueue<>();
     private Pose velocity = new Pose(0, 0, 0);

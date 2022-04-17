@@ -23,7 +23,7 @@ import java.util.Map;
 @Config
 public class MotionProfile {
     public static double ROBOT_MAX_VEL = 65;
-    public static double ROBOT_MAX_ACCEL = 55;
+    public static double ROBOT_MAX_ACCEL = 85;
     public static double ROBOT_MAX_DECCEL = 35;
 
     private final double maxVel, maxAccel, maxDeccel;

@@ -36,13 +36,14 @@ public class PurePursuit implements Telemeter {
     // motion magic
     private final MotionProfile profile;
 
-    public static double Y_FF = 0.022;
-    public static double Y_P = 0.023;
-    public static double Y_D = 0.0019;
+    public static double Y_FF = 0.0185;
+    public static double Y_P = 0.017;
+    public static double Y_D = 0.0075;
     public static double X_FF = 0.020;
     public static double X_P = 0.020;
-    public static double TURN_P = 0.6;
-    public static double TURN_I = 0.000;
+    public static double X_D = 0.0015;
+    public static double TURN_P = 0.68;
+    public static double TURN_I = 0.00035;
     public static double TURN_D = 0.1;
     // avoid using I for x&y so we don't get funky behavior when we prioritize turning and fall behind on x+y
 //    private final FeedForwardPID yPID = new FeedForwardPID(0.021, 0.007, 0, 0.00);
@@ -50,6 +51,7 @@ public class PurePursuit implements Telemeter {
     private FeedForwardPID yPID = new FeedForwardPID(0.0185, 0.015, 0, 0.00);
     private FeedForwardPID xPID = new FeedForwardPID(0.020, 0.020, 0.0000, 0);
     private IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
+
     //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
     double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd, headingError;
 
@@ -72,7 +74,7 @@ public class PurePursuit implements Telemeter {
         this.angleThreshold = angleThreshold;
 
         this.yPID = new FeedForwardPID(Y_FF, Y_P, 0, Y_D);
-        this.xPID = new FeedForwardPID(X_FF, X_P, 0, 0);
+        this.xPID = new FeedForwardPID(X_FF, X_P, 0, X_D);
         this.headingPID = new IThresholdPID(TURN_P, TURN_I, TURN_D, Math.toRadians(4), Math.toRadians(12));
 
         this.reset();

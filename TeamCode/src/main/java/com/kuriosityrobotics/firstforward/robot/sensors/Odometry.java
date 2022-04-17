@@ -138,8 +138,6 @@ public class Odometry extends RollingVelocityCalculator implements Module, Locat
         yVel = (worldY - oldY) / (dTime);
         angleVel = (worldHeadingRad - oldHeading) / (dTime);
 
-        Log.v("odo", "xvel: " + xVel + " yvel: " + yVel + " anglevel: " + angleVel);
-
         oldX = worldX;
         oldY = worldY;
         oldHeading = worldHeadingRad;
