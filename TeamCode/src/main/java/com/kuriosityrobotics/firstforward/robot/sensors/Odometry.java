@@ -1,13 +1,15 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
+import static java.lang.Math.pow;
+
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -63,9 +65,11 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
     private static final double B_ENCODER_DIST_FROM_CENTER = 2.9761730787305137386664648856740921319601002407647215925090672904 * (3622.009011720834 / 3600.);
 
 
+    private final ExtendedKalmanFilter filter;
+    private final IMU imu;
     private final Robot robot;
 
-    public Odometry(Robot robot, HardwareMap hardwareMap, Pose pose) {
+    public Odometry(Robot robot, HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter filter, IMU imu) {
         this.robot = robot;
         this.worldX = pose.x;
         this.worldY = pose.y;
@@ -75,6 +79,8 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         yRightEncoder = hardwareMap.get(DcMotor.class, "fRight");
         mecanumBackEncoder = hardwareMap.get(DcMotor.class, "bLeft");
         mecanumFrontEncoder = hardwareMap.get(DcMotor.class, "bRight");
+        this.filter = filter;
+        this.imu = imu;
 
         resetEncoders();
 
@@ -84,9 +90,25 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     public void update() {
 
-        long currentTimeMillis = SystemClock.elapsedRealtime();
+        var now = SystemClock.elapsedRealtime();
+        var dt = (now - lastUpdateTime) / 1000.;
+        if (lastUpdateTime == 0)
+            dt = 8 / 1000.;
+
         calculatePosition();
-        robot.sensorThread.addGoodie(new KalmanData(0, getDeltaMatrix()), currentTimeMillis);
+
+        var accel = imu.getAcceleration();
+
+        filter.builder()
+                .time(now)
+                .mean(dx, dy, dHeading)
+                .outputToState(rotate(filter.outputVector()[2]))
+                .variance(
+                        pow(dt * accel.x * .3, 2),
+                        pow(dt * accel.y * .3, 2),
+                        pow(dHeading * (imu.isOffGround() ? 2 : .8), 2)
+                )
+                .predict();
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));

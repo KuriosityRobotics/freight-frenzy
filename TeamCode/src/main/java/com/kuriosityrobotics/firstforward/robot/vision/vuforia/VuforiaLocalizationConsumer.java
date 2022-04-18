@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.vision.vuforia;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_FIELD_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HALF_TILE_MEAT_MM;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.TARGET_HEIGHT_MM;
@@ -18,13 +17,14 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XYZ;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.XZY;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.EXTRINSIC;
 import static java.lang.Math.PI;
+import static java.lang.Math.toRadians;
 
 import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.Robot;
-import com.kuriosityrobotics.firstforward.robot.sensors.KalmanFilter.KalmanData;
+import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.vision.PhysicalCamera;
@@ -32,8 +32,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
@@ -92,13 +90,16 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     public volatile boolean manualCam = false;
     public volatile double manualAngle = 0;
 
-    public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
+    private final ExtendedKalmanFilter filter;
+
+    public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap, ExtendedKalmanFilter filter) {
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
         this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
         cameraEncoder = hwMap.get(DcMotor.class, "intake");
+        this.filter = filter;
 
         setCameraAngle(0);
 
@@ -203,11 +204,14 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 trackVuforiaTargets();
 
                 long fetchTime = SystemClock.elapsedRealtime();
-                RealMatrix data = getLocationRealMatrix();
+                var data = getLocationRealMatrix();
 
                 // hopefully this doesn't do bad thread stuff
                 if (data != null) {
-                    robot.sensorThread.addGoodie(new KalmanData(1, data), fetchTime);
+                    filter.builder()
+                            .mean(data)
+                            .variance(.04, .04, toRadians(3 * 3))
+                            .correct();
                     lastAcceptedTime = SystemClock.elapsedRealtime();
                     Log.v("KF", "adding vuf goodie, passed filters");
                 }
@@ -291,7 +295,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         for (VuforiaTrackable trackable : this.freightFrenzyTargets) {
             OpenGLMatrix cameraLoc = OpenGLMatrix
                     .translation(SERVO_FORWARD_DISPLACEMENT_MM + CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.cos(cameraAngle), SERVO_LEFT_DISPLACEMENT_MM - CAMERA_VARIABLE_DISPLACEMENT_MM * (float) Math.sin(cameraAngle), SERVO_VERTICAL_DISPLACEMENT_MM + CAMERA_VERTICAL_DISPLACEMENT_MM)
-                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) (PI / 2 + Math.toRadians(33)), (float) (PI / 2 - cameraAngle), 0));
+                    .multiplied(Orientation.getRotationMatrix(EXTRINSIC, XZY, RADIANS, (float) (PI / 2 + toRadians(33)), (float) (PI / 2 - cameraAngle), 0));
             ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, cameraLoc);
 //            ((VuforiaTrackableDefaultListener) trackable.getListener()).setCameraLocationOnRobot(cameraName, physicalCamera.translationMatrix().multiplied(physicalCamera.rotationMatrix()));
         }
@@ -372,12 +376,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 data.add("Horizontal Peripheral Angle: " + Math.toDegrees(detectedHorizPeripheralAngle));
                 data.add("Vertical Peripheral Angle: " + Math.toDegrees(detectedVertPeripheralAngle));
 
-                RealMatrix robotLocation = getLocationRealMatrix();
+                var robotLocation = getLocationRealMatrix();
 
                 if (robotLocation != null) {
-                    data.add("vufX: " + robotLocation.getEntry(0, 0));
-                    data.add("vufY: " + robotLocation.getEntry(1, 0));
-                    data.add("vufHeading: " + robotLocation.getEntry(2, 0));
+                    data.add("vufPosition: " + Pose.of(robotLocation));
                 } else {
                     data.add("not using vuforia goodies rn");
                 }
@@ -395,7 +397,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     }
 
 
-    public RealMatrix getLocationRealMatrix() {
+    public double[] getLocationRealMatrix() {
         synchronized (this) {
             try {
 /*
@@ -409,7 +411,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                     }
                 }*/
                 // filter out by peripherals
-                if (Math.abs(detectedHorizPeripheralAngle) >= Math.toRadians(28) || Math.abs(detectedVertPeripheralAngle) >= Math.toRadians(25)) {
+                if (Math.abs(detectedHorizPeripheralAngle) >= toRadians(28) || Math.abs(detectedVertPeripheralAngle) >= toRadians(25)) {
                     Log.v("kf", "DISCARD by perif, " + Math.abs(Math.toDegrees(detectedHorizPeripheralAngle)) + ", " + Math.abs(Math.toDegrees(detectedVertPeripheralAngle)));
                     return null;
                 }
@@ -429,11 +431,11 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 VectorF translation = detectedData.getTranslation();
                 Pose ourSystem = dataToOurSystem(translation);
 
-                return MatrixUtils.createRealMatrix(new double[][]{
-                        {ourSystem.x},
-                        {ourSystem.y},
-                        {ourSystem.heading}
-                });
+                return new double[]{
+                        ourSystem.x,
+                        ourSystem.y,
+                        ourSystem.heading
+                };
 
             } catch (Exception e) {
                 return null;
@@ -482,21 +484,21 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         BLUE_STORAGE(0, -HALF_FIELD_MM,
                 1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM,
                 TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)),
+                (float) toRadians(90), 0f, (float) toRadians(90)),
         BLUE_ALLIANCE_WALL(1,
                 0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
                 HALF_FIELD_MM,
                 TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, 0f),
+                (float) toRadians(90), 0f, 0f),
         RED_STORAGE(2,
                 -HALF_FIELD_MM,
                 -(1.5f * TILE_MEAT_MM + 1.5f * TILE_TAB_MM),
                 TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(90)),
+                (float) toRadians(90), 0f, (float) toRadians(90)),
         RED_ALLIANCE_WALL(3, 0.5f * TILE_TAB_MM + HALF_TILE_MEAT_MM,
                 -HALF_FIELD_MM,
                 TARGET_HEIGHT_MM,
-                (float) Math.toRadians(90), 0f, (float) Math.toRadians(180)
+                (float) toRadians(90), 0f, (float) toRadians(180)
         );
 
         public final int index;

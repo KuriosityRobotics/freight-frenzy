@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.sensors.SensorThread;
 import com.kuriosityrobotics.firstforward.robot.vision.minerals.CargoDetectorConsumer;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.OpenCVDumper;
 import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
@@ -34,7 +35,7 @@ public class VisionThread implements Runnable, Telemeter {
         this.teamMarkerDetector = new TeamMarkerDetector();
 
         if (camera.isAttached()) {
-            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap);
+            this.vuforiaLocalizationConsumer = new VuforiaLocalizationConsumer(robot, robot, PhysicalCamera.of(robot), camera, robot.hardwareMap, SensorThread.getTheKalmanFilter());
         } else {
             this.vuforiaLocalizationConsumer = null;
         }

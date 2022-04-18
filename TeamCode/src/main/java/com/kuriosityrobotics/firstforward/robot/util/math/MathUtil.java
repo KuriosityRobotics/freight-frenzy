@@ -1,11 +1,31 @@
 package com.kuriosityrobotics.firstforward.robot.util.math;
 
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
+import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.ojalgo.matrix.Primitive64Matrix;
 
 import java.util.Collection;
 
 public class MathUtil {
     private static final double EPSILON = 0.00001;
+
+    public static Vector2D rotate(Vector2D vector, double angle) {
+        return Vector2D.of(
+                cos(angle) * vector.getX() + sin(angle) * vector.getY(),
+                -sin(angle) * vector.getX() + cos(angle) * vector.getY()
+        );
+    }
+
+    public static Primitive64Matrix rotate(double theta) {
+        return Primitive64Matrix.FACTORY.rows(new double[][]{
+                {cos(theta), sin(theta), 0},
+                {-sin(theta), cos(theta), 0},
+                {0, 0, 1}
+        });
+    }
 
     public static int toNum(boolean value) {
         return value ? 1 : 0;

@@ -102,6 +102,10 @@ public class Pose extends Point {
         return Math.atan2(point.x - this.x, point.y - this.y);
     }
 
+    public static Pose of(double[] data) {
+        return new Pose(data[0], data[1], data[2]);
+    }
+
     /**
      * The heading a robot at this pose would have to turn by to face the point directly. Returned value is angleWrapped.
      *
