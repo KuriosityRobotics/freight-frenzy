@@ -3,6 +3,8 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import static java.lang.Math.hypot;
+
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
@@ -20,16 +22,20 @@ public class Point {
         this.y = y;
     }
 
-    public double distance(Point other) {
-        return Math.hypot(other.x - x, other.y - y);
+    public static Point fieldMirror(double x, double y) {
+        return new Point(FULL_FIELD - x, y);
     }
 
-    public Point nearestPoint(ArrayList<Point> points){
+    public double distance(Point other) {
+        return hypot(other.x - x, other.y - y);
+    }
+
+    public Point nearestPoint(ArrayList<Point> points) {
         Point nearest = points.get(0);
         double minDis = Double.MAX_VALUE;
 
-        for (Point other : points){
-            if (this.distance(other) < minDis){
+        for (Point other : points) {
+            if (this.distance(other) < minDis) {
                 minDis = this.distance(other);
                 nearest = other;
             }
@@ -103,8 +109,8 @@ public class Point {
         return new Point(this.x + point.x, this.y + point.y);
     }
 
-    public static Point fieldMirror(double x, double y) {
-        return new Point(FULL_FIELD - x, y);
+    public double norm() {
+        return hypot(x, y);
     }
 }
 

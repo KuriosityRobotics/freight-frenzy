@@ -5,12 +5,18 @@ import static java.lang.Math.sin;
 
 import org.apache.commons.geometry.euclidean.twod.Vector2D;
 import org.apache.commons.math3.stat.descriptive.moment.Mean;
+import org.apache.commons.numbers.core.Precision;
 import org.ojalgo.matrix.Primitive64Matrix;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Map;
 
 public class MathUtil {
-    private static final double EPSILON = 0.00001;
+    private static final double EPSILON = 0.001;
+    private static final Precision.DoubleEquivalence PRECISION = Precision.doubleEquivalenceOfEpsilon(EPSILON);
 
     public static Vector2D rotate(Vector2D vector, double angle) {
         return Vector2D.of(
@@ -19,6 +25,18 @@ public class MathUtil {
         );
     }
 
+    public static double median(Collection<Map.Entry<Long, Double>> t) {
+        var newCollection = new ArrayList<>(t);
+        newCollection.sort(Comparator.comparingDouble(Map.Entry::getValue));
+        return newCollection.get(newCollection.size() / 2).getValue();
+    }
+
+    public static double truncate(double x, double numDecimals) {
+        double pow = Math.pow(10 ,numDecimals);
+        return Math.floor(x * pow) / pow;
+    }
+
+
     public static Primitive64Matrix rotate(double theta) {
         return Primitive64Matrix.FACTORY.rows(new double[][]{
                 {cos(theta), sin(theta), 0},
@@ -26,6 +44,12 @@ public class MathUtil {
                 {0, 0, 1}
         });
     }
+
+    public static boolean inRange(double min, double max, double value) {
+        return PRECISION.gte(value, min)
+                && PRECISION.lte(value, max);
+    }
+
 
     public static int toNum(boolean value) {
         return value ? 1 : 0;

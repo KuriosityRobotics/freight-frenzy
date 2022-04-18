@@ -11,6 +11,7 @@ import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.SharpIRDistance;
 import com.qualcomm.hardware.lynx.LynxModule;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class SensorThread implements Runnable, Telemeter {
      */
     private static final ExtendedKalmanFilter theKalmanFilter = new ExtendedKalmanFilter(0, 0, 0);
     private final IMU imu;
+    private final DistanceSensorLocaliser distanceSensorLocaliser;
 
     public void resetPose(Pose pose) {
         odometry.setPose(pose);
@@ -56,6 +58,21 @@ public class SensorThread implements Runnable, Telemeter {
 
         this.imu = new IMU(robot.hardwareMap, theKalmanFilter);
         this.odometry = new Odometry(robot, robot.hardwareMap, Pose.of(theKalmanFilter.outputVector()), theKalmanFilter, imu);
+        var frontLeft = new SharpIRDistance(robot.hardwareMap, "frontLeft");
+        var backLeft = new SharpIRDistance(robot.hardwareMap, "backLeft");
+        var frontRight = new SharpIRDistance(robot.hardwareMap, "frontRight");
+        var backRight = new SharpIRDistance(robot.hardwareMap, "backRight");
+        this.distanceSensorLocaliser = new DistanceSensorLocaliser(
+                robot,
+                theKalmanFilter,
+                frontLeft,
+                backLeft,
+                frontRight,
+                backRight
+        );
+
+        robot.telemetryDump.registerTelemeter(distanceSensorLocaliser);
+
     }
 
     private long lastIMUUpdateTime = 0;
@@ -78,6 +95,7 @@ public class SensorThread implements Runnable, Telemeter {
 
             if (currentTime - lastIMUUpdateTime > 50) {
                 imu.update();
+                distanceSensorLocaliser.update();
                 lastIMUUpdateTime = currentTime;
             }
 
