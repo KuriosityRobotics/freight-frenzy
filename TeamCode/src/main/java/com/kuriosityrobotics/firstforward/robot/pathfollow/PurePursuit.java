@@ -21,6 +21,7 @@ import org.checkerframework.dataflow.qual.Pure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class PurePursuit implements Telemeter {
     // constants
@@ -52,6 +53,7 @@ public class PurePursuit implements Telemeter {
     private boolean pathEnding;
     private boolean started = false;
     private final double angleThreshold;
+    public boolean fuzzyLastAction = false;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double angleThreshold) {
         this.path = path;
@@ -102,7 +104,7 @@ public class PurePursuit implements Telemeter {
         }
 
         boolean atEnd = atEnd(locationProvider);
-        if (atEnd && !executedLastAction) {
+        if ((atEnd || (fuzzyLastAction && locationProvider.getPose().distance(path[path.length - 1]) < 8)) && !executedLastAction) {
             ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
         } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {
@@ -296,7 +298,7 @@ public class PurePursuit implements Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
         data.add("target point: " + ((Point) target).toString());
         data.add("Target heading: " + targhead);

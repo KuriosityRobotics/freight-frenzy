@@ -89,13 +89,16 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private long lastAcceptedTime = 0;
     private long lastDetectedTime = 0;
 
+    public volatile boolean manualCam = false;
+    public volatile double manualAngle = 0;
+
     public VuforiaLocalizationConsumer(Robot robot, LocationProvider locationProvider, PhysicalCamera physicalCamera, WebcamName cameraName, HardwareMap hwMap) {
         this.locationProvider = locationProvider;
         this.physicalCamera = physicalCamera;
         this.cameraName = cameraName;
         this.robot = robot;
         rotator = hwMap.get(Servo.class, "webcamPivot");
-        cameraEncoder = hwMap.get(DcMotor.class, "webcamPivot");
+        cameraEncoder = hwMap.get(DcMotor.class, "intake");
 
         setCameraAngle(0);
 
@@ -181,12 +184,18 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
             }
 
             if (cameraEncoderSetYet) {
-                if (robot.started() || !robot.isAuto()) {
-                    setCameraAngle(calculateOptimalCameraAngle());
-                } else if (!Robot.isCarousel && !doneCalibrating) {
-                    setCameraAngle(0);
+//                if (robot.started() || !robot.isAuto()) {
+//                    setCameraAngle(calculateOptimalCameraAngle());
+//                } else if (!Robot.isCarousel && !doneCalibrating) {
+//                    setCameraAngle(0);
+//                } else {
+//                    setCameraAngle(PI);
+//                }
+
+                if (manualCam) {
+                    setCameraAngle(manualAngle);
                 } else {
-                    setCameraAngle(PI);
+                    setCameraAngle(calculateOptimalCameraAngle());
                 }
 
                 updateCameraAngleAndVelocity();
@@ -263,7 +272,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
         long currentUpdateTime = SystemClock.elapsedRealtime();
         double dTime = (currentUpdateTime - lastUpdateTime) / 1000.0;
 
-        cameraAngle = -(double) (cameraEncoder.getCurrentPosition()) * CAMERA_ENCODER_TO_RADIAN;
+        cameraAngle = (double) (cameraEncoder.getCurrentPosition()) * CAMERA_ENCODER_TO_RADIAN;
         cameraAngle -= cameraAngleOffset;
 
         cameraAngleVelocity = (cameraAngle - oldCameraAngle) / dTime;
@@ -463,6 +472,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public long getLastDetectedTime() {
         return lastDetectedTime;
+    }
+
+    public double lastCamAngle() {
+        return this.cameraAngle;
     }
 
     enum Target {

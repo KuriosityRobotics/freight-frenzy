@@ -16,8 +16,8 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
-    public static final double INTAKE_VELO = 10;
-    public static final long VUF_DELAY = 150;
+    public static final double INTAKE_VELO = 16;
+    public static final long VUF_DELAY = 75;
 
     public static double delay = 0;
     public static OuttakeModule.VerticalSlideLevel delayedStartLogic(LinearOpMode opMode, Robot robot, Pose reset) {
@@ -38,6 +38,9 @@ public class AutoPaths {
     }
 
     public static OuttakeModule.VerticalSlideLevel awaitBarcodeDetection(Robot robot) {
+        robot.visionThread.vuforiaLocalizationConsumer.manualAngle = Math.toRadians(180);
+        robot.visionThread.vuforiaLocalizationConsumer.manualCam = true;
+
         TeamMarkerDetector.TeamMarkerLocation location;
         robot.visionThread.getTeamMarkerDetector().activate();
         do {
@@ -46,10 +49,20 @@ public class AutoPaths {
 
         robot.visionThread.getTeamMarkerDetector().deactivate();
 
+        robot.visionThread.vuforiaLocalizationConsumer.manualCam = false;
+
+        // wait for cam to return
+        while (Math.abs(robot.visionThread.vuforiaLocalizationConsumer.lastCamAngle()) > 0.5 * Math.PI && robot.running()) {
+            // wait
+        }
+
         return location.slideLevel();
     }
 
     public static void calibrateVuforia(Robot robot) {
+        robot.visionThread.vuforiaLocalizationConsumer.manualAngle = 0;
+        robot.visionThread.vuforiaLocalizationConsumer.manualCam = true;
+
         while (robot.running() && !robot.visionThread.started) {
             // wait for vuforia to start
         }
@@ -72,6 +85,8 @@ public class AutoPaths {
 
         robot.visionThread.vuforiaLocalizationConsumer.changeAllianceWallOffsetBy(offsetBy);
         robot.visionThread.vuforiaLocalizationConsumer.doneCalibrating = true;
+
+        robot.visionThread.vuforiaLocalizationConsumer.manualAngle = Math.toRadians(180);
     }
 
     public static void intakePath(Robot robot, Pose end, long killswitchMillis) {

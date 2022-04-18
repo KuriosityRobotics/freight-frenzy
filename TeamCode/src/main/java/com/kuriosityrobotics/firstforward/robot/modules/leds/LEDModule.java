@@ -56,9 +56,4 @@ public class LEDModule implements Module, Telemeter {
     public String getName() {
         return "LED Module";
     }
-
-    @Override
-    public Iterable<String> getTelemetryData() {
-        return null;
-    }
 }

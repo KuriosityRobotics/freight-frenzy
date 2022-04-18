@@ -28,10 +28,9 @@ public class RedCycle extends LinearOpMode {
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
 
-
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
-    private Pose redWarehouse = new Pose(8, 33, Math.toRadians(175));
+    private Pose redWarehouse = new Pose(8, 32, Math.toRadians(175));
 
     public static final Point RED_EXIT_WALLGAP = new Point(9, 64);
 
@@ -65,12 +64,12 @@ public class RedCycle extends LinearOpMode {
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W, robot.outtakeModule.extendOuttakeAction(detection, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(RED_START_W.between(RED_WOBBLE_W)),
-                new WayPoint(FIRST_WOBBLE, 0, wobbleActions)
+                new WayPoint(detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND ? FIRST_WOBBLE.add(new Pose(1,1, 0)) : FIRST_WOBBLE, 0, wobbleActions)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(15, false)),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(18
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(23
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
@@ -119,9 +118,7 @@ public class RedCycle extends LinearOpMode {
                 return;
             }
 
-            Pose intakeVary;
-
-            intakeVary = new Pose(1.5*i, -4, Math.toRadians(-18));
+            Pose intakeVary = new Pose(1.5 * i, -5, Math.toRadians(-18));
 
             AutoPaths.intakePath(robot, redWarehouse.add(intakeVary), 4500);
 
@@ -138,6 +135,8 @@ public class RedCycle extends LinearOpMode {
                         new WayPoint(RED_EXIT_WALLGAP.x+7,RED_EXIT_WALLGAP.y+2),
                         new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
+
+                backToWobble.fuzzyLastAction = true;
 
                 robot.followPath(backToWobble);
             } else {

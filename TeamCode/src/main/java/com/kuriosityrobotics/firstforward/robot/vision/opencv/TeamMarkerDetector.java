@@ -1,38 +1,20 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
+import android.graphics.Bitmap;
 
-import android.util.Log;
-
-import com.kuriosityrobotics.firstforward.robot.LocationProvider;
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
-import com.kuriosityrobotics.firstforward.robot.vision.minerals.PinholeCamera;
 
-import org.apache.commons.geometry.euclidean.threed.Vector3D;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 public class TeamMarkerDetector implements OpenCvConsumer {
-    private final LocationProvider locationProvider;
     private volatile TeamMarkerLocation location;
-
-    private final PinholeCamera pinholeCamera;
-
-    public TeamMarkerDetector(LocationProvider locationProvider) {
-        this.locationProvider = locationProvider;
-        this.pinholeCamera = PinholeCamera.create();
-    }
 
     public TeamMarkerLocation getLocation() {
         return location == null ? TeamMarkerLocation.UNKNOWN : location;
@@ -48,71 +30,27 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         location = null;
     }
 
-/*    private Parallelepiped levelOne() {
-        if (Robot.isBlue) {
-            return Parallelepiped.builder(Precision.doubleEquivalenceOfEpsilon(.05))
-                    .setPosition(Vector3D.of(35.25, 2.5, 144 - 73 - 1 + 8.38 + 8.38))
-                    .setScale(4, 5, 4)
-                    .build();
-        } else {
-            return Parallelepiped.builder(Precision.doubleEquivalenceOfEpsilon(.05))
-                    .setPosition(Vector3D.of(35.25, 2.5, 144 - 73 - 1))
-                    .setScale(4, 5, 4)
-                    .build();
-        }
-    }*/
-
-    private Vector3D[] levelOne(double cameraAngle) {
-        var offset = Vector3D.of(3.365f * sin(cameraAngle), 0, (Robot.isCarousel ? 2 * (23.5) : 0) + 3.365f * cos(cameraAngle));
-        if (Robot.isBlue) {
-            return new Vector3D[]{
-                    Vector3D.of(FULL_FIELD - 34.5, 0, FULL_FIELD - 73.5 + 3).add(offset),
-                    Vector3D.of(FULL_FIELD - 34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)};
-        } else {
-            return new Vector3D[]{
-                    Vector3D.of(34.5, 0, FULL_FIELD - 73.5 + 3).add(offset),
-                    Vector3D.of(34.5, 6.5, FULL_FIELD - 73.5 - 3).add(offset)
-            };
-        }
-    }
-
-    private Vector3D[] levelTwo(double cameraAngle) {
-        var levelOne = levelOne(cameraAngle);
-        if (Robot.isBlue) {
-            return new Vector3D[]{
-                    levelOne[0].add(Vector3D.of(0, 0, -8.35)),
-                    levelOne[1].add(Vector3D.of(0, 0, -8.35))};
-        } else {
-            return new Vector3D[]{
-                    levelOne[0].add(Vector3D.of(0, 0, -8.35)),
-                    levelOne[1].add(Vector3D.of(0, 0, -8.35))
-            };
-        }
-    }
-
     /**
      * dont look too hard at this one
      *
      * @param _img input frame
      */
     public void processFrame(double cameraAngle, Mat _img) {
+        var bmp = Bitmap.createBitmap(_img.cols(), _img.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(_img, bmp);
+        FtcDashboard.getInstance().sendImage(bmp);
+
+
         if (!active)
             return;
 
         var img = _img.clone();
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2BGR);
         Core.bitwise_not(img, img);
-        Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2HSV);
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
 
-        var frameCamera = pinholeCamera.bindToPose(Vector3D.of(locationProvider.getPose().x, 0, locationProvider.getPose().y), cameraAngle);
-
-        var pts1 = Arrays.stream(levelOne(angleWrap(cameraAngle /*- locationProvider.getPose().heading*/))).map(frameCamera::getLocationOnFrame)
-                .map(n -> new Point(n.getX(), n.getY())).collect(Collectors.toList());
-
-        var pts2 = Arrays.stream(levelTwo(angleWrap(cameraAngle /*- locationProvider.getPose().heading*/))).map(frameCamera::getLocationOnFrame)
-                .map(n -> new Point(n.getX(), n.getY())).collect(Collectors.toList());
-
-        var bounding1 = new Rect(pts1.get(0), pts1.get(1));
-        var bounding2 = new Rect(pts2.get(0), pts2.get(1));
+        var bounding1 = new Rect(333, 107, 86, 114);
+        var bounding2 = new Rect(455, 107, 86, 114);
         Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
         Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
 
@@ -150,7 +88,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         }
 
         if (!isSub1 && !isSub2)
-            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3.LEVEL_3;
+            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3;
         else if (isSub1)
             this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;
         else

@@ -21,7 +21,7 @@ class DumpOuttakeAction extends Action {
 
         outtakeModule.targetState = DUMP;
 
-        if (outtakeModule.atState(DUMP)) {
+        if (outtakeModule.executingState(DUMP)) {
             completed = true;
             outtakeModule.targetState = COLLAPSE;
         }

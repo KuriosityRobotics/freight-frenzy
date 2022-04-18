@@ -2,11 +2,8 @@ package com.kuriosityrobotics.firstforward.robot.modules.outtake;
 
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.COLLAPSE;
 import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.DUMP;
-import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule.OuttakeState.PARTIAL_EXTEND;
-import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.HUBS;
+import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.ALLIANCE_HUBS;
 import static java.lang.Math.abs;
-import static java.lang.Math.round;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -15,12 +12,14 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class OuttakeModule implements Module, Telemeter {
     LocationProvider locationProvider;
@@ -35,33 +34,31 @@ public class OuttakeModule implements Module, Telemeter {
     private OuttakeState currentState;
 
     //time constants
-    private static final long EXTEND_TIME = 400;
+    private static final long EXTEND_TIME = 350;
     private static final long DUMP_TIME = 300;
-    private static final long TURRET_TIME = 150; // if the turret isn't already straight
+    private static final long TURRET_TIME = 200; // if the turret isn't already straight
 
-    private static final double CLAMP_INTAKE = 0.85465,
-            CLAMP_CLAMP = 0.767,
-            CLAMP_RELEASE = 0.90492;
+    private static final double CLAMP_INTAKE = 0.8319,
+            CLAMP_CLAMP = 0.74,
+            CLAMP_RELEASE = 0.8943;
 
     private final double EXTENDED_TURRET_OFFSET_Y = 14.3;
 
     // from the perspective of looking out from the back of the robot
     public enum TurretPosition {
-        STRAIGHT(0.492083),
-        // raised up to .502746
-        //raised down to .482746
-        RIGHT(.78988),
-        LEFT(.186781),
-        SHARED_RIGHT(0.55),
-        SHARED_LEFT(0.426),
-        SHARED_RIGHT_MORE_EXTREME_ANGLE(0.65),
-        SHARED_LEFT_MORE_EXTREME_ANGLE(0.326),
-        ALLIANCE_LOCK(0.5);
+        STRAIGHT(0.4792),
+        RIGHT(0.7802),
+        LEFT(0.1775),
+        SHARED_RIGHT(0.6121),
+        SHARED_LEFT(0.3653),
+        SHARED_RIGHT_MORE_EXTREME_ANGLE(0.6822),
+        SHARED_LEFT_MORE_EXTREME_ANGLE(0.2930),
+        ALLIANCE_LOCK(0.5000);
 
         private final double position;
 
         TurretPosition(double position) {
-            this.position = position;
+            this.position = position - (0.4792 - 0.4520);
         }
     }
 
@@ -109,7 +106,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum OuttakeState {
-        PARTIAL_EXTEND(400),
+        PARTIAL_EXTEND(100),
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),
@@ -124,11 +121,84 @@ public class OuttakeModule implements Module, Telemeter {
         }
     }
 
+    private void stateUpdate() {
+        switch (this.currentState) {
+            case PARTIAL_EXTEND:
+                clamp.setPosition(CLAMP_CLAMP);
+                linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
+                break;
+            case RAISE:
+                linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
+
+                clamp.setPosition(CLAMP_CLAMP);
+
+                slide.setTargetPosition(targetSlideLevel.position);
+                slide2.setTargetPosition(targetSlideLevel.position);
+
+                slide.setPower(1);
+                slide2.setPower(1);
+
+                break;
+            case EXTEND:
+                slide.setTargetPosition(targetSlideLevel.position);
+                slide2.setTargetPosition(targetSlideLevel.position);
+
+                linkage.setPosition(targetLinkage.position);
+                pivot.setPosition(targetPivot.position);
+
+                if (atTargetState()) {
+                    double targetTurretServoPosition = targetTurret.position;
+                    if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
+                        targetTurretServoPosition = servoPosForAllianceLock();
+                    }
+                    turret.setPosition(targetTurretServoPosition);
+
+                    if (targetSlideLevel == VerticalSlideLevel.CAP_DROP) {
+                        clamp.setPosition(CLAMP_RELEASE);
+                    } else {
+                        clamp.setPosition(CLAMP_CLAMP);
+                    }
+                }
+                break;
+            case DUMP:
+                clamp.setPosition(CLAMP_RELEASE);
+                break;
+            case RETRACT:
+                linkage.setPosition(LinkagePosition.RETRACT.position);
+                break;
+            case TURRET_IN:
+                pivot.setPosition(PivotPosition.UP.position);
+                turret.setPosition(TurretPosition.STRAIGHT.position);
+                break;
+            case COLLAPSE:
+                if (timerComplete()) {
+                    clamp.setPosition(CLAMP_INTAKE);
+                } else {
+                    clamp.setPosition(CLAMP_CLAMP);
+                }
+
+                pivot.setPosition(PivotPosition.IN.position);
+
+                if (atTargetState()) {
+                    linkage.setPosition(LinkagePosition.RETRACT.position);
+                } else {
+                    linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
+                }
+
+                slide.setPower(0.35);
+                slide2.setPower(0.35);
+
+                slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+                slide2.setTargetPosition(VerticalSlideLevel.DOWN.position);
+                break;
+        }
+    }
+
     private boolean phaseComplete() {
         long currentTime = System.currentTimeMillis();
         boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
         boolean turretTimerComplete = currentTime >= transitionTime + currentState.completionTime + TURRET_TIME;
-        boolean slidesAtTarget = abs(slide.getCurrentPosition() - slide.getTargetPosition()) < 50;
+        boolean slidesAtTarget = abs(slide2.getCurrentPosition() - slide2.getTargetPosition()) < 50;
 
         switch (currentState) {
             case RAISE:
@@ -163,9 +233,8 @@ public class OuttakeModule implements Module, Telemeter {
 
     private boolean timerComplete() {
         long currentTime = System.currentTimeMillis();
-        boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
 
-        return timerComplete;
+        return currentTime >= transitionTime + currentState.completionTime;
     }
 
     //servos
@@ -176,6 +245,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     //motors
     private final DcMotorEx slide;
+    private final DcMotorEx slide2;
 
     // helpers
     private long transitionTime;
@@ -188,18 +258,23 @@ public class OuttakeModule implements Module, Telemeter {
         clamp = hardwareMap.servo.get("outtakeClamp");
         turret = hardwareMap.servo.get("outtakeTurret");
 
-        //use this when outtake is fucked
-        /*linkage = hardwareMap.servo.get("nothingServo");
-        pivot = hardwareMap.servo.get("nothingServo");
-        clamp = hardwareMap.servo.get("nothingServo");
-        turret = hardwareMap.servo.get("nothingServo");*/
-
         slide = (DcMotorEx) hardwareMap.dcMotor.get("lift");
+        slide2 = (DcMotorEx) hardwareMap.dcMotor.get("otherLift");
 
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         slide.setTargetPosition(0);
+        slide2.setTargetPosition(0);
+
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(12, 0, 0, 20));
+        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        slide.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
+        slide2.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(15, 0, 0, 20));
+
+        slide.setDirection(DcMotorSimple.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        slide2.setDirection(DcMotorSimple.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
 
         clamp.setPosition(CLAMP_INTAKE);
         pivot.setPosition(PivotPosition.IN.position);
@@ -211,7 +286,10 @@ public class OuttakeModule implements Module, Telemeter {
 
     public void resetSlides() {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public void skipToCollapse() {
@@ -233,89 +311,26 @@ public class OuttakeModule implements Module, Telemeter {
 
             currentState = OuttakeState.values()[currentState.ordinal() + 1 >= OuttakeState.values().length ? 0 : currentState.ordinal() + 1];
 
-            switch (this.currentState) {
-                case PARTIAL_EXTEND:
-                    clamp.setPosition(CLAMP_CLAMP);
-                    linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
-                    break;
-                case RAISE:
-                    linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
-                    clamp.setPosition(CLAMP_CLAMP);
-                    slide.setTargetPosition(targetSlideLevel.position);
-                    break;
-                case EXTEND:
-                    pivot.setPosition(targetPivot.position);
-                    break;
-                case DUMP:
-                    clamp.setPosition(CLAMP_RELEASE);
-                    break;
-                case RETRACT:
-                    linkage.setPosition(LinkagePosition.RETRACT.position);
-                    break;
-                case TURRET_IN:
-                    pivot.setPosition(PivotPosition.UP.position);
-                    turret.setPosition(TurretPosition.STRAIGHT.position);
-                    break;
-                case COLLAPSE:
-                    clamp.setPosition(CLAMP_CLAMP);
-                    pivot.setPosition(PivotPosition.IN.position);
-                    linkage.setPosition(LinkagePosition.RETRACT.position);
-                    slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-                    break;
-            }
-
             transitionTime = System.currentTimeMillis();
         }
 
-//        if (slide.getCurrentPosition() > 10) {
-//            resetSlides();
-//        }
+        stateUpdate();
+    }
 
-        // if current position is higher than the target
-        if (currentState == COLLAPSE || currentState == PARTIAL_EXTEND) {
-            slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            slide.setPower(0);
+    private double servoPosForAllianceLock() {
+        Pose robotPose = locationProvider.getPose();
+        Pose turretPose = new Pose(
+                robotPose.x - EXTENDED_TURRET_OFFSET_Y * Math.sin(robotPose.heading),
+                robotPose.y - EXTENDED_TURRET_OFFSET_Y * Math.cos(robotPose.heading),
+                robotPose.heading + Math.PI
+        );
 
-            if (timerComplete()) {
-                clamp.setPosition(CLAMP_INTAKE);
-            }
-        } else {
-            slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            slide.setTargetPosition(targetSlideLevel.position);
-            slide.setPower(1);
-        }
+        Point targetHub = turretPose.nearestPoint(ALLIANCE_HUBS);
 
-        if (currentState == EXTEND) {
-            linkage.setPosition(targetLinkage.position);
+        double targetTurretHeading = turretPose.relativeHeadingToPoint(targetHub);
+        targetTurretHeading = Range.clip(targetTurretHeading, -Math.PI / 2, Math.PI / 2);
 
-            if (atTargetState()) {
-                pivot.setPosition(targetPivot.position);
-
-                double targetTurretServoPosition = targetTurret.position;
-                if (targetTurret == TurretPosition.ALLIANCE_LOCK) {
-                    Pose robotPose = locationProvider.getPose();
-                    Pose turretPose = new Pose(
-                            robotPose.x - EXTENDED_TURRET_OFFSET_Y * Math.sin(robotPose.heading),
-                            robotPose.y - EXTENDED_TURRET_OFFSET_Y * Math.cos(robotPose.heading),
-                            robotPose.heading + Math.PI
-                    );
-
-                    Point targetHub = turretPose.nearestPoint(HUBS);
-
-                    double targetTurretHeading = turretPose.relativeHeadingToPoint(targetHub);
-                    targetTurretHeading = Range.clip(targetTurretHeading, -Math.PI / 2, Math.PI / 2);
-
-                    targetTurretServoPosition = turretHeadingToServoPos(targetTurretHeading);
-                }
-                turret.setPosition(targetTurretServoPosition);
-
-                if (targetSlideLevel == VerticalSlideLevel.CAP_DROP) {
-                    clamp.setPosition(CLAMP_RELEASE);
-                } else {
-                    clamp.setPosition(CLAMP_CLAMP);
-                }
-            }
-        }
+        return turretHeadingToServoPos(targetTurretHeading);
     }
 
     private double turretHeadingToServoPos(double turretHeading) {
@@ -324,6 +339,10 @@ public class OuttakeModule implements Module, Telemeter {
 
     public boolean atTargetState() {
         return atState(targetState);
+    }
+
+    public boolean executingState(OuttakeState state) {
+        return this.currentState == state;
     }
 
     public boolean atState(OuttakeState state) {
@@ -349,18 +368,23 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     @Override
-    public Iterable<String> getTelemetryData() {
+    public List<String> getTelemetryData() {
         return new ArrayList<>() {{
-            add("Target State: " + targetState.toString());
-            add("State:  " + currentState.toString());
-//            add("last:  " + lastRan);
+            add("Target State: " + targetState);
+            add("State:  " + currentState);
             add("slideLevel: " + targetSlideLevel.name());
             add("Turret: " + targetTurret.name());
             add("Linkage: " + targetLinkage.name());
-//            add("pivot postiong: " + pivot.getPosition());
-//            add("--");
-//            add("current slide:  " + slide.getCurrentPosition());
+//            add("Slide: " + slide.getCurrentPosition());
+//            add("Slide 2: " + slide2.getCurrentPosition());
+//            add("Slide target: " + slide.getTargetPosition());
+//            add("Slide 2 target: " + slide2.getTargetPosition());
         }};
+    }
+
+    @Override
+    public int getShowIndex() {
+        return 1;
     }
 
     public DumpOuttakeAction dumpOuttakeAction() {
