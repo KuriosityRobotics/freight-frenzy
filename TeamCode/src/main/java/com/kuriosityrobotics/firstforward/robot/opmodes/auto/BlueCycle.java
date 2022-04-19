@@ -63,7 +63,7 @@ public class BlueCycle extends LinearOpMode {
         PurePursuit blueStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(BLUE_START_W, robot.outtakeModule.extendOuttakeAction(detection, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(BLUE_START_W.between(BLUE_WOBBLE_W)),
-                new WayPoint(detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND ? FIRST_WOBBLE.add(new Pose(2.5, 3.5, 0)) : FIRST_WOBBLE, 0, wobbleActions)
+                new WayPoint(detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND ? FIRST_WOBBLE.add(Pose.relativeMirror(2.5, 3.5, 0)) : FIRST_WOBBLE, 0, wobbleActions)
         }, 4);
 
         PurePursuit firstWobbleToWarehouse = new PurePursuit(new WayPoint[]{
@@ -144,6 +144,8 @@ public class BlueCycle extends LinearOpMode {
                         new WayPoint(BLUE_EXIT_WALLGAP.x - 7, BLUE_EXIT_WALLGAP.y + 2),
                         new WayPoint(BLUE_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4, MotionProfile.ROBOT_MAX_ACCEL, 25);
+
+                backToWobble.fuzzyLastAction = true;
 
                 robot.followPath(backToWobble);
             } else {
