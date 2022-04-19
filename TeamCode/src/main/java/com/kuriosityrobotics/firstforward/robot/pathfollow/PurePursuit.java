@@ -55,6 +55,18 @@ public class PurePursuit implements Telemeter {
     private final double angleThreshold;
     public boolean fuzzyLastAction = false;
 
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxAccel, double maxDeccel) {
+        this.path = path;
+        this.followRadius = followRadius;
+
+        this.profile = new MotionProfile(path, MotionProfile.ROBOT_MAX_VEL, maxAccel, maxDeccel);
+
+        this.backwards = backwards;
+        this.angleThreshold = ANGLE_THRESHOLD;
+
+        this.reset();
+    }
+
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double angleThreshold) {
         this.path = path;
         this.followRadius = followRadius;
@@ -279,8 +291,8 @@ public class PurePursuit implements Telemeter {
                 || (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading)) <= ANGLE_THRESHOLD && angVeloEnd);
         boolean stopped = !end.getVelocityLock().targetVelocity || end.velocityLock.velocity != 0 || (locationProvider.getOrthVelocity() <= 1);
 
-        Log.v("PP", "angleend: " + angleEnd + " angerr: " + (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading))) + " stopped: " + stopped);
-        Log.v("PP", "angvelo: " + locationProvider.getVelocity().heading);
+//        Log.v("PP", "angleend: " + angleEnd + " angerr: " + (Math.abs(angleWrap(locationProvider.getPose().heading - lastAngle.heading))) + " stopped: " + stopped);
+//        Log.v("PP", "angvelo: " + locationProvider.getVelocity().heading);
 
         return locationProvider.distanceToPoint(path[path.length - 1]) <= STOP_THRESHOLD
                 && angleEnd

@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-
 import android.os.SystemClock;
 import android.util.Log;
 
