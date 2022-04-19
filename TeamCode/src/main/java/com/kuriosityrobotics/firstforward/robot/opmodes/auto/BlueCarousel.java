@@ -44,13 +44,13 @@ public class BlueCarousel extends LinearOpMode {
                 new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
                 new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                 new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
-        }, true, 4);
+        }, true, 4, 85, 30);
 
         PurePursuit toCarousel = new PurePursuit(new WayPoint[]{
                 new WayPoint(WOBBLE),
                 new WayPoint(PRE_CAROUSEL, 13),
                 new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
-        }, false, 4);
+        }, false, 4, 85, 30);
 
         if (detected == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
             Pose drop = new Pose(Constants.Field.FULL_FIELD - 48, 108, Math.toRadians(5));
@@ -58,19 +58,19 @@ public class BlueCarousel extends LinearOpMode {
                     new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(OuttakeModule.VerticalSlideLevel.DOWN)),
                     new WayPoint(START.add(new Pose(-15, 0, 0)), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                     new WayPoint(drop, 0, robot.outtakeModule.dumpOuttakeAction())
-            }, true, 3);
+            }, true, 3, 85, 30);
 
             toCarousel = new PurePursuit(new WayPoint[]{
                     new WayPoint(drop),
                     new WayPoint(PRE_CAROUSEL, 13),
                     new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
-            }, false, 4);
+            }, false, 4, 85, 30);
         }
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),
                 new WayPoint(PARK, new VelocityLock(0))
-        }, true, 4);
+        }, true, 4, 85, 30);
 
         robot.followPath(toWobble);
         robot.intakeModule.targetIntakePosition = IntakeModule.IntakePosition.STAY_RETRACTED;
