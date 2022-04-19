@@ -22,7 +22,7 @@ public class VisionThread implements Runnable, Telemeter {
     private final CargoDetectorConsumer cargoDetectorConsumer;
     private Thread cargoDetectionThread;
 
-    public final VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
+    public VuforiaLocalizationConsumer vuforiaLocalizationConsumer;
     private final Robot robot;
     private ManagedCamera managedCamera;
     private long updateTime = 0;

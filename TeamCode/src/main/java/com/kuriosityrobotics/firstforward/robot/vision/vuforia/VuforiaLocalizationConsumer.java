@@ -56,8 +56,8 @@ import java.util.Map;
 // This is for a single webcam(not a switchable cam)
 public class VuforiaLocalizationConsumer implements VuforiaConsumer {
     private static final double CAMERA_ENCODER_TO_RADIAN = 2.0 * PI / 8192.0;
-    private static final double ROTATOR_CENTER_POS = .295;
-    private static final double ROTATOR_BACK_POS = .96;
+    private static final double ROTATOR_CENTER_POS = .295+0.009236;
+    private static final double ROTATOR_BACK_POS = .969236;
     private static final double ROTATOR_ANGLE_RANGE = 3 * PI / 2;
     private static final Map<Target, Point> offsets = new HashMap<>() {{
         put(Target.BLUE_STORAGE, new Point(0, 0));
