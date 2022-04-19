@@ -102,6 +102,7 @@ public class Robot implements LocationProvider {
         // threads
         moduleThread = new ModuleThread(this, modules);
 
+        carouselModule.isSlow = isAuto();
         this.isCamera = isCamera;
         visionThread = new VisionThread(this, camera);
 
