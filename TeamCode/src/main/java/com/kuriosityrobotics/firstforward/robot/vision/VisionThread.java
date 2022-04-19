@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision;
 
+import static java.lang.Math.toDegrees;
+
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -45,6 +47,8 @@ public class VisionThread implements Runnable, Telemeter {
         ArrayList<String> telemetryData = new ArrayList<>(vuforiaLocalizationConsumer.logPositionAndDetection());
         telemetryData.add("Team marker location: " + getTeamMarkerDetector().getLocation());
         telemetryData.add("Update time: " + updateTime);
+        telemetryData.add("Camera Angle: " + toDegrees(vuforiaLocalizationConsumer.getCameraAngle()));
+
         return telemetryData;
     }
 

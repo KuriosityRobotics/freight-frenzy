@@ -20,7 +20,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         return location == null ? TeamMarkerLocation.UNKNOWN : location;
     }
 
-    private boolean active = false;
+    private boolean active = true;
 
     public void activate() {
         this.active = true;

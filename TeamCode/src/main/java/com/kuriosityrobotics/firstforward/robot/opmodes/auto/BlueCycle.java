@@ -21,14 +21,14 @@ public class BlueCycle extends LinearOpMode {
 
     public static final Pose BLUE_START_W = Pose.fieldMirror(9.75, 64.5, Math.toRadians(-90)); //start near warehouse
     public static final Pose FIRST_WOBBLE = Pose.fieldMirror(27, 73, Math.toRadians(-110));
-    public static final Pose THAT_POSE = Pose.fieldMirror(27 - (8 * Math.sin(Math.toRadians(80))), 73 - (8 * Math.cos(Math.toRadians(80))), Math.toRadians(-110));
-    public static final Pose THIS_POSE = Pose.fieldMirror(24 - (8 * Math.sin(Math.toRadians(80))), 68 - (8 * Math.cos(Math.toRadians(80))), Math.toRadians(-110));
+    public static final Pose THAT_POSE = Pose.fieldMirror(27 - (8 * Math.sin(Math.toRadians(80))), 73 - (8 * Math.cos(Math.toRadians(80))), Math.toRadians(-100));
+    public static final Pose THIS_POSE = Pose.fieldMirror(24 - (8 * Math.sin(Math.toRadians(80))), 68 - (8 * Math.cos(Math.toRadians(80))), Math.toRadians(-100));
 
     public static final Pose BLUE_WOBBLE_W = Pose.fieldMirror(24, 73, Math.toRadians(-110));
     public static final Pose BLUE_WOBBLE_WALL_POINT = Pose.fieldMirror(7.5, 68, Math.toRadians(180));
 
 
-    public static final Pose BLUE_BETWEEN_WOBBLE_WALLGAP = Pose.fieldMirror(7, 62.5, Math.toRadians(180));
+    public static final Pose BLUE_BETWEEN_WOBBLE_WALLGAP = Pose.fieldMirror(7, 62.5, Math.toRadians(170));
     public static final Pose BLUE_WALL_GAP = Pose.fieldMirror(7, 46.5, Math.toRadians(180));
     public static final Point BLUE_EXIT_WALLGAP = Point.fieldMirror(9, 64);
     private Pose blueWarehouse = Pose.fieldMirror(8, 33, Math.toRadians(175));

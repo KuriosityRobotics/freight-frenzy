@@ -206,7 +206,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
                 RealMatrix data = getLocationRealMatrix();
 
                 // hopefully this doesn't do bad thread stuff
-                if (data != null) {
+                if (!manualCam && data != null) {
                     robot.sensorThread.addGoodie(new KalmanData(1, data), fetchTime);
                     lastAcceptedTime = SystemClock.elapsedRealtime();
                     Log.v("KF", "adding vuf goodie, passed filters");
@@ -468,6 +468,10 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
     public long getLastAcceptedTime() {
         return lastAcceptedTime;
+    }
+
+    public double getCameraAngle() {
+        return cameraEncoder.getCurrentPosition() * CAMERA_ENCODER_TO_RADIAN;
     }
 
     public long getLastDetectedTime() {

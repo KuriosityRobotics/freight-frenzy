@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
+import static java.lang.Math.PI;
+
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.intake.IntakeModule;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -17,10 +19,10 @@ public class RedCarousel extends LinearOpMode {
 
     public static final Pose WOBBLE = new Pose(34.5, 106, Math.toRadians(-30));
 
-    public static final Point PRE_CAROUSEL = new Point(17, 118);
+    public static final Point PRE_CAROUSEL = new Point(17, 111.5);
     public static final Pose CAROUSEL = new Pose(17, 132, Math.toRadians(-75));
 
-    public static final Pose PARK = new Pose(35, 5 * 23.5 + 12, Math.toRadians(-90));
+    public static final Pose PARK = new Pose(33, 5 * 23.5 + 12, Math.toRadians(-90));
 
     public void runOpMode() {
         Robot robot = null;
@@ -34,6 +36,8 @@ public class RedCarousel extends LinearOpMode {
 
         Robot.isBlue = false;
         Robot.isCarousel = true;
+        robot.visionThread.vuforiaLocalizationConsumer.manualCam = true;
+        robot.visionThread.vuforiaLocalizationConsumer.manualAngle = PI;
 
         robot.resetPose(START);
 
