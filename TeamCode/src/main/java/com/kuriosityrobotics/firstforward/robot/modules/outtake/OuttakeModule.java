@@ -106,7 +106,7 @@ public class OuttakeModule implements Module, Telemeter {
     }
 
     public enum OuttakeState {
-        PARTIAL_EXTEND(100),
+        PARTIAL_EXTEND(150),
         RAISE(0),
         EXTEND(EXTEND_TIME),
         DUMP(DUMP_TIME),

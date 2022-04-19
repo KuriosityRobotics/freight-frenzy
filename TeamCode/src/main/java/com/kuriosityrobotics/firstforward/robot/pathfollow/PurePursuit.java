@@ -104,7 +104,7 @@ public class PurePursuit implements Telemeter {
         }
 
         boolean atEnd = atEnd(locationProvider);
-        if ((atEnd || (fuzzyLastAction && locationProvider.getPose().distance(path[path.length - 1]) < 8)) && !executedLastAction) {
+        if ((atEnd || (fuzzyLastAction && locationProvider.getPose().distance(path[path.length - 1]) < 1)) && !executedLastAction) {
             ActionExecutor.execute(path[path.length - 1]);
             executedLastAction = true;
         } else if (atEnd && executedLastAction && ActionExecutor.doneExecuting()) {

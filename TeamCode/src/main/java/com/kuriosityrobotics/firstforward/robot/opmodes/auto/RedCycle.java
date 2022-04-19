@@ -1,9 +1,6 @@
 package com.kuriosityrobotics.firstforward.robot.opmodes.auto;
 
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
-
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.Robot;
 import com.kuriosityrobotics.firstforward.robot.modules.outtake.OuttakeModule;
@@ -13,7 +10,6 @@ import com.kuriosityrobotics.firstforward.robot.pathfollow.VelocityLock;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.WayPoint;
 import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import java.util.ArrayList;
@@ -28,7 +24,7 @@ public class RedCycle extends LinearOpMode {
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
 
-    public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
+    public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7.6, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
     private Pose redWarehouse = new Pose(8, 32, Math.toRadians(175));
 
@@ -64,12 +60,12 @@ public class RedCycle extends LinearOpMode {
         PurePursuit redStartwToWobble = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_START_W, robot.outtakeModule.extendOuttakeAction(detection, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(RED_START_W.between(RED_WOBBLE_W)),
-                new WayPoint(detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND ? FIRST_WOBBLE.add(new Pose(1,1, 0)) : FIRST_WOBBLE, 0, wobbleActions)
+                new WayPoint(detection == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND ? FIRST_WOBBLE.add(new Pose(2.5, 3.5, 0)) : FIRST_WOBBLE, 0, wobbleActions)
         }, 4);
 
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(15, false)),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(23
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(25
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
@@ -114,7 +110,7 @@ public class RedCycle extends LinearOpMode {
 
         int numCycles = 4;
         for (int i = 0; i < numCycles; i++) {
-            if ((30*1000) - (SystemClock.elapsedRealtime() - startTime) < 6000) {
+            if ((30 * 1000) - (SystemClock.elapsedRealtime() - startTime) < 6000) {
                 return;
             }
 
@@ -130,9 +126,9 @@ public class RedCycle extends LinearOpMode {
             if (sawFirst) {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
-                        new WayPoint(RED_WALL_GAP, new VelocityLock(40, false)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WALL_GAP),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(RED_EXIT_WALLGAP, exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                        new WayPoint(RED_EXIT_WALLGAP.x+7,RED_EXIT_WALLGAP.y+2),
+                        new WayPoint(RED_EXIT_WALLGAP.x + 7, RED_EXIT_WALLGAP.y + 2),
                         new WayPoint(RED_WOBBLE_W, 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
 
@@ -142,11 +138,13 @@ public class RedCycle extends LinearOpMode {
             } else {
                 PurePursuit backToWobble = new PurePursuit(new WayPoint[]{
                         new WayPoint(robot.getPose()),
-                        new WayPoint(RED_WALL_GAP.add(new Pose(-1, 0, 0)),  new VelocityLock(40, true)),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
+                        new WayPoint(RED_WALL_GAP.add(new Pose(-1, 0, 0))),//,  0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                         new WayPoint(RED_EXIT_WALLGAP.add(new Pose(-1, 0, 0)), exitActions),//,  0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
-                        new WayPoint(RED_EXIT_WALLGAP.x+7,RED_EXIT_WALLGAP.y+2),
+                        new WayPoint(RED_EXIT_WALLGAP.x + 7, RED_EXIT_WALLGAP.y + 2),
                         new WayPoint(RED_WOBBLE_W.add(new Pose(-1, -3, 0)), 0, robot.outtakeModule.dumpOuttakeAction())
                 }, true, 4);
+
+                backToWobble.fuzzyLastAction = true;
 
                 AutoPaths.wallRidePath(robot, backToWobble);
             }

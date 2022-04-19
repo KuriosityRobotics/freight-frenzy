@@ -16,7 +16,7 @@ import com.kuriosityrobotics.firstforward.robot.vision.opencv.TeamMarkerDetector
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class AutoPaths {
-    public static final double INTAKE_VELO = 16;
+    public static final double INTAKE_VELO = 22;
     public static final long VUF_DELAY = 75;
 
     public static double delay = 0;
