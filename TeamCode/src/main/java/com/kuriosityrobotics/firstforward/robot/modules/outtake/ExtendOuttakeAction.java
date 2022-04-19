@@ -18,7 +18,7 @@ class ExtendOuttakeAction extends Action {
         super.tick();
 
         if (slideLevel == OuttakeModule.VerticalSlideLevel.DOWN_NO_EXTEND) {
-            outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.RETRACT;
+            outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.PARTIAL_EXTEND;
         } else {
             outtakeModule.targetLinkage = OuttakeModule.LinkagePosition.EXTEND;
         }

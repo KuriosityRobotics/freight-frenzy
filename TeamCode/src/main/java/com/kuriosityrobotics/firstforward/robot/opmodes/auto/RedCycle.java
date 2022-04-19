@@ -28,7 +28,7 @@ public class RedCycle extends LinearOpMode {
     public static final Pose THIS_POSE = new Pose(24 - (8 * Math.sin(Math.toRadians(80))), 68 - (8 * Math.cos(Math.toRadians(80))), Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
 
-    public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 64, Math.toRadians(180));
+    public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(7, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(7, 46.5, Math.toRadians(180));
     private Pose redWarehouse = new Pose(8, 32, Math.toRadians(175));
 
@@ -70,7 +70,7 @@ public class RedCycle extends LinearOpMode {
         PurePursuit firstWobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(FIRST_WOBBLE, new VelocityLock(15, false)),
                 new WayPoint(THAT_POSE),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(28
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
@@ -79,11 +79,11 @@ public class RedCycle extends LinearOpMode {
         PurePursuit wobbleToWarehouse = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(15, false)),
                 new WayPoint(THIS_POSE),
-                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(28
+                new WayPoint(RED_BETWEEN_WOBBLE_WALLGAP, new VelocityLock(22
                         , true), robot.intakeModule.intakePowerAction(1)),//, 0.7 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(RED_WALL_GAP),//, 0.55 * MotionProfile.ROBOT_MAX_VEL, new ArrayList<>()),
                 new WayPoint(redWarehouse, AutoPaths.INTAKE_VELO)
-        }, 4);
+        }, false, 4, MotionProfile.ROBOT_MAX_ACCEL, 39);
 
         PurePursuit wobbleToWarehouseOdometryOnly = new PurePursuit(new WayPoint[]{
                 new WayPoint(RED_WOBBLE_W, new VelocityLock(25, true)),

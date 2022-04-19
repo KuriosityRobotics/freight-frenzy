@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.modules.intake;
 
-import static java.lang.Math.abs;
-
 import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
@@ -27,7 +25,7 @@ public class IntakeModule implements Module, Telemeter {
     public static final double INTAKE_LEFT_RETRACTED_POS = 0.289751;
     public static final double INTAKE_LEFT_IDLE_POS = INTAKE_LEFT_RETRACTED_POS + (INTAKE_RIGHT_RETRACTED_POS - INTAKE_RIGHT_IDLE_POS);
 
-    private static final double CLOSE_DISTANCE_THRESHOLD = 38; //original value = 38
+    private static final double CLOSE_DISTANCE_THRESHOLD = 38;
     private static final double FAR_DISTANCE_THRESHOLD = 70;
 
     public static final long INTAKE_EXTEND_TIME = 750;
@@ -57,7 +55,7 @@ public class IntakeModule implements Module, Telemeter {
     private boolean hasMineral;
 
     public volatile boolean newMineral = false;
-    private final CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(4);
+    CircularFifoQueue<Double> distanceReadings = new CircularFifoQueue<>(15);
 
     public enum IntakePosition {
         EXTENDED,
@@ -146,6 +144,7 @@ public class IntakeModule implements Module, Telemeter {
                 extenderRight.setPosition(INTAKE_RIGHT_RETRACTED_POS);
                 break;
         }
+
     }
 
     private void transitionIntake(IntakePosition position) {
@@ -183,14 +182,35 @@ public class IntakeModule implements Module, Telemeter {
     private boolean mineralInIntake() {
         spinning = intakeSpinning();
 
-        double reading = distanceSensor.getSensorReading(); //value from 0 to 5 volts
+        double reading = distanceSensor.getSensorReading();
         distanceReadings.add(reading);
-        return intakeSpinning() && distanceReadings.stream().allMatch(n -> n < CLOSE_DISTANCE_THRESHOLD);
 
+        if (reading < CLOSE_DISTANCE_THRESHOLD) {
+            // if last 4 are all positives it's a go
+            Object[] queueArray = distanceReadings.toArray();
+            for (int i = queueArray.length - 1; i > Math.max(queueArray.length - 5, 0); i--) {
+                if (((double) queueArray[i]) > CLOSE_DISTANCE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return spinning;
+        } else if (reading < FAR_DISTANCE_THRESHOLD) {
+            // if last 10 are all positives it's a go
+            Object[] queueArray = distanceReadings.toArray();
+            int start = Math.max(queueArray.length - 1, 0);
+            int limit = Math.max(queueArray.length - 10, 0);
+            for (int i = start; i > limit; i--) {
+                if (((double) queueArray[i]) > FAR_DISTANCE_THRESHOLD) {
+                    return false;
+                }
+            }
+            return spinning;
+        }
+        return false;
     }
 
     private boolean intakeSpinning() {
-        return abs(intakeMotor.getPower()) > 0.5;
+        return Math.abs(intakePower) > .5;
     }
 
     public boolean isOn() {
@@ -201,18 +221,15 @@ public class IntakeModule implements Module, Telemeter {
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
 
+//        data.add(String.format(Locale.US, "Intake position:  %s", targetIntakePosition));
         data.add("Intake position: " + targetIntakePosition);
         data.add("At pos? " + atTargetPosition());
 
         data.add("--");
+//        data.add(String.format(Locale.US, "Mineral is in intake: %b", hasMineral));
         data.add("Mineral is in intake: " + hasMineral);
 
         return data;
-    }
-
-    @Override
-    public int getShowIndex() {
-        return 1;
     }
 
     public String getName() {
