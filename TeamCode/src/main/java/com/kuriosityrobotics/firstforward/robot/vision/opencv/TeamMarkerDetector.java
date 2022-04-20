@@ -40,7 +40,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Utils.matToBitmap(_img, bmp);
         FtcDashboard.getInstance().sendImage(bmp);
 
-
         if (!active)
             return;
 

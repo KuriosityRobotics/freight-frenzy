@@ -64,7 +64,7 @@ public class OuttakeModule implements Module, Telemeter {
 
     public enum VerticalSlideLevel {
         CAP(-1400),
-        CAP_DROP(-1200),
+        CAP_DROP(-1100),
         TOP_TOP(-1200),
         TOP(-1000),
         MID(-427),
@@ -288,8 +288,8 @@ public class OuttakeModule implements Module, Telemeter {
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        slide2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        slide2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
 
     public void skipToCollapse() {

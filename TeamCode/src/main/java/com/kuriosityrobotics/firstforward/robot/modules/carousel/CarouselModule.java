@@ -69,7 +69,7 @@ public class CarouselModule implements Module, Telemeter {
             } else {
                 double posRadians = ticksToRadians(Math.abs(startPosition - carouselMotor.getCurrentPosition()));
 
-                if (posRadians > (2.51 * PI)) {
+                if (posRadians > (2.7 * PI)) {
                     carouselMotor.setVelocity(0);
                 } else if (posRadians > (1.93 * PI)) {
 //                Log.v("carousel",  "max speed");

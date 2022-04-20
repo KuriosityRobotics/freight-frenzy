@@ -55,16 +55,20 @@ public class PurePursuit implements Telemeter {
     private final double angleThreshold;
     public boolean fuzzyLastAction = false;
 
-    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxAccel, double maxDeccel) {
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxVel, double maxAccel, double maxDeccel) {
         this.path = path;
         this.followRadius = followRadius;
 
-        this.profile = new MotionProfile(path, MotionProfile.ROBOT_MAX_VEL, maxAccel, maxDeccel);
+        this.profile = new MotionProfile(path, maxVel, maxAccel, maxDeccel);
 
         this.backwards = backwards;
         this.angleThreshold = ANGLE_THRESHOLD;
 
         this.reset();
+    }
+
+    public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxAccel, double maxDeccel) {
+        this(path, backwards, followRadius, MotionProfile.ROBOT_MAX_VEL, maxAccel, maxDeccel);
     }
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double angleThreshold) {
