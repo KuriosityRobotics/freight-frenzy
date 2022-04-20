@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
-//@Disabled
+@Disabled
 public class PlebCamTurretTuner extends LinearOpMode {
     Servo pivot;
 
