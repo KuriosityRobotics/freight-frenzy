@@ -222,6 +222,6 @@ public class TeleOp extends LinearOpMode {
     }
 
     private void updateCarouselStates() {
-        robot.carouselModule.spin = gamepad2.right_stick_x > 0 || gamepad2.right_stick_x < 0;
+        robot.carouselModule.spin = Math.abs(gamepad2.right_stick_x) > 0.3;
     }
 }
