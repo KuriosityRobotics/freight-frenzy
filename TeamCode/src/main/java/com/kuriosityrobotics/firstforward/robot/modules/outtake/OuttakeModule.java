@@ -171,7 +171,13 @@ public class OuttakeModule implements Module, Telemeter {
                 turret.setPosition(TurretPosition.STRAIGHT.position);
                 break;
             case COLLAPSE:
-                if (timerComplete()) {
+                slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
+                slide2.setTargetPosition(VerticalSlideLevel.DOWN.position);
+
+                slide.setPower(0.35);
+                slide2.setPower(0.35);
+
+                if (slidesAtTarget()) {
                     clamp.setPosition(CLAMP_INTAKE);
                 } else {
                     clamp.setPosition(CLAMP_CLAMP);
@@ -184,12 +190,6 @@ public class OuttakeModule implements Module, Telemeter {
                 } else {
                     linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                 }
-
-                slide.setPower(0.35);
-                slide2.setPower(0.35);
-
-                slide.setTargetPosition(VerticalSlideLevel.DOWN.position);
-                slide2.setTargetPosition(VerticalSlideLevel.DOWN.position);
                 break;
         }
     }
@@ -198,7 +198,7 @@ public class OuttakeModule implements Module, Telemeter {
         long currentTime = System.currentTimeMillis();
         boolean timerComplete = currentTime >= transitionTime + currentState.completionTime;
         boolean turretTimerComplete = currentTime >= transitionTime + currentState.completionTime + TURRET_TIME;
-        boolean slidesAtTarget = abs(slide2.getCurrentPosition() - slide2.getTargetPosition()) < 50;
+        boolean slidesAtTarget = slidesAtTarget();
 
         switch (currentState) {
             case RAISE:
@@ -229,6 +229,10 @@ public class OuttakeModule implements Module, Telemeter {
             default:
                 return timerComplete;
         }
+    }
+
+    private boolean slidesAtTarget(){
+        return abs(slide2.getCurrentPosition() - slide2.getTargetPosition()) < 50;
     }
 
     private boolean timerComplete() {

@@ -40,6 +40,7 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Utils.matToBitmap(_img, bmp);
         FtcDashboard.getInstance().sendImage(bmp);
 
+
         if (!active)
             return;
 
@@ -48,10 +49,10 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Core.bitwise_not(img, img);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
 
-        var bounding1 = new Rect(236, 97, 86,  114);
-        var bounding2 = new Rect(389, 101, 86, 114);
-        Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
-        Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
+        var bounding1 = new Rect(240, 90, 86, 114);
+        var bounding2 = new Rect(390, 90, 86, 114);
+        //Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
+        //Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
 
         Core.inRange(img, new Scalar(90 - 10, 70, 50), new Scalar(90 + 10, 255, 255), img);
 
@@ -69,8 +70,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
         var p1 = Core.countNonZero(sub1) / ((double) sub1.width() * sub1.height());
         var p2 = Core.countNonZero(sub2) / ((double) sub2.width() * sub2.height());
-        var isSub1 = p1 > .2;
-        var isSub2 = p2 > .2;
+        var isSub1 = p1 > 50./255;
+        var isSub2 = p2 > 50./255;
 
         sub1.release();
         sub2.release();
