@@ -40,21 +40,25 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Utils.matToBitmap(_img, bmp);
         FtcDashboard.getInstance().sendImage(bmp);
 
-
         if (!active)
             return;
 
         var img = _img.clone();
+
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2BGR);
-        Core.bitwise_not(img, img);
+//        Core.bitwise_not(img, img);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
 
-        var bounding1 = new Rect(240, 90, 86, 114);
-        var bounding2 = new Rect(390, 90, 86, 114);
-        //Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
-        //Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
+        Core.inRange(img, new Scalar(60, 125, 60), new Scalar(140, 255, 255), img);
 
-        Core.inRange(img, new Scalar(90 - 10, 70, 50), new Scalar(90 + 10, 255, 255), img);
+        Rect bounding1, bounding2;
+        if (Robot.isBlue) {
+            bounding1 = new Rect(240, 90, 86, 114);
+            bounding2 = new Rect(390, 90, 86, 114);
+        } else {
+            bounding1 = new Rect(266, 90, 86, 114);
+            bounding2 = new Rect(439, 90, 86, 114);
+        }
 
         boolean badBound1 = !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.tl()) ||
                 !new Rect(0, 0, img.cols(), img.rows()).contains(bounding1.br());
@@ -76,9 +80,6 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         sub1.release();
         sub2.release();
         img.release();
-
-//        if (isSub1)
-
 
         if (isSub1 && isSub2) {
             if (p1 > p2)
