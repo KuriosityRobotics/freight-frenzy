@@ -28,7 +28,6 @@ public class RedCycle extends LinearOpMode {
     public static final Pose RED_WOBBLE_W = new Pose(24, 73, Math.toRadians(-110));
     public static final Pose RED_WOBBLE_WALL_POINT = new Pose(7.5, 68, Math.toRadians(180));
 
-
     public static final Pose RED_BETWEEN_WOBBLE_WALLGAP = new Pose(6.5, 62.5, Math.toRadians(180));
     public static final Pose RED_WALL_GAP = new Pose(6.5, 46.5, Math.toRadians(180));
     private Pose redWarehouse = new Pose(8, 33, Math.toRadians(175));
@@ -50,7 +49,7 @@ public class RedCycle extends LinearOpMode {
 
         robot.resetPose(RED_START_W);
 
-        AutoPaths.calibrateVuforia(robot);
+//        AutoPaths.calibrateVuforia(robot);
 
         waitForStart();
 

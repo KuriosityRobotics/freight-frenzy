@@ -42,7 +42,7 @@ public class Robot implements LocationProvider {
     public final TelemetryDump telemetryDump;
 
     public final HardwareMap hardwareMap;
-    private final LinearOpMode linearOpMode;
+    public final LinearOpMode linearOpMode;
 
     public final LynxModule revHub1;
     public final LynxModule revHub2;

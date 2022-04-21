@@ -13,6 +13,8 @@ import java.util.ArrayList;
  * from the hubs.
  */
 public class ModuleThread implements Runnable, Telemeter {
+    public volatile static boolean KILL = false;
+
     static final boolean SHOW_UPDATE_SPEED = true;
 
     private final Robot robot;
@@ -35,6 +37,13 @@ public class ModuleThread implements Runnable, Telemeter {
      */
     public void run() {
         while (robot.running()) {
+            if (KILL) {
+                robot.linearOpMode.stop();
+                KILL = false;
+                Log.e("ModuleThread", "killed opmode");
+                return;
+            }
+
             if (!started && robot.started()) {
                 for (Module module : modules) {
                     if (module.isOn()) {

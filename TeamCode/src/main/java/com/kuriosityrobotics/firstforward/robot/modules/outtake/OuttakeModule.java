@@ -68,7 +68,7 @@ public class OuttakeModule implements Module, Telemeter {
         TOP_TOP(-1200),
         TOP(-1000),
         MID(-427),
-        SHARED(-200),
+        SHARED(-125),
         DOWN(-2),
         DOWN_NO_EXTEND(-2);
 
@@ -164,7 +164,7 @@ public class OuttakeModule implements Module, Telemeter {
                 clamp.setPosition(CLAMP_RELEASE);
                 break;
             case RETRACT:
-                linkage.setPosition(LinkagePosition.RETRACT.position);
+                linkage.setPosition(LinkagePosition.PARTIAL_EXTEND.position);
                 break;
             case TURRET_IN:
                 pivot.setPosition(PivotPosition.UP.position);

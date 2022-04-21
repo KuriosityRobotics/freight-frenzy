@@ -1,11 +1,14 @@
 package com.kuriosityrobotics.firstforward.robot.pathfollow;
 
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
+import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.doublesEqual;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.ModuleThread;
 import com.kuriosityrobotics.firstforward.robot.util.PID.IThresholdPID;
 import com.kuriosityrobotics.firstforward.robot.util.math.Circle;
 import com.kuriosityrobotics.firstforward.robot.util.math.Line;
@@ -13,11 +16,8 @@ import com.kuriosityrobotics.firstforward.robot.util.math.Point;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.kuriosityrobotics.firstforward.robot.modules.drivetrain.Drivetrain;
 import com.kuriosityrobotics.firstforward.robot.pathfollow.motionprofiling.MotionProfile;
-import com.kuriosityrobotics.firstforward.robot.util.PID.ClassicalPID;
 import com.kuriosityrobotics.firstforward.robot.util.PID.FeedForwardPID;
 import com.qualcomm.robotcore.util.Range;
-
-import org.checkerframework.dataflow.qual.Pure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,8 +42,8 @@ public class PurePursuit implements Telemeter {
     private final FeedForwardPID yPID = new FeedForwardPID(0.0185, 0.015, 0, 0.00);
     private final FeedForwardPID xPID = new FeedForwardPID(0.027, 0.026, 0.0000, 0);
     private final IThresholdPID headingPID = new IThresholdPID(0.68, 0.00035, 0.10, Math.toRadians(4), Math.toRadians(12));
-//    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
-    double xvel, yvel, targx, targy, heading, targhead, targvel, vel, distToEnd;
+    //    private final ClassicalPID headingPID = new ClassicalPID(0.67, 0.000, 0.10);
+    double targetXVel, targetYVel, targx, targy, heading, targhead, targvel, vel, distToEnd;
 
     Point target = new Point(0, 0);
     // helpers
@@ -54,6 +54,8 @@ public class PurePursuit implements Telemeter {
     private boolean started = false;
     private final double angleThreshold;
     public boolean fuzzyLastAction = false;
+
+    public final double KILL_SWITCH_MS = 5000;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxVel, double maxAccel, double maxDeccel) {
         this.path = path;
@@ -95,6 +97,8 @@ public class PurePursuit implements Telemeter {
         this(path, false, followRadius);
     }
 
+    private long pathStartTime = 0;
+
     public void reset() {
         this.pathIndex = 0;
         this.executedLastAction = false;
@@ -109,6 +113,7 @@ public class PurePursuit implements Telemeter {
         }
     }
 
+
     /**
      * Tick pure pursuit once. Returns true if this should be called again. Returns false if the
      * path is done.
@@ -116,8 +121,15 @@ public class PurePursuit implements Telemeter {
     public boolean update(LocationProvider locationProvider, Drivetrain drivetrain) {
         if (!started) {
             ActionExecutor.execute(path[0]);
+            pathStartTime = SystemClock.elapsedRealtime();
             started = true;
         }
+
+        if (SystemClock.elapsedRealtime() - pathStartTime > KILL_SWITCH_MS) {
+            Log.e("PP", "gve up on path;  fix ur shit it broke");
+            ModuleThread.KILL = true;
+        }
+
 
         boolean atEnd = atEnd(locationProvider);
         if ((atEnd || (fuzzyLastAction && locationProvider.getPose().distance(path[path.length - 1]) < 1.75)) && !executedLastAction) {
@@ -151,7 +163,7 @@ public class PurePursuit implements Telemeter {
         double targetXVelo = targetVelocity * Math.sin(headingToPoint);
         double targetYVelo = targetVelocity * Math.cos(headingToPoint);
 
-        Log.v("PP","targX: " + targetXVelo + " targY: " + targetYVelo);
+        Log.v("PP", "targX: " + targetXVelo + " targY: " + targetYVelo);
 
         double veloMag = Math.hypot(robotVelo.x, robotVelo.y);
         double veloHeading = Math.atan2(robotVelo.x, robotVelo.y);
@@ -199,8 +211,8 @@ public class PurePursuit implements Telemeter {
         // save values for dashboard lemon
         vel = Math.sqrt(Math.pow(robotVelo.x, 2) + Math.pow(robotVelo.y, 2));
         targvel = targetVelocity;
-        xvel = currXVelo;
-        yvel = currYVelo;
+        targetXVel = currXVelo;
+        targetYVel = currYVelo;
         targx = targetXVelo;
         targy = targetYVelo;
         heading = angleWrap(robotPose.heading, Math.PI);
@@ -326,9 +338,9 @@ public class PurePursuit implements Telemeter {
     public HashMap<String, Object> getDashboardData() {
         HashMap<String, Object> map = new HashMap<>();
 
-        map.put("xVel", "" + xvel);
+        map.put("xVel", "" + targetXVel);
         map.put("targx", "" + targx);
-        map.put("yvel", "" + yvel);
+        map.put("yvel", "" + targetYVel);
         map.put("targy", "" + targy);
         map.put("Heading", "" + heading);
         map.put("targ heading", "" + targhead);

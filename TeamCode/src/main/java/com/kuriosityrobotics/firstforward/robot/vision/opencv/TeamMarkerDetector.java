@@ -48,8 +48,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
         Core.bitwise_not(img, img);
         Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
 
-        var bounding1 = new Rect(333, 107, 86, 114);
-        var bounding2 = new Rect(455, 107, 86, 114);
+        var bounding1 = new Rect(236, 97, 86,  114);
+        var bounding2 = new Rect(389, 101, 86, 114);
         Imgproc.rectangle(img, bounding1, new Scalar(0, 0, 0));
         Imgproc.rectangle(img, bounding2, new Scalar(255, 255, 255));
 
