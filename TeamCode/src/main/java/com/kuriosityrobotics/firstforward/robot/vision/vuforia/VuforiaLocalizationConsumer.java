@@ -307,7 +307,7 @@ public class VuforiaLocalizationConsumer implements VuforiaConsumer {
 
                 OpenGLMatrix robotLocationTransform = listener.getRobotLocation();
                 OpenGLMatrix vuMarkPoseRelativeToCamera = listener.getFtcCameraFromTarget();
-                if (robotLocationTransform != null) {
+                if (robotLocationTransform != null && vuMarkPoseRelativeToCamera != null) {
 
                     Log.v("KF", "vuf saw");
 

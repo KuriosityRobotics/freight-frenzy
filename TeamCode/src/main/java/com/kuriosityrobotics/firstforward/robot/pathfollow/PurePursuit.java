@@ -55,7 +55,8 @@ public class PurePursuit implements Telemeter {
     private final double angleThreshold;
     public boolean fuzzyLastAction = false;
 
-    public final double KILL_SWITCH_MS = 5000;
+    public final double KILL_SWITCH_MS = 6000;
+    public boolean kill = true;
 
     public PurePursuit(WayPoint[] path, boolean backwards, double followRadius, double maxVel, double maxAccel, double maxDeccel) {
         this.path = path;
@@ -125,11 +126,10 @@ public class PurePursuit implements Telemeter {
             started = true;
         }
 
-        if (SystemClock.elapsedRealtime() - pathStartTime > KILL_SWITCH_MS) {
+        if (SystemClock.elapsedRealtime() - pathStartTime > KILL_SWITCH_MS && kill) {
             Log.e("PP", "gve up on path;  fix ur shit it broke");
             ModuleThread.KILL = true;
         }
-
 
         boolean atEnd = atEnd(locationProvider);
         if ((atEnd || (fuzzyLastAction && locationProvider.getPose().distance(path[path.length - 1]) < 1.75)) && !executedLastAction) {

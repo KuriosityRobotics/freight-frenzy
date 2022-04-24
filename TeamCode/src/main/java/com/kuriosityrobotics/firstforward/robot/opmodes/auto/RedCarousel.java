@@ -44,7 +44,7 @@ public class RedCarousel extends LinearOpMode {
         OuttakeModule.VerticalSlideLevel detected = AutoPaths.delayedStartLogic(this, robot, START);
 
         PurePursuit toWobble = new PurePursuit(new WayPoint[]{
-                new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected)),
+                new WayPoint(START, new VelocityLock(10, false), robot.outtakeModule.extendOuttakeAction(detected, OuttakeModule.TurretPosition.STRAIGHT)),
                 new WayPoint(START.between(WOBBLE), new VelocityLock(0.4 * MotionProfile.ROBOT_MAX_VEL, false)),
                 new WayPoint(WOBBLE, 0, robot.outtakeModule.dumpOuttakeAction())
         }, true, 4, 85, 30);
@@ -54,6 +54,7 @@ public class RedCarousel extends LinearOpMode {
                 new WayPoint(PRE_CAROUSEL, 13),
                 new WayPoint(CAROUSEL, 0, robot.carouselModule.carouselAction())
         }, false, 4, 85, 30);
+        toCarousel.kill = false;
 
         PurePursuit toPark = new PurePursuit(new WayPoint[]{
                 new WayPoint(CAROUSEL),

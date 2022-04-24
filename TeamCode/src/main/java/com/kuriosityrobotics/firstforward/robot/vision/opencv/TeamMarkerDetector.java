@@ -1,5 +1,7 @@
 package com.kuriosityrobotics.firstforward.robot.vision.opencv;
 
+import static com.kuriosityrobotics.firstforward.robot.Robot.isBlue;
+
 import android.graphics.Bitmap;
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -36,23 +38,14 @@ public class TeamMarkerDetector implements OpenCvConsumer {
      * @param _img input frame
      */
     public void processFrame(double cameraAngle, Mat _img) {
-        var bmp = Bitmap.createBitmap(_img.cols(), _img.rows(), Bitmap.Config.ARGB_8888);
-        Utils.matToBitmap(_img, bmp);
-        FtcDashboard.getInstance().sendImage(bmp);
 
-        if (!active)
-            return;
-
-        var img = _img.clone();
-
+        Mat img = _img.clone();
         Imgproc.cvtColor(img, img, Imgproc.COLOR_RGB2BGR);
-//        Core.bitwise_not(img, img);
-        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
 
-        Core.inRange(img, new Scalar(60, 125, 60), new Scalar(140, 255, 255), img);
+        filter(img);
 
         Rect bounding1, bounding2;
-        if (Robot.isBlue) {
+        if (isBlue) {
             bounding1 = new Rect(240, 90, 86, 114);
             bounding2 = new Rect(390, 90, 86, 114);
         } else {
@@ -74,8 +67,8 @@ public class TeamMarkerDetector implements OpenCvConsumer {
 
         var p1 = Core.countNonZero(sub1) / ((double) sub1.width() * sub1.height());
         var p2 = Core.countNonZero(sub2) / ((double) sub2.width() * sub2.height());
-        var isSub1 = p1 > 50./255;
-        var isSub2 = p2 > 50./255;
+        var isSub1 = p1 > 50. / 255;
+        var isSub2 = p2 > 50. / 255;
 
         sub1.release();
         sub2.release();
@@ -88,12 +81,20 @@ public class TeamMarkerDetector implements OpenCvConsumer {
                 isSub1 = false;
         }
 
-        if (!isSub1 && !isSub2)
-            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3;
-        else if (isSub1)
-            this.location = Robot.isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_1;
-        else
-            this.location = TeamMarkerLocation.LEVEL_2;
+        if (!isSub1 && !isSub2) {
+            location = isBlue ? TeamMarkerLocation.LEVEL_1 : TeamMarkerLocation.LEVEL_3;
+        } else if (isSub1) {
+            location = isBlue ? TeamMarkerLocation.LEVEL_2 : TeamMarkerLocation.LEVEL_1;
+        } else {
+            location = isBlue ? TeamMarkerLocation.LEVEL_3 : TeamMarkerLocation.LEVEL_2;
+        }
+    }
+
+    // invert BGR frame, convert to hsv and then look for cyan
+    public static void filter(Mat img) {
+        Core.bitwise_not(img, img);
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2HSV);
+        Core.inRange(img, new Scalar(90 - 10, 70, 50), new Scalar(90 + 10, 255, 255), img);
     }
 
     public enum TeamMarkerLocation {

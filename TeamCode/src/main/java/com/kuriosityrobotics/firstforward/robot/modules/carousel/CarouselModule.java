@@ -73,7 +73,7 @@ public class CarouselModule implements Module, Telemeter {
                     carouselMotor.setVelocity(0);
                 } else if (posRadians > (1.93 * PI)) {
 //                Log.v("carousel",  "max speed");
-                    carouselMotor.setPower(1);
+                    carouselMotor.setPower(isClockwise() ? -1 : 1);
                 } else {
 //                Log.v("carousel", "no max speed");
                     speed = getMaxSpeed() * Range.clip((((double)(SystemClock.elapsedRealtime() - spinStartTimeMillis)) / MAX_SPEED_MS), 0, 1);

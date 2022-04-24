@@ -76,7 +76,7 @@ public class Robot implements LocationProvider {
         sensorThread = new SensorThread(this, configLocation);
 
         // modules
-        drivetrain = new Drivetrain(sensorThread.odometry, hardwareMap);
+        drivetrain = new Drivetrain(sensorThread.odometry, hardwareMap, this);
         telemetryDump.registerTelemeter(drivetrain);
 
         outtakeModule = new OuttakeModule(this, hardwareMap);
