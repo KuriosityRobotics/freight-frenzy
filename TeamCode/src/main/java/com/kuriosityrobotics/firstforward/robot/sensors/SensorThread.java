@@ -1,7 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static java.text.MessageFormat.format;
-import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.ForkJoinPool.commonPool;
 import static de.esoco.coroutine.Coroutine.first;
 import static de.esoco.coroutine.step.CodeExecution.consume;
@@ -14,10 +12,10 @@ import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.KalmanDatum;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
-import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchSensor;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.AsynchProcess;
+import com.kuriosityrobotics.firstforward.robot.util.wrappers.SharpIRDistance;
 import com.qualcomm.hardware.lynx.LynxModule;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,32 +35,49 @@ public class SensorThread implements Runnable, Telemeter {
         theKalmanFilter = new ExtendedKalmanFilter(0, 0, 0);
     }
 
-    private final HashMap<String, AsynchSensor> sensors;
+    private final HashSet<AsynchProcess> sensors;
 
     private final Robot robot;
     private final Odometry odometry;
     private final IMU imu;
+    private final DistanceSensorLocaliser distanceSensorLocaliser;
+
     private long updateTime = 0;
     private long lastLoopTime = 0;
     private long lastPoseSendTime = 0;
 
     public SensorThread(Robot robot) {
         this.robot = robot;
-
-        this.odometry = new Odometry(robot.getHardwareMap(), getPose(), theKalmanFilter);
-        this.imu = new IMU(robot.getHardwareMap(), theKalmanFilter);
-
         robot.getTelemetryDump().registerTelemeter(theKalmanFilter);
-        robot.getTelemetryDump().registerTelemeter(odometry);
-        robot.getTelemetryDump().registerTelemeter(imu);
 
-        sensors = new HashMap<>();
-        sensors.put("IMU", new AsynchSensor(10, imu::update));
-        sensors.put("EH", new AsynchSensor(60, robot.getExpansionHub()::getBulkData));
-        sensors.put("CH/Odo", new AsynchSensor(() -> {
-            robot.getControlHub().getBulkData();
-            odometry.update();
-        }));
+        this.imu = new IMU(robot.getHardwareMap(), theKalmanFilter);
+        this.odometry = new Odometry(robot.getHardwareMap(), getPose(), theKalmanFilter, imu);
+
+        var frontLeft = new SharpIRDistance(robot.getHardwareMap(), "frontLeft");
+        var backLeft = new SharpIRDistance(robot.getHardwareMap(), "backLeft");
+        var frontRight = new SharpIRDistance(robot.getHardwareMap(), "frontRight");
+        var backRight = new SharpIRDistance(robot.getHardwareMap(), "backRight");
+        this.distanceSensorLocaliser = new DistanceSensorLocaliser(
+                robot,
+                theKalmanFilter,
+                frontLeft,
+                backLeft,
+                frontRight,
+                backRight
+        );
+
+        sensors = new HashSet<>();
+        sensors.add(AsynchProcess.parallel(imu));
+        sensors.add(AsynchProcess.parallel("EH", robot.getExpansionHub()::getBulkData, 60));
+        sensors.add(AsynchProcess.parallel("CH", robot.getControlHub()::getBulkData)
+                .chain(odometry)
+                .chain(frontLeft)
+                .chain(backLeft)
+                .chain(frontRight)
+                .chain(backRight)
+                .chain(distanceSensorLocaliser));
+
+        sensors.forEach(robot.getTelemetryDump()::registerTelemeter);
     }
 
     public ExtendedKalmanFilter getKalmanFilter() {
@@ -83,12 +98,12 @@ public class SensorThread implements Runnable, Telemeter {
     @Override
     public void run() {
         while (robot.running()) {
-            sensors.values().forEach(AsynchSensor::update);
+            sensors.forEach(AsynchProcess::update);
 
             long currentTime = SystemClock.elapsedRealtime();
 
             if (currentTime - lastPoseSendTime >= 250) {
-                robot.getTelemetryDump().sendPose(getPose().toDegrees());
+                robot.getTelemetryDump().sendPose(getPose());
                 lastPoseSendTime = currentTime;
             }
 
@@ -125,20 +140,8 @@ public class SensorThread implements Runnable, Telemeter {
         ArrayList<String> data = new ArrayList<>();
 
         data.add("Update time: " + updateTime);
-        data.add("Robot Pose: " + getPose().toDegrees());
-
-        for (var sensor : sensors.entrySet()) {
-            var builder = new StringBuilder();
-            builder.append(sensor.getKey());
-            builder.append(" update time (last 1s avg):  ");
-            var avg = sensor.getValue().rollingAverageUpdateTime();
-            builder.append((int)avg);
-            builder.append(" ms (");
-            builder.append((int)(1000 / avg));
-            builder.append(" Hz)");
-            data.add(builder.toString());
-        }
-
+        data.add(getPose().toString("Robot pose"));
+        data.add(Pose.of(theKalmanFilter.getVariance()).toString("variance"));
 
         return data;
     }
@@ -148,7 +151,8 @@ public class SensorThread implements Runnable, Telemeter {
         HashMap<String, Object> data = new HashMap<>();
 
         data.put("Sensor Thread Update time: ", "" + updateTime);
-        data.put("Robot Pose Deg: ", getPose());
+        data.put("Robot Pose: ", getPose());
+        data.put("variance:  ", Pose.of(theKalmanFilter.getVariance()));
 
         return data;
     }

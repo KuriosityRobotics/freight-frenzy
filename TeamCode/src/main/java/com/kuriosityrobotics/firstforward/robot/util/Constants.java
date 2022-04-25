@@ -11,7 +11,6 @@ import java.util.Arrays;
  * All units are in inches and radians unless otherwise specified.
  */
 public class Constants {
-
     public static class OpModes {
         public static final double JOYSTICK_EPSILON = 0.1;
     }

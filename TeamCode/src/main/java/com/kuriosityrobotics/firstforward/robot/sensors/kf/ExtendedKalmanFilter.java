@@ -2,10 +2,7 @@ package com.kuriosityrobotics.firstforward.robot.sensors.kf;
 
 import static com.kuriosityrobotics.firstforward.robot.Robot.assertThat;
 
-import static java.text.MessageFormat.format;
-
 import android.os.SystemClock;
-import android.util.Log;
 
 import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
 import com.kuriosityrobotics.firstforward.robot.sensors.RollingVelocityCalculator;
@@ -23,7 +20,8 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     private final Object lock = new Object();
     private final LinkedList<PostPredictionState> history = new LinkedList<>();
 
-    private Primitive64Matrix mean, covariance;
+    Primitive64Matrix mean;
+    private Primitive64Matrix covariance;
 
     /**
      * @param initialState starting state
@@ -50,6 +48,10 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             data[i][i] = diagonal[i];
         }
         return Primitive64Matrix.FACTORY.rows(data);
+    }
+
+    public KalmanDatumBuilder builder() {
+        return new KalmanDatumBuilder();
     }
 
     public void reset(double[] initialState, double... initialVariance) {
@@ -138,8 +140,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
             }
 
             history.forEach(state -> {
-//                if (!state.getMean().equals(smoothedMeans.get(state)))
-//                    Log.d("EKF/smooth", format("before:  {0},  after:  {1}", state.getMean(), smoothedMeans.get(state)));
                 state.setMean(smoothedMeans.get(state));
                 state.setCovariance(smoothedVariances.get(state));
             });
@@ -257,6 +257,15 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
         return null;
     }
 
+    public double[] getVariance() {
+        var diag = new double[covariance.getRowDim()];
+
+        for(int i = 0; i < covariance.getRowDim(); i++)
+            diag[i] = covariance.get(i, i);
+
+        return diag;
+    }
+
     @Override
     public boolean isOn() {
         return false;
@@ -265,10 +274,6 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
     @Override
     public HashMap<String, Object> getDashboardData() {
         return Telemeter.super.getDashboardData();
-    }
-
-    public KalmanDatumBuilder datumBuilder() {
-        return this.new KalmanDatumBuilder();
     }
 
     static class PostPredictionState {
@@ -366,7 +371,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
             if (!covariance.isSymmetric())
                 throw new IllegalArgumentException("Covariance matrix must be symmetrical.");
-
+            
             if (stateToOutput.getColDim() != ExtendedKalmanFilter.this.mean.getRowDim())
                 throw new IllegalArgumentException("State to output matrix does not fit filter.");
 
@@ -375,7 +380,7 @@ public class ExtendedKalmanFilter extends RollingVelocityCalculator implements T
 
         public void predict() {
             var datum = build();
-            if (!(datum.isFullState() && mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
+            if (!(datum.isFullState() && this.mean.getRowDim() == ExtendedKalmanFilter.this.mean.getRowDim()))
                 throw new RuntimeException("Prediction data must be full-state.  Perhaps you could pass in 0 for the parameters you don't want to muck with.");
 
             ExtendedKalmanFilter.this.predict(datum);

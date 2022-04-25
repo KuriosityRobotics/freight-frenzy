@@ -1,6 +1,5 @@
 package com.kuriosityrobotics.firstforward.robot.sensors;
 
-import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.rotate;
 import static java.lang.Math.pow;
 
@@ -8,7 +7,7 @@ import android.os.SystemClock;
 
 import com.kuriosityrobotics.firstforward.robot.LocationProvider;
 import com.kuriosityrobotics.firstforward.robot.debug.FileDump;
-import com.kuriosityrobotics.firstforward.robot.debug.telemetry.Telemeter;
+import com.kuriosityrobotics.firstforward.robot.modules.Module;
 import com.kuriosityrobotics.firstforward.robot.sensors.kf.ExtendedKalmanFilter;
 import com.kuriosityrobotics.firstforward.robot.util.math.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,58 +15,46 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.ArrayList;
 
-public class Odometry extends RollingVelocityCalculator implements Telemeter, LocationProvider {
+public class Odometry extends RollingVelocityCalculator implements Module, LocationProvider {
+    // Constants
+    private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
+    private static final double LR_ENCODER_DIST_FROM_CENTER = 2.4367390324945863115640954444386315979381132912686705686229716745 * (3631.6415304167253 / 3600.);
+    private static final double B_ENCODER_DIST_FROM_CENTER = 2.9761730787305137386664648856740921319601002407647215925090672904 * (3622.009011720834 / 3600.);
     // Encoders
     private final DcMotor yLeftEncoder;
     private final DcMotor yRightEncoder;
     private final DcMotor mecanumBackEncoder;
     private final DcMotor mecanumFrontEncoder;
-
+    private final ExtendedKalmanFilter kalmanFilter;
+    private final IMU imu;
     // Position of the robot, can be changed through constructor
     private double worldX;
     private double worldY;
     private double worldHeadingRad;
-
     // veloclity of the robot
     private double xVel = 0;
     private double yVel = 0;
     private double angleVel = 0;
-
-    // old vel for acceleration calculations
-    private double oldxVel = 0;
-    private double oldyVel = 0;
-    private double oldangleVel = 0;
-
     // change in position of the robot
     private double dx = 0;
     private double dy = 0;
     private double dHeading = 0;
-
     // For position calculation
     private double lastLeftPosition = 0;
     private double lastRightPosition = 0;
     private double lastMecanumBackPosition = 0;
     private double lastMecanumFrontPosition = 0;
-
     // For velocity calculation
     private double oldX = 0;
     private double oldY = 0;
     private double oldHeading = 0;
-
     private double lastUpdateTime = 0;
 
-    // Constants
-    private static final double INCHES_PER_ENCODER_TICK = 0.0007284406721 * (100.0 / 101.9889);
-    private static final double LR_ENCODER_DIST_FROM_CENTER = 2.4367390324945863115640954444386315979381132912686705686229716745 * (3631.6415304167253 / 3600.);
-    private static final double B_ENCODER_DIST_FROM_CENTER = 2.9761730787305137386664648856740921319601002407647215925090672904 * (3622.009011720834 / 3600.);
-
-
-    private final ExtendedKalmanFilter kalmanFilter;
-
-    public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter) {
+    public Odometry(HardwareMap hardwareMap, Pose pose, ExtendedKalmanFilter kalmanFilter, IMU imu) {
         this.worldX = pose.x;
         this.worldY = pose.y;
         this.worldHeadingRad = pose.heading;
+        this.imu = imu;
 
         yLeftEncoder = hardwareMap.get(DcMotor.class, "fLeft");
         yRightEncoder = hardwareMap.get(DcMotor.class, "fRight");
@@ -82,19 +69,27 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
     }
 
     public void update() {
-
         var now = SystemClock.elapsedRealtime();
+        var dt = (now - lastUpdateTime) / 1000.;
+        if (lastUpdateTime == 0)
+            dt = 1. / maxFrequency();
+
         calculatePosition();
-        kalmanFilter.datumBuilder()
-                .time(now)
-                .mean(dx, dy, dHeading)
-                .outputToState(rotate(kalmanFilter.outputVector()[2]))
-                .variance(pow(.8 * dx, 2), pow(.8 * dy, 2), pow(.8 * dHeading, 2))
-                .predict();
 
         calculateInstantaneousVelocity();
         this.calculateRollingVelocity(new PoseInstant(getPose(), SystemClock.elapsedRealtime() / 1000.0));
 
+        var accel = imu.getAcceleration();
+        kalmanFilter.builder()
+                .time(now)
+                .mean(dx, dy, dHeading)
+                .outputToState(rotate(kalmanFilter.outputVector()[2]))
+                .variance(
+                        pow(dt * accel.x * .3, 2),
+                        pow(dt * accel.y * .3, 2),
+                        pow(dHeading * (imu.isOffGround() ? 2 : .8), 2)
+                )
+                .predict();
     }
 
     private void calculatePosition() {
@@ -119,7 +114,7 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
 
     private void calculateInstantaneousVelocity() {
         long currentUpdateTime = SystemClock.elapsedRealtime();
-        double dTime = (currentUpdateTime - lastUpdateTime) / 1000;
+        double dTime = (currentUpdateTime - lastUpdateTime) / 1000.;
 
         // normalize to milliseconds then apply dimensional analysis to get to seconds
         xVel = (worldX - oldX) / (dTime);
@@ -130,15 +125,8 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         oldY = worldY;
         oldHeading = worldHeadingRad;
 
-        oldxVel = xVel;
-        oldyVel = yVel;
-        oldangleVel = angleVel;
-
         lastUpdateTime = currentUpdateTime;
     }
-
-    private double thetaLR = 0;
-    private double thetaFB = 0;
 
     private void updateWorldPosition(double dLeftPod, double dRightPod, double dMecanumBackPod, double dMecanumFrontPod) {
         // convert all inputs to inches
@@ -154,9 +142,6 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         // find robot relative deltas
         double dThetaLR = (dLeftPodInches - dRightPodInches) / (2 * P);
         double dThetaFB = (dMecanumFrontPodInches - dMecanumBackPodInches) / (2 * Q);
-
-        thetaLR += dThetaLR;
-        thetaFB += dThetaFB;
 
         double X = Math.abs(dLeftPodInches + dRightPodInches);
         double Y = Math.abs(dMecanumFrontPodInches + dMecanumBackPodInches);
@@ -242,12 +227,18 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
     @Override
     public ArrayList<String> getTelemetryData() {
         ArrayList<String> data = new ArrayList<>();
-
-        data.add("worldX: " + worldX);
-        data.add("worldY: " + worldY);
-        data.add("worldHeading: " + Math.toDegrees(angleWrap(worldHeadingRad)));
+        data.add(getPose().toString("odometry pose"));
 
         return data;
+    }
+
+    /**
+     * Get the robot's current pose, containing x, y, and heading.
+     * <p>
+     * There is only one getter method to reduce the likelihood of values changing between getters.
+     */
+    public Pose getPose() {
+        return new Pose(worldX, worldY, worldHeadingRad);
     }
 
     public void setPose(Pose pose) {
@@ -260,25 +251,12 @@ public class Odometry extends RollingVelocityCalculator implements Telemeter, Lo
         this.worldHeadingRad = pose.heading;
     }
 
-    /**
-     * Get the robot's current pose, containing x, y, and heading.
-     * <p>
-     * There is only one getter method to reduce the likelihood of values changing between getters.
-     */
-    public Pose getPose() {
-        return new Pose(worldX, worldY, worldHeadingRad);
-    }
-
     public Pose getVelocity() {
         return getInstantaneousVelocity();
     }
 
     public Pose getInstantaneousVelocity() {
         return new Pose(xVel, yVel, angleVel);
-    }
-
-    public double getVelMag() {
-        return Math.hypot(xVel, yVel);
     }
 
     @Override

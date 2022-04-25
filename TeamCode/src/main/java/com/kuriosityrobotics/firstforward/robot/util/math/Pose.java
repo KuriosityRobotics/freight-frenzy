@@ -3,7 +3,9 @@ package com.kuriosityrobotics.firstforward.robot.util.math;
 import static com.kuriosityrobotics.firstforward.robot.util.Constants.Field.FULL_FIELD;
 import static com.kuriosityrobotics.firstforward.robot.util.math.MathUtil.angleWrap;
 import static java.lang.Math.cos;
+import static java.lang.Math.hypot;
 import static java.lang.Math.sin;
+import static java.lang.Math.toDegrees;
 
 import androidx.annotation.NonNull;
 
@@ -79,14 +81,15 @@ public class Pose extends Point {
         return (this.x >= xMin) && (this.x <= xMax) && (this.y >= yMin) && (this.y <= yMax);
     }
 
-    public Pose toDegrees() {
-        return new Pose(this.x, this.y, Math.toDegrees(this.heading));
-    }
-
     @NonNull
     @Override
     public String toString() {
-        return String.format(Locale.US, "x = %.3f, y = %.3f, heading = %.3f", x, y, heading);
+        return toString("");
+    }
+
+    public String toString(String label) {
+        return String.format(Locale.US, "%-10s x: %,6.2f y: %,6.2f θ: %,3.0f", label, x, y, toDegrees(heading))
+                .replace(" ", "\u00a0");
     }
 
     // sus naming but whatever
